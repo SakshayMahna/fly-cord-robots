@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Env / secrets
+.env
+*.token
+neuprint_token*
+
+# Data (connectome dumps, caches — too large / regenerable, never commit)
+data/
+*.parquet
+*.feather
+*.h5
+*.hdf5
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Media / renders (large binaries — keep source scripts, not output)
+media/*.mp4
+media/*.png
+media/*.gif
+!media/.gitkeep
+
+# MuJoCo / logs
+*.mjb
+logs/
+outputs/
+wandb/
