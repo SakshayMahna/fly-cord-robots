@@ -10,6 +10,9 @@ venv/
 *.token
 neuprint_token*
 
+# External repos (cloned reference code/data — not ours, too large, regenerable)
+external/
+
 # Data (connectome dumps, caches — too large / regenerable, never commit)
 data/
 *.parquet
@@ -24,9 +27,10 @@ data/
 .DS_Store
 
 # Media / renders (large binaries — keep source scripts, not output)
-media/*.mp4
-media/*.png
-media/*.gif
+media/**/*.mp4
+media/**/*.png
+media/**/*.gif
+media/**/*.json
 !media/.gitkeep
 
 # MuJoCo / logs

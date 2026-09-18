@@ -1,0 +1,7 @@
+cwd_dir: ${oc.env:FLY_ROBOT_REPO}/external/Pugliese_cpg_2025
+base_dir: ${oc.env:FLY_ROBOT_REPO}/data/simulation_output/${experiment.name}/${version}
+save_dir: "${multirun_save_dir:${paths.base_dir},${run_id}}"
+log_dir: "${paths.save_dir}/logs/"
+ckpt_dir: "${paths.save_dir}/ckpt/"
+fig_dir: "${paths.save_dir}/figures/"
+data_dir: ${oc.env:FLY_ROBOT_REPO}/external/Pugliese_cpg_2025/data

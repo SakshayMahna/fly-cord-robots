@@ -1,0 +1,32 @@
+# Not part of Pugliese et al.'s original repo/paper. Added by us to test
+# whether DNg100 stimulation produces rhythmic motor output across all six
+# legs when simulated on the TRUE whole-VNC network, rather than their
+# published front-leg-restricted network (4604 neurons).
+#
+# Parameters below (data file, stimI) match their ACTUAL verified Fig. 4
+# run config, extracted from their real Zenodo archive (run_id=33195857)
+# — see CHANGELOG 2026-09-19. Earlier attempts guessed at these values
+# from the paper text alone (stimI=250 by analogy to T1, then 400 by
+# analogy to a different experiment's "CNS datasets" value) and failed to
+# produce any motor neuron activity; both guesses were wrong. Generate the
+# required .npy/.csv cache first:
+#   python -m fly_robot.neural.prepare_full_vnc_data --pugliese-repo external/Pugliese_cpg_2025 --source 20251006
+name: FullVNC_DNg100_Stim
+
+wPath: ${oc.env:FLY_ROBOT_REPO}/data/pugliese_sim_cache/W_full_vnc.npy
+dfPath: ${oc.env:FLY_ROBOT_REPO}/data/pugliese_sim_cache/wTable_full_vnc.csv
+n_replicates: 1
+batch_size:
+dn_screen: False
+stimNeurons:
+  - [59, 282]  # BOTH DNg100 copies (bodyIds 10093, 10339) — bilateral, matching Fig. 4
+removeNeurons: []
+keepOnly: []
+stimI:
+  - [380, 380]  # their actual verified value (run_config.yaml), not derivable from the paper text alone
+seed: 1
+saveFigs: False
+useTsp: False
+save_checkpoints: False
+max_pruning_iterations: 200
+oscillation_threshold: 0.5

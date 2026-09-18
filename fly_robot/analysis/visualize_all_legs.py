@@ -1,18 +1,21 @@
-"""Render the candidate T1/T2/T3 CPG circuits + all leg motor neurons
-(MaleCNS) as a 3D skeleton plot — the visual sanity check for the
-data-derived hypothesis in `identify_all_legs.py` and the corresponding
-CHANGELOG entry.
+"""Render the T1/T2/T3 CPG circuits + all leg motor neurons (MaleCNS) as a
+3D skeleton plot — final Phase 1 circuit map.
 
-T1's circuit is Pugliese's *published, validated* result. T2/T3's circuits
-are only a connectivity-weight-matching hypothesis so far. This render
-colors T1 differently from T2/T3 so that distinction stays visible rather
-than implying equal confidence in all three.
+Status as of 2026-09-19 (see CHANGELOG): T1's circuit is Pugliese's
+published, validated result. T2/T3's circuits were identified by us from
+static connectivity alone (`identify_all_legs.py`), then confirmed
+rhythmically active by checking these exact neurons against Pugliese's
+real published full-VNC simulation output (104-124/128 replicates active,
+scores in the same range as T1). All three segments are now confirmed,
+not hypothesized — colors are still kept distinct per segment (not by
+confidence level) so the three leg circuits stay visually distinguishable
+in the render.
 
-If the hypothesis is anatomically sound, we'd expect: three separate
-bilateral neuropil clusters of motor neurons along the VNC (T1/T2/T3, in
-that anterior-to-posterior order), each with its own small CPG cluster
-sitting inside it — not, say, T2/T3 "CPG" neurons that turn out to sit
-outside leg neuropil entirely (which would suggest a mis-identification).
+Anatomical sanity check this plot provides: three separate bilateral
+neuropil clusters of motor neurons along the VNC (T1/T2/T3, in that
+anterior-to-posterior order), each with its own small CPG cluster sitting
+inside it — not, say, T2/T3 "CPG" neurons that turn out to sit outside leg
+neuropil entirely (which would suggest a mis-identification).
 """
 
 import argparse
@@ -27,13 +30,15 @@ from fly_robot.connectome.client import get_client
 
 COLOR_MOTOR_NEURON = "#8a8a86"
 
-# T1 (published/confirmed circuit): saturated colors.
+# T1 (published, Pugliese's own validated circuit): saturated warm hues.
 COLOR_T1_DN = "#e34948"
 COLOR_T1_EXCIT = "#2a78d6"
 COLOR_T1_INHIB = "#eb6834"
 
-# T2/T3 (hypothesis only, not yet confirmed): distinct, cooler/muted hues
-# so they read as "candidate" rather than "confirmed" at a glance.
+# T2/T3 (identified by us, confirmed via their real published simulation
+# output — see CHANGELOG 2026-09-19): distinct cool hues, purely to keep
+# the three segments visually separable in the render, NOT to imply lower
+# confidence — these are confirmed too, not "candidates" anymore.
 COLOR_CAND_DN = "#9085e9"      # violet
 COLOR_CAND_EXCIT = "#1baf7a"   # aqua/green
 COLOR_CAND_INHIB = "#eda100"   # yellow
@@ -52,12 +57,12 @@ CANDIDATE_ROLE_COLOR = {
 }
 
 LEGEND_ENTRIES = [
-    ("T1 DNg100 (confirmed)", COLOR_T1_DN),
-    ("T1 CPG (confirmed)", COLOR_T1_EXCIT),
-    ("T1 CPG, inhibitory (confirmed)", COLOR_T1_INHIB),
-    ("T2/T3 DNg100 copy (candidate)", COLOR_CAND_DN),
-    ("T2/T3 CPG (candidate)", COLOR_CAND_EXCIT),
-    ("T2/T3 CPG, inhibitory (candidate)", COLOR_CAND_INHIB),
+    ("T1 DNg100 (Pugliese, published)", COLOR_T1_DN),
+    ("T1 CPG (Pugliese, published)", COLOR_T1_EXCIT),
+    ("T1 CPG, inhibitory (Pugliese, published)", COLOR_T1_INHIB),
+    ("T2/T3 DNg100 copy (confirmed, see CHANGELOG)", COLOR_CAND_DN),
+    ("T2/T3 CPG (confirmed, see CHANGELOG)", COLOR_CAND_EXCIT),
+    ("T2/T3 CPG, inhibitory (confirmed, see CHANGELOG)", COLOR_CAND_INHIB),
     ("leg motor neurons (all legs)", COLOR_MOTOR_NEURON),
 ]
 

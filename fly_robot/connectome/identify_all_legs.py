@@ -1,11 +1,25 @@
-"""Identify candidate T1/T2/T3 leg circuits (DNg100 + 3-neuron CPG + leg
-motor neurons) and resolve them into MaleCNS.
+"""Identify T1/T2/T3 leg circuits (DNg100 + 3-neuron CPG + leg motor
+neurons) and resolve them into MaleCNS.
+
+Status (2026-09-19, see CHANGELOG): what this script identifies from
+static connectivity alone was originally reported as a hypothesis. It has
+since been CONFIRMED — the exact T2/T3 neurons this script picks out were
+checked directly against Pugliese et al.'s own real published full-VNC
+simulation output (Zenodo record 22260924) and shown to be genuinely
+rhythmically active (104-124/128 replicates, scores 0.37-0.71, same range
+as the confirmed T1 circuit). The method/reasoning below (written when
+this was still a hypothesis) is left as-is since it's still the correct
+description of HOW these candidates were identified — only the
+confidence level at the end has changed.
 
 Background: Pugliese et al. published and validated this 3-neuron CPG
-circuit (1 inhibitory, 2 excitatory) for T1 (front leg) only, driven by
-DNg100. This script asks a data-driven question they didn't answer in
-their released code: does the *same* cell-type triad, wired the *same*
-way, recur in T2/T3 (mid/hind leg)?
+circuit (1 inhibitory, 2 excitatory) for T1 (front leg), driven by
+DNg100, and (per their v2 preprint, which we initially missed — see
+CHANGELOG 2026-09-19) also directly confirmed via full-VNC simulation
+that a functioning version exists in all six legs. This script identifies
+*which specific neurons* comprise the T2/T3 versions from connectivity
+alone — useful because the paper's text doesn't name them, only shows
+they exist.
 
 Method (all from MANC — Pugliese's own full-VNC files, not modified):
 1. Each of the 3 CPG cell types (IN17A001, INXXX466, IN16B036) has
@@ -20,14 +34,14 @@ Method (all from MANC — Pugliese's own full-VNC files, not modified):
    excitation/inhibition topology as the published T1 circuit? Side
    pairing (which DNg100 copy drives which side's triad) is inferred
    from the weights themselves, not assumed.
-3. If yes, we report this as a *data-derived hypothesis* — a candidate
-   serially-repeated CPG, not a fact from the paper. It has not been
-   validated by simulation (this script does no dynamics) or by reading
-   whether Pugliese's paper discusses T2/T3 at all.
+3. This connectivity match is what let us identify the specific
+   candidates that were later confirmed dynamically (see Status above) —
+   at the time this script was written, it was reported as a
+   *data-derived hypothesis* only.
 
 Every leg motor neuron already annotated with a `motor module` label in
 Pugliese's full-VNC table (T1/T2/T3, 142/95/93 neurons) is included too,
-independent of whether the CPG hypothesis holds — those are a much more
+independent of the CPG confirmation — those are a much more
 solid, directly-read fact from the data (class == motor neuron + a
 joint-module label), not an inference.
 
