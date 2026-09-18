@@ -108,3 +108,106 @@ One implementation note for future reruns: `navis.plot2d`'s
 `view=("x", "-z")` inverts the *displayed* axis, it does not negate the
 underlying coordinate data — cropping/zooming code must compute bounds
 from raw `z`, not `-z`, or the crop silently points at empty space.
+
+## 2026-09-18 — Phase 1: evidence the T1 CPG motif repeats in T2/T3 (hypothesis, not yet confirmed)
+
+Pugliese's model and published circuit cover **T1 only**. Before doing our
+own from-scratch circuit discovery for T2/T3, we checked a cheaper
+question first: does the *exact same 3-neuron CPG motif* they found in T1
+simply recur, unremarked, in the other two leg segments? Built
+`fly_robot/connectome/identify_all_legs.py` to test this directly against
+real MANC connectivity (Pugliese's own `wTable_20260522_allSynapses.feather`
++ `W_20260522_allSynapses.npz` full-VNC data — not modified, just read).
+
+**Step 1 — naming fact (weak evidence on its own):** each of the 3 CPG
+cell types (`IN17A001`, `INXXX466`, `IN16B036`) has exactly 6 instances in
+MANC: one per body side × one per thoracic segment (T1/T2/T3). Same
+`type` string across segments is a lineage/morphology claim from Janelia's
+annotators, not proof they're wired the same way — so we went further.
+
+**Step 2 — actual synaptic weights (real evidence):** for every
+leg segment × side (6 total), we automatically paired each hub neuron
+with whichever of the two DNg100 copies actually drives it most strongly
+(inferred from the weight matrix — not assumed from L/R symmetry), then
+read off the full triad's internal weights. All 6 came back structurally
+identical to the published T1 circuit:
+
+| leg | side | DN→hub | hub→excit2 | inhib→hub | inhib→excit2 |
+|-----|------|-------:|-----------:|----------:|-------------:|
+| T1  | LHS  | 187 | 539 | -531 | -172 |
+| T1  | RHS  | 217 | 456 | -580 |  -79 |
+| T2  | LHS  | 185 | 521 | -526 | -241 |
+| T2  | RHS  | 192 | 605 | -558 | -303 |
+| T3  | LHS  | 130 | 509 | -588 | -191 |
+| T3  | RHS  | 153 | 468 | -561 | -173 |
+
+Every segment/side: DNg100 strongly excites an "excit_hub" neuron, which
+strongly excites a second excitatory neuron and weakly excites an
+inhibitory one; the inhibitory neuron strongly inhibits back onto both —
+the same qualitative circuit motif Pugliese describe for T1, at similar
+weight magnitudes. T1-RHS's `inhib→excit2` (-79) is noticeably weaker than
+the other five (-172 to -303) — a real asymmetry worth remembering if T1
+LHS/RHS behave differently in simulation later.
+
+**What this is and isn't:** this is a data-derived *hypothesis* that T2
+and T3 have their own local DNg100-driven CPGs, structurally homologous
+to the published T1 one. It is **not** confirmed by reading whether
+Pugliese's paper discusses T2/T3 at all (we haven't read the full text
+closely for this), and **not** validated by simulation — connectivity
+topology alone doesn't guarantee the same rhythmic dynamics. Treat as a
+strong lead for Phase 1, not an established fact, until we either find
+it addressed in the paper or reproduce rhythmic output from these
+candidate circuits ourselves.
+
+**Motor neurons:** separately, and on much firmer footing (a direct
+annotation, not an inference), Pugliese's full-VNC table already labels
+330 leg motor neurons by joint/module across all three segments (T1: 142,
+T2: 95, T3: 93) — tibia flex/extend, coxa swing/stance, femur reductor,
+tarsus control, substrate grip, etc. No equivalent CPG discovery was
+needed for these; we just read the existing annotation.
+
+**Resolution into MaleCNS:** of all 350 unique MANC bodyIds involved (2
+DNg100 + 24 CPG-candidate neurons + 330 motor neurons — some overlap
+removed), **333 resolved (95.1%)** via `mancBodyid`. Output:
+`data/circuit_map/all_legs_circuit.csv` (gitignored; regenerate via
+`python -m fly_robot.connectome.identify_all_legs --pugliese-repo <path>`).
+
+**Visual spot-check:** rendered all three segments together
+(`fly_robot/analysis/visualize_all_legs.py` →
+`media/all_legs_circuit_{dark,light}.png`, T1 in saturated colors since
+it's confirmed, T2/T3 in cooler/muted colors since they're still a
+hypothesis). Result: three separate bilateral motor-neuron neuropil
+clusters in the expected anterior-to-posterior order, DNg100 descending
+through and reaching into each one, and each segment's candidate CPG
+triad sitting compactly inside its own segment's cluster — no neurons
+turned up in anatomically nonsensical places.
+
+**Second, independent check — does each triad actually output onto its
+own segment's motor neurons** (not just onto each other)? Internal
+mutual excitation/inhibition alone doesn't make something a CPG if it
+doesn't drive any motor output. Checked direct synaptic weight from each
+triad member onto that segment's same-side annotated leg motor neurons:
+
+| segment | hub → local MNs | excit2 → local MNs | inhib → local MNs |
+|---|---|---|---|
+| T1 (confirmed) | 24/71, Σw=+99 | 31/71, Σw=+357 | 24/71, Σw=-54 |
+| T2 (candidate) | 20/47, Σw=+116 | 15/47, Σw=+143 | 12/47, Σw=-51 |
+| T3 (candidate) | 11/46, Σw=+63 | 16/46, Σw=+65 | 5/46, Σw=-11 |
+
+All three segments show the same qualitative pattern (both excitatory
+neurons broadly excite the local motor pool, the inhibitory neuron
+broadly inhibits it) — a second, independent line of evidence beyond the
+internal triad topology. T3's connections are consistently weaker and
+sparser than T1/T2 (e.g. inhib→MN summed weight -11 vs -54/-51) — real,
+worth remembering as a caveat rather than treating all three segments as
+equally strong evidence.
+
+**Still not enough to call this confirmed:** matching static connectivity
+(internal topology + motor output) is real evidence but not proof of
+function — it doesn't establish that stimulating these circuits actually
+produces a sustained oscillation the way Pugliese demonstrated for T1.
+**Not yet done:** (1) reading Pugliese's paper text directly for any
+T2/T3 discussion that would confirm or contradict this independently of
+our own analysis; (2) running the actual rate-model dynamics on all three
+candidate circuits and checking for rhythmic output — the real test, and
+still owed for T1 itself (Phase 0's original goal).

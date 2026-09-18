@@ -1,0 +1,187 @@
+"""Identify candidate T1/T2/T3 leg circuits (DNg100 + 3-neuron CPG + leg
+motor neurons) and resolve them into MaleCNS.
+
+Background: Pugliese et al. published and validated this 3-neuron CPG
+circuit (1 inhibitory, 2 excitatory) for T1 (front leg) only, driven by
+DNg100. This script asks a data-driven question they didn't answer in
+their released code: does the *same* cell-type triad, wired the *same*
+way, recur in T2/T3 (mid/hind leg)?
+
+Method (all from MANC — Pugliese's own full-VNC files, not modified):
+1. Each of the 3 CPG cell types (IN17A001, INXXX466, IN16B036) has
+   exactly 6 instances in MANC: one per side x one per thoracic segment.
+   This by itself is just a naming/typing fact from Janelia's annotation,
+   not evidence of shared function — same `type` string is only a
+   morphological/lineage claim.
+2. To test function, we look at real synaptic weights (MANC's own
+   `W_20260522_allSynapses.npz` matrix, row/column order given by
+   `wTable_20260522_allSynapses.feather`): does DNg100 drive each
+   segment's triad, and does each triad show the same mutual
+   excitation/inhibition topology as the published T1 circuit? Side
+   pairing (which DNg100 copy drives which side's triad) is inferred
+   from the weights themselves, not assumed.
+3. If yes, we report this as a *data-derived hypothesis* — a candidate
+   serially-repeated CPG, not a fact from the paper. It has not been
+   validated by simulation (this script does no dynamics) or by reading
+   whether Pugliese's paper discusses T2/T3 at all.
+
+Every leg motor neuron already annotated with a `motor module` label in
+Pugliese's full-VNC table (T1/T2/T3, 142/95/93 neurons) is included too,
+independent of whether the CPG hypothesis holds — those are a much more
+solid, directly-read fact from the data (class == motor neuron + a
+joint-module label), not an inference.
+
+Usage:
+    python -m fly_robot.connectome.identify_all_legs \
+        --pugliese-repo /path/to/Pugliese_cpg_2025 \
+        --out data/circuit_map/all_legs_circuit.csv
+"""
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from fly_robot.connectome.client import get_client
+
+# The 3 CPG cell types from Pugliese's T1 circuit (see identify_circuit.py
+# for how these were decoded from their experiment config row-indices).
+CPG_TYPES = {
+    "IN17A001": "excit_hub",   # strong DNg100 target, drives excit2 + inhib
+    "INXXX466": "excit2",
+    "IN16B036": "inhib",
+}
+DN_TYPE = "DNg100"
+
+
+def _load_manc_full_vnc(pugliese_repo: Path):
+    data_dir = pugliese_repo / "data" / "manc full vnc data"
+    wtable = pd.read_feather(data_dir / "wTable_20260522_allSynapses.feather").reset_index(drop=True)
+    weights = np.load(data_dir / "W_20260522_allSynapses.npz", allow_pickle=True)["arr_0"]
+    return wtable, weights
+
+
+def _pair_dn_to_side(wtable, weights, dn_bodyids, hub_rows):
+    """For each hub (excit_hub) neuron, find which DNg100 copy drives it
+    (by comparing actual synaptic weight, not assuming L drives L)."""
+    idx_of = {bid: i for i, bid in enumerate(wtable["bodyId"])}
+    pairing = {}
+    for _, hub in hub_rows.iterrows():
+        hub_idx = idx_of[hub["bodyId"]]
+        best_dn, best_w = None, 0.0
+        for dn_bid in dn_bodyids:
+            w = weights[idx_of[dn_bid], hub_idx]
+            if w > best_w:
+                best_dn, best_w = dn_bid, w
+        pairing[hub["bodyId"]] = (best_dn, best_w)
+    return pairing
+
+
+def find_cpg_candidates(wtable, weights) -> pd.DataFrame:
+    idx_of = {bid: i for i, bid in enumerate(wtable["bodyId"])}
+    dn_rows = wtable[wtable["type"] == DN_TYPE]
+    dn_bodyids = dn_rows["bodyId"].tolist()
+
+    hub_rows = wtable[wtable["type"] == "IN17A001"]
+    pairing = _pair_dn_to_side(wtable, weights, dn_bodyids, hub_rows)
+
+    records = []
+    for _, hub in hub_rows.iterrows():
+        seg = hub["somaNeuromere"]
+        side = hub["somaSide"]
+        dn_bid, dn_w = pairing[hub["bodyId"]]
+        if dn_bid is None or dn_w < 10:
+            continue  # no meaningfully-driven hub found on this side/segment
+
+        # Same-segment, same-side excit2 / inhib partners.
+        same = wtable[(wtable["somaNeuromere"] == seg) & (wtable["somaSide"] == side)]
+        excit2 = same[same["type"] == "INXXX466"]
+        inhib = same[same["type"] == "IN16B036"]
+        if len(excit2) != 1 or len(inhib) != 1:
+            continue  # ambiguous or missing partner on this side — skip rather than guess
+        excit2_bid = excit2.iloc[0]["bodyId"]
+        inhib_bid = inhib.iloc[0]["bodyId"]
+
+        w = lambda a, b: weights[idx_of[a], idx_of[b]]
+        records.append({
+            "leg": seg, "side": side,
+            "dn_bodyId": dn_bid,
+            "excit_hub_bodyId": hub["bodyId"],
+            "excit2_bodyId": excit2_bid,
+            "inhib_bodyId": inhib_bid,
+            "w_dn_to_hub": dn_w,
+            "w_hub_to_excit2": w(hub["bodyId"], excit2_bid),
+            "w_hub_to_inhib": w(hub["bodyId"], inhib_bid),
+            "w_excit2_to_hub": w(excit2_bid, hub["bodyId"]),
+            "w_excit2_to_inhib": w(excit2_bid, inhib_bid),
+            "w_inhib_to_hub": w(inhib_bid, hub["bodyId"]),
+            "w_inhib_to_excit2": w(inhib_bid, excit2_bid),
+        })
+    return pd.DataFrame(records)
+
+
+def collect_motor_neurons(wtable) -> pd.DataFrame:
+    mn = wtable[wtable["class"].astype(str).str.contains("motor", case=False, na=False)].copy()
+    mn["has_module"] = mn["motor module"].astype(str).str.strip().replace("nan", "").ne("")
+    leg_mn = mn[mn["has_module"] & mn["somaNeuromere"].isin(["T1", "T2", "T3"])].copy()
+    return leg_mn[["bodyId", "type", "somaNeuromere", "somaSide", "motor module", "predictedNt"]]
+
+
+def resolve_to_malecns(manc_bodyids: list[int]) -> pd.DataFrame:
+    client = get_client()
+    query = f"""
+    MATCH (n:Neuron)
+    WHERE n.mancBodyid IN {list(int(b) for b in manc_bodyids)}
+    RETURN n.bodyId AS malecns_bodyId, n.type AS type, n.instance AS instance,
+           n.mancBodyid AS manc_bodyId, n.status AS status,
+           n.somaNeuromere AS malecns_somaNeuromere
+    """
+    return client.fetch_custom(query)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--pugliese-repo", required=True, type=Path)
+    parser.add_argument("--out", default="data/circuit_map/all_legs_circuit.csv")
+    args = parser.parse_args()
+
+    wtable, weights = _load_manc_full_vnc(args.pugliese_repo)
+
+    cpg_candidates = find_cpg_candidates(wtable, weights)
+    print("CPG candidate triads found (leg x side):")
+    print(cpg_candidates[["leg", "side", "w_dn_to_hub", "w_hub_to_excit2",
+                           "w_inhib_to_hub", "w_inhib_to_excit2"]].to_string(index=False))
+
+    cpg_bodyids = pd.unique(cpg_candidates[
+        ["dn_bodyId", "excit_hub_bodyId", "excit2_bodyId", "inhib_bodyId"]
+    ].values.ravel())
+
+    leg_mn = collect_motor_neurons(wtable)
+    print(f"\nLeg motor neurons with joint-module annotation: {len(leg_mn)} "
+          f"({leg_mn['somaNeuromere'].value_counts().to_dict()})")
+
+    all_manc_ids = list(cpg_bodyids) + leg_mn["bodyId"].tolist()
+    malecns = resolve_to_malecns(all_manc_ids)
+    print(f"\nResolved {malecns['malecns_bodyId'].notna().sum()}/{len(all_manc_ids)} "
+          f"total neurons to MaleCNS.")
+
+    # Assemble final long-form table.
+    rows = []
+    for _, r in cpg_candidates.iterrows():
+        for role, bid_col in [("command_DN", "dn_bodyId"), ("CPG_excit_hub", "excit_hub_bodyId"),
+                               ("CPG_excit2", "excit2_bodyId"), ("CPG_inhib", "inhib_bodyId")]:
+            rows.append({"leg": r["leg"], "side": r["side"], "role": role,
+                         "manc_bodyId": r[bid_col], "motor_module": None})
+    for _, r in leg_mn.iterrows():
+        rows.append({"leg": r["somaNeuromere"], "side": r["somaSide"],
+                     "role": "leg_motor_neuron", "manc_bodyId": r["bodyId"],
+                     "motor_module": r["motor module"]})
+
+    long_df = pd.DataFrame(rows).drop_duplicates(subset=["manc_bodyId", "role"])
+    merged = long_df.merge(malecns, on="manc_bodyId", how="left")
+
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    merged.to_csv(out_path, index=False)
+    print(f"\nWrote {len(merged)} rows to {out_path}")
