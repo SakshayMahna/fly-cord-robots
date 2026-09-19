@@ -16,9 +16,19 @@ neuropil clusters of motor neurons along the VNC (T1/T2/T3, in that
 anterior-to-posterior order), each with its own small CPG cluster sitting
 inside it — not, say, T2/T3 "CPG" neurons that turn out to sit outside leg
 neuropil entirely (which would suggest a mis-identification).
+
+Color encoding: one distinct hue per LEG SEGMENT (T1/T2/T3), each shaded
+into 3 tints for the 3 CPG roles (command DN darkest, excitatory hub
+mid-tone, inhibitory lightest). Segment identity is the primary thing a
+viewer needs to read off this plot (there was an earlier version of this
+render, still in `docs/logs/2026-09-18.md`, that colored by
+confirmed-vs-hypothesis status instead — that distinction no longer
+applies now that all three segments are confirmed, and it had the side
+effect of making T2 and T3 indistinguishable from each other by color).
 """
 
 import argparse
+import colorsys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -30,41 +40,49 @@ from fly_robot.connectome.client import get_client
 
 COLOR_MOTOR_NEURON = "#8a8a86"
 
-# T1 (published, Pugliese's own validated circuit): saturated warm hues.
-COLOR_T1_DN = "#e34948"
-COLOR_T1_EXCIT = "#2a78d6"
-COLOR_T1_INHIB = "#eb6834"
+# One base hue per leg segment (first three categorical slots from the
+# project's palette reference — validated for all-pairs colorblind-safe
+# comparison, which matters here since a viewer needs to tell all three
+# segments apart at a glance, not just adjacent ones).
+SEGMENT_BASE_HUE = {
+    "T1": "#2a78d6",  # blue
+    "T2": "#eb6834",  # orange
+    "T3": "#1baf7a",  # aqua
+}
 
-# T2/T3 (identified by us, confirmed via their real published simulation
-# output — see CHANGELOG 2026-09-19): distinct cool hues, purely to keep
-# the three segments visually separable in the render, NOT to imply lower
-# confidence — these are confirmed too, not "candidates" anymore.
-COLOR_CAND_DN = "#9085e9"      # violet
-COLOR_CAND_EXCIT = "#1baf7a"   # aqua/green
-COLOR_CAND_INHIB = "#eda100"   # yellow
+
+def _shade(hex_color: str, lightness_delta: float) -> str:
+    """Lighten (positive) or darken (negative) a hex color in HSL space,
+    keeping hue/saturation fixed — used to derive the 3 per-segment role
+    tints from one base hue."""
+    r, g, b = (int(hex_color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    l = max(0.0, min(1.0, l + lightness_delta))
+    r, g, b = colorsys.hls_to_rgb(h, l, s)
+    return f"#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}"
+
+
+ROLE_LIGHTNESS_DELTA = {
+    "command_DN": -0.12,     # darkest — the descending command neuron
+    "CPG_excit_hub": 0.0,    # base hue
+    "CPG_excit2": 0.0,       # same tint as the hub (both excitatory)
+    "CPG_inhib": 0.20,       # lightest — the inhibitory neuron
+}
 
 ROLE_COLOR_BY_LEG = {
-    ("T1", "command_DN"): COLOR_T1_DN,
-    ("T1", "CPG_excit_hub"): COLOR_T1_EXCIT,
-    ("T1", "CPG_excit2"): COLOR_T1_EXCIT,
-    ("T1", "CPG_inhib"): COLOR_T1_INHIB,
-}
-CANDIDATE_ROLE_COLOR = {
-    "command_DN": COLOR_CAND_DN,
-    "CPG_excit_hub": COLOR_CAND_EXCIT,
-    "CPG_excit2": COLOR_CAND_EXCIT,
-    "CPG_inhib": COLOR_CAND_INHIB,
+    (leg, role): _shade(hue, delta)
+    for leg, hue in SEGMENT_BASE_HUE.items()
+    for role, delta in ROLE_LIGHTNESS_DELTA.items()
 }
 
 LEGEND_ENTRIES = [
-    ("T1 DNg100 (Pugliese, published)", COLOR_T1_DN),
-    ("T1 CPG (Pugliese, published)", COLOR_T1_EXCIT),
-    ("T1 CPG, inhibitory (Pugliese, published)", COLOR_T1_INHIB),
-    ("T2/T3 DNg100 copy (confirmed, see CHANGELOG)", COLOR_CAND_DN),
-    ("T2/T3 CPG (confirmed, see CHANGELOG)", COLOR_CAND_EXCIT),
-    ("T2/T3 CPG, inhibitory (confirmed, see CHANGELOG)", COLOR_CAND_INHIB),
-    ("leg motor neurons (all legs)", COLOR_MOTOR_NEURON),
-]
+    (f"{leg} DNg100" if role == "command_DN" else
+     f"{leg} CPG, inhibitory" if role == "CPG_inhib" else
+     f"{leg} CPG (excitatory)",
+     ROLE_COLOR_BY_LEG[(leg, role)])
+    for leg in ("T1", "T2", "T3")
+    for role in ("command_DN", "CPG_excit_hub", "CPG_inhib")
+] + [("leg motor neurons (all legs)", COLOR_MOTOR_NEURON)]
 
 
 def load_circuit(circuit_csv: str) -> pd.DataFrame:
@@ -90,8 +108,7 @@ def fetch_and_color(df: pd.DataFrame):
             colors[bid] = COLOR_MOTOR_NEURON
             is_highlight[bid] = False
         else:
-            key = (row["leg"], row["role"])
-            colors[bid] = ROLE_COLOR_BY_LEG.get(key) or CANDIDATE_ROLE_COLOR[row["role"]]
+            colors[bid] = ROLE_COLOR_BY_LEG[(row["leg"], row["role"])]
             is_highlight[bid] = True
 
     color_list = [colors[n.id] for n in skeletons]

@@ -104,8 +104,9 @@ We use **MaleCNS v1.0** (`male-cns:v1.0` on neuprint, server
   cross-reference to the corresponding MANC specimen body, computed by
   Janelia's annotation team. We use this (not `type`-string matching) to
   relocate neurons Pugliese identified in MANC into MaleCNS's ID space.
-  See `fly_robot/connectome/identify_circuit.py` and `CHANGELOG.md` for the
-  worked example (T1 circuit, 142/152 neurons resolved).
+  See `fly_robot/connectome/identify_circuit.py` and
+  `docs/logs/2026-09-18.md` for the worked example (T1 circuit, 142/152
+  neurons resolved).
 - Open caveat: Phase 0's original goal (match Pugliese's published rhythm
   figures) assumed MANC-derived weights. Running on MaleCNS-derived weights
   is not numerically the same circuit even with matching neuron identities.
@@ -157,21 +158,26 @@ harder-to-catch errors.
 - Fixed random seeds; every run is reproducible from its config.
 - neuprint auth token lives in `.env` (gitignored, never commit).
 
-## Architecture (target)
+## Architecture (target — items marked *not yet created* are Phase 2+)
 ```
 fly_robot/
   connectome/         # neuprint client, MANC<->MaleCNS neuron identification
-  neural/             # JAX rate model (reuse/adapt Pugliese), stimulation protocols
-  interface/          # motor-neuron → joint mapping; sensors → sensory-neuron inputs
-  bodies/             # MuJoCo MJCF: hexapod (3 DOF/leg), quadruped (amputated variant)
-  sim/                # coupled loop: neural dt vs physics dt synchronisation
-  experiments/        # phase scripts
-  analysis/           # rhythm, phase-coupling, gait plots, circuit visualizations
-configs/              # every experiment config-driven (Hydra or plain YAML)
-data/                 # connectome dumps/caches — regenerable, gitignored
+  neural/             # runs Pugliese's JAX rate model; our own model lives here later
+    pugliese_extra_configs/  # our Hydra config additions, tracked (external/ is gitignored)
+  interface/          # *not yet created* — motor-neuron → joint mapping; sensors → sensory-neuron inputs
+  bodies/             # *not yet created* — MuJoCo MJCF: hexapod (3 DOF/leg), quadruped (amputated variant)
+  sim/                # *not yet created* — coupled loop: neural dt vs physics dt synchronisation
+  experiments/        # *not yet created* — phase scripts
+  analysis/           # circuit visualizations; rhythm/phase-coupling/gait plots come later
+docs/
+  logs/               # dated findings, one file per day — the actual content
+CHANGELOG.md          # short index into docs/logs/, one line per day
+external/             # cloned reference repos (e.g. Pugliese_cpg_2025) — gitignored, MIT-licensed reuse
+data/                 # connectome dumps/caches/simulation output — regenerable, gitignored
 media/                # renders, neuron-activity overlays for the video — gitignored
                        # (regenerate via analysis/ scripts rather than versioning binaries)
-notebooks/            # thin wrappers only; logic lives in the package
+configs/              # *not yet created* — our own experiment configs (Hydra or plain YAML), once we have our own model
+notebooks/            # *not yet created* — thin wrappers only; logic lives in the package
 ```
 
 ## Phase roadmap (Video 1)
@@ -219,10 +225,14 @@ short version for orientation.
   plain oscillator — to show the real wiring matters.
 
 ## Working conventions
-- **Keep `CHANGELOG.md` updated as you go** — every session that produces a
-  finding, decision, or non-obvious debugging fix gets an entry (dated,
-  with *why*, not just *what*). This doubles as the video script source;
-  don't let it fall behind the code.
+- **Keep the findings log updated as you go** (added to, 2026-09-19: split
+  from one growing `CHANGELOG.md` into `docs/logs/<date>.md`, one file per
+  day, with `CHANGELOG.md` kept as a short index of one-line summaries +
+  links — mirrors this agent's own memory-index pattern). Every session
+  that produces a finding, decision, or non-obvious debugging fix gets an
+  entry in that day's log file (with *why*, not just *what*), plus a
+  one-line pointer added to the `CHANGELOG.md` index. This doubles as the
+  video script source; don't let it fall behind the code.
 - Explain non-obvious modelling choices in comments; note the paper section
   they come from when relevant.
 - When uncertain about biology, data fields, or repo behaviour: stop and flag
