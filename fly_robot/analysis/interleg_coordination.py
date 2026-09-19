@@ -76,12 +76,20 @@ TRANSIENT_S = 0.5
 MIN_PEAK_ACTIVITY = 0.05
 
 
+# Surrogates used to decide whether a leg is rhythmic at all. See
+# `_ar1_surrogate` for why the null is red noise rather than the
+# phase-randomised surrogate used for the coupling test.
+N_RHYTHM_SURROGATES = 200
+
+
 @dataclass
 class LegRhythm:
     """Per-leg rhythmicity for one trial."""
-    active: np.ndarray        # (6,) bool — had enough activity to phase-analyse
+    active: np.ndarray        # (6,) bool — enough amplitude to analyse at all
+    rhythmic: np.ndarray      # (6,) bool — active AND a significant spectral peak
     dominant_hz: np.ndarray   # (6,) float — spectral peak frequency in BAND_HZ
     peak_strength: np.ndarray # (6,) float — peak power / total in-band power
+    peak_threshold: np.ndarray  # (6,) float — 95th pct of the AR(1) null
     phase: np.ndarray         # (6, n_t) float — instantaneous phase (radians)
 
 
@@ -94,8 +102,10 @@ class Coordination:
     mean_phase_diff: np.ndarray  # (15,) circular mean of phase difference
     plv_null_p95: np.ndarray   # (15,) 95th percentile of the surrogate null
     significant: np.ndarray    # (15,) bool — plv exceeds its own null
-    valid: np.ndarray          # (15,) bool — both legs were active
+    valid: np.ndarray          # (15,) bool — BOTH legs had a significant rhythm
     tripod_index: float        # agreement with the alternating-tripod pattern
+    n_rhythmic_legs: int       # how many of the 6 legs were rhythmic
+    has_rhythm: bool           # >= 2 rhythmic legs, so coupling is measurable
 
 
 def pair_indices() -> list[tuple[int, int]]:
@@ -112,12 +122,64 @@ def _bandpass(x: np.ndarray, fs: float) -> np.ndarray:
     return filtfilt(b, a, x, axis=-1)
 
 
+def _ar1_surrogate(x: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """Red-noise surrogate: an AR(1) process matched to `x` in variance
+    and lag-1 autocorrelation.
+
+    This — not the phase-randomised surrogate — is the right null for
+    "is this leg rhythmic?". A phase-randomised surrogate preserves the
+    amplitude spectrum *exactly*, so it has the same spectral peak as the
+    real signal and can never test whether that peak is real. AR(1) noise
+    instead reproduces the smooth, autocorrelated background a
+    non-oscillating rate signal has, and asks whether the observed peak
+    stands out above what that background alone would produce.
+    """
+    x = np.asarray(x, dtype=float)
+    centred = x - x.mean()
+    denominator = float(np.dot(centred, centred))
+    phi = float(np.dot(centred[:-1], centred[1:]) / denominator) if denominator > 0 else 0.0
+    phi = float(np.clip(phi, -0.999, 0.999))
+    innovation_sd = float(centred.std() * np.sqrt(max(1.0 - phi ** 2, 1e-12)))
+
+    out = np.empty_like(centred)
+    out[0] = rng.normal(0.0, centred.std() if centred.std() > 0 else 1.0)
+    noise = rng.normal(0.0, innovation_sd, len(centred) - 1)
+    for i in range(1, len(centred)):
+        out[i] = phi * out[i - 1] + noise[i - 1]
+    return out + x.mean()
+
+
+def _in_band_peak_strength(x_band: np.ndarray, dt: float) -> tuple[float, float]:
+    """(dominant frequency, peak power / total in-band power)."""
+    freqs = np.fft.rfftfreq(x_band.shape[-1], dt)
+    power = np.abs(np.fft.rfft(x_band, axis=-1)) ** 2
+    in_band = (freqs >= BAND_HZ[0]) & (freqs <= BAND_HZ[1])
+    band_power = power[..., in_band]
+    total = band_power.sum(axis=-1)
+    peak = band_power.max(axis=-1)
+    dominant = freqs[in_band][band_power.argmax(axis=-1)]
+    strength = np.where(total > 0, peak / np.maximum(total, 1e-30), 0.0)
+    return dominant, strength
+
+
 def leg_rhythm(signals: np.ndarray, dt: float,
                transient_s: float = TRANSIENT_S,
-               min_peak: float = MIN_PEAK_ACTIVITY) -> LegRhythm:
+               min_peak: float = MIN_PEAK_ACTIVITY,
+               n_surrogates: int = N_RHYTHM_SURROGATES,
+               seed: int = 0) -> LegRhythm:
     """signals: (6, n_timesteps) per-leg readout (neural or kinematic).
     Returns per-leg rhythmicity and instantaneous phase over the
-    post-transient window."""
+    post-transient window.
+
+    **Rhythmicity is evaluated before anything else.** A leg counts as
+    rhythmic only if it has enough amplitude to analyse AND its in-band
+    spectral peak exceeds the 95th percentile of an AR(1) null matched to
+    its own variance and autocorrelation. Phase, and therefore any
+    coupling measure, is meaningless for a leg with no rhythm — the
+    Hilbert transform will happily return a phase for pure noise, and a
+    pair of such phases will sometimes look locked. Gating first is what
+    stops that becoming a spurious coupling result.
+    """
     fs = 1.0 / dt
     start = int(round(transient_s / dt))
     x = np.asarray(signals, dtype=np.float64)[:, start:]
@@ -128,20 +190,25 @@ def leg_rhythm(signals: np.ndarray, dt: float,
     xd = x - x.mean(axis=1, keepdims=True)
     xb = _bandpass(xd, fs)
 
-    # Spectral peak inside the band
-    freqs = np.fft.rfftfreq(xb.shape[1], dt)
-    power = np.abs(np.fft.rfft(xb, axis=1)) ** 2
-    in_band = (freqs >= BAND_HZ[0]) & (freqs <= BAND_HZ[1])
-    band_power = power[:, in_band]
-    band_freqs = freqs[in_band]
-    peak_bin = band_power.argmax(axis=1)
-    dominant = band_freqs[peak_bin]
-    total = band_power.sum(axis=1)
-    strength = np.where(total > 0, band_power.max(axis=1) / np.maximum(total, 1e-30), 0.0)
+    dominant, strength = _in_band_peak_strength(xb, dt)
+
+    # Is that peak bigger than autocorrelated noise alone would give?
+    rng = np.random.default_rng(seed)
+    threshold = np.zeros(len(LEGS))
+    for leg_i in range(len(LEGS)):
+        if not active[leg_i]:
+            continue
+        null = np.empty(n_surrogates)
+        for s in range(n_surrogates):
+            surrogate = _bandpass(_ar1_surrogate(xd[leg_i], rng)[None, :], fs)
+            null[s] = _in_band_peak_strength(surrogate, dt)[1][0]
+        threshold[leg_i] = float(np.percentile(null, 95))
+
+    rhythmic = active & (strength > threshold)
 
     phase = np.angle(hilbert(xb, axis=1))
-    return LegRhythm(active=active, dominant_hz=dominant,
-                     peak_strength=strength, phase=phase)
+    return LegRhythm(active=active, rhythmic=rhythmic, dominant_hz=dominant,
+                     peak_strength=strength, peak_threshold=threshold, phase=phase)
 
 
 def _plv(phase_i: np.ndarray, phase_j: np.ndarray) -> complex:
@@ -166,9 +233,27 @@ def coordination(signals: np.ndarray, dt: float, n_surrogates: int = 200,
 
     signals: (6, n_timesteps), legs in `LEGS` order.
     """
-    rhythm = leg_rhythm(signals, dt, transient_s=transient_s)
+    rhythm = leg_rhythm(signals, dt, transient_s=transient_s, seed=seed)
     pairs = pair_indices()
     rng = np.random.default_rng(seed)
+
+    n_rhythmic = int(rhythm.rhythmic.sum())
+    has_rhythm = n_rhythmic >= 2
+
+    # Rhythmicity is evaluated FIRST. With fewer than two rhythmic legs
+    # there is no pair whose phase relationship means anything, so no
+    # coupling metric is computed at all — the trial is reported as
+    # "no rhythm" rather than contributing a misleading number.
+    if not has_rhythm:
+        n_pairs = len(pairs)
+        return rhythm, Coordination(
+            pairs=pairs, plv=np.full(n_pairs, np.nan),
+            mean_phase_diff=np.full(n_pairs, np.nan),
+            plv_null_p95=np.full(n_pairs, np.nan),
+            significant=np.zeros(n_pairs, dtype=bool),
+            valid=np.zeros(n_pairs, dtype=bool),
+            tripod_index=np.nan, n_rhythmic_legs=n_rhythmic, has_rhythm=False,
+        )
 
     start = int(round(transient_s / dt))
     x = np.asarray(signals, dtype=np.float64)[:, start:]
@@ -189,7 +274,7 @@ def coordination(signals: np.ndarray, dt: float, n_surrogates: int = 200,
         z = _plv(rhythm.phase[i], rhythm.phase[j])
         plv[p] = np.abs(z)
         mean_diff[p] = np.angle(z)
-        valid[p] = rhythm.active[i] and rhythm.active[j]
+        valid[p] = bool(rhythm.rhythmic[i] and rhythm.rhythmic[j])
 
     null_p95 = np.percentile(null_plv, 95, axis=0)
     significant = valid & (plv > null_p95)
@@ -211,7 +296,8 @@ def coordination(signals: np.ndarray, dt: float, n_surrogates: int = 200,
 
     return rhythm, Coordination(pairs=pairs, plv=plv, mean_phase_diff=mean_diff,
                                  plv_null_p95=null_p95, significant=significant,
-                                 valid=valid, tripod_index=tripod)
+                                 valid=valid, tripod_index=tripod,
+                                 n_rhythmic_legs=n_rhythmic, has_rhythm=True)
 
 
 def leg_motor_readout(R: np.ndarray, motor_indices: dict) -> np.ndarray:

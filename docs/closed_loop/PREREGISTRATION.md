@@ -139,7 +139,8 @@ of intended locomotion and is cheap to record.
 | **E1** | closed | harness | real | normalised | feedback alone |
 | **E2** | open | ground | real | none | body mechanics alone |
 | **E3** | closed | ground | real | normalised | feedback + body |
-| **C1** | closed | ground | **shuffled** (degree- and sign-preserving) | normalised | is it the wiring? |
+| **C1** | closed | ground | **shuffled, protected** (degree- and sign-preserving; interface edges held out) | normalised | is it the wiring? — **primary wiring control** |
+| **C1b** | closed | ground | **shuffled, everything** | normalised | secondary wiring control |
 | **C2** | closed | ground | real | **rate-matched noise** | structured feedback vs extra drive |
 | **C3** | closed | ground | real | **permuted across legs** | does leg-specificity matter? *(deliberate locality violation — control only)* |
 | **C4** | closed | ground | real | **un-normalised, as-annotated** | what does the side normalisation do? |
@@ -161,7 +162,7 @@ bracketing the interesting region rather than guessing at it.
 
 **DNg100 drive ∈ {285, 380, 475}** — the published value (380) and ±25%.
 
-**Controls C1–C4** run at `g_fb = 10`, drive = 380.
+**Controls C1, C1b, C2–C4** run at `g_fb = 10`, drive = 380.
 
 **Seeds: 20 per condition.** A seed selects one stochastic draw of
 per-neuron parameters plus a randomised initial joint state. Main runs use
@@ -184,8 +185,9 @@ reported per condition; it is not a quality filter and is never applied
 after seeing a result.
 
 **Budget:** E1 and E3 at 6 × 3 × 20 = 360 trials each; E0 and E2 at 3 × 20
-= 60 each; C1–C4 at 20 each = 80. **920 trials**, ~24 s each (22.4 s neural
-+ 0.8 s physics, measured) ≈ **6.1 hours**. No reduced matrix needed.
+= 60 each; C1, C1b, C2, C3, C4 at 20 each = 100. **940 trials**, ~24 s each
+(22.4 s neural + 0.8 s physics, measured) ≈ **6.3 hours**. No reduced
+matrix needed.
 
 ---
 
@@ -220,13 +222,36 @@ destroys edges. Verified on the real matrix (seed 0, 10 rounds):
 | self-loops | 16 → 0 (existing ones can be swapped away; new ones are never created) |
 | deterministic for a fixed seed | yes |
 
-*Open question flagged, not silently decided:* the shuffle currently
-rewires motor neurons' incoming edges too, so each leg's motor pool is
-driven by arbitrary interneurons. A loss of coordination could then come
-from the readout becoming meaningless rather than from coupling failing.
-`degree_preserving_shuffle` takes `protected_rows`/`protected_cols` to
-hold those edges out. **Default is to shuffle everything**; if the user
-prefers the protected variant it must be decided before the first C1 run.
+**C1 is the PROTECTED variant** (decided before any run). Three edge sets
+are held out of the shuffle entirely and verified to come through
+untouched:
+
+| held out | edges |
+|---|---:|
+| incoming to motor neurons | 87,534 |
+| outgoing from sensory neurons | 236,224 |
+| outgoing from DNg100 (rows 59, 282) | 1,043 |
+| **total protected** | **320,551 of 1,372,404 (23.4%)** |
+
+Why: shuffling these would randomise the *interface*, not the circuit.
+With motor neurons' inputs shuffled, each leg's motor pool is driven by
+arbitrary interneurons and the per-leg readout stops meaning "this leg" —
+so a loss of coordination could come from the readout becoming
+meaningless rather than from coupling genuinely failing. Likewise,
+shuffling sensory outputs or DNg100's axon would change where feedback and
+command drive enter, which is a different manipulation from changing the
+wiring they enter *into*. C1 therefore keeps the interface fixed and
+randomises only the internal circuit — the thing H3 is actually about.
+
+Verified with the protected sets (seed 0, 10 rounds): 4,945,235 of
+5,259,260 swaps accepted (94.0%), **76.6%** of targets changed,
+out- and in-degree preserved with **max error 0**, weight multiset
+identical, and every protected edge present unchanged in the output.
+
+**C1b is the shuffle-everything variant**, run as a secondary control at
+the same settings, so the effect of the protection itself is measured
+rather than assumed. If C1 and C1b disagree, that difference is reported;
+it is not grounds for preferring whichever looks better.
 
 **C2 — rate-matched noise.** Phase-randomised surrogates of **each
 channel's actual recorded sensory drive from the matched E3 trial**, not
@@ -243,6 +268,59 @@ signal **−0.011**, mean preserved to 4e-17, standard-deviation ratio
 (|r| median 0.61) because a narrowband signal keeps its frequency under
 phase randomisation — which is exactly why the null needs many draws
 rather than one.
+
+---
+
+## 4a. Rhythmicity is evaluated FIRST
+
+**A condition must have a rhythm before any coupling metric is computed
+for it.** Phase is meaningless without one: the Hilbert transform returns
+a phase for pure noise perfectly happily, and two such phases will
+sometimes look locked. Gating first is what stops that becoming a
+spurious coupling result.
+
+**Per leg-trial.** A leg is *rhythmic* if it (a) exceeds the minimum
+amplitude `MIN_PEAK_ACTIVITY`, and (b) its in-band spectral peak strength
+(peak power / total 2–20 Hz power) exceeds the **95th percentile of an
+AR(1) null** matched to that leg's own variance and lag-1
+autocorrelation, over 200 surrogates.
+
+The null is deliberately **red noise, not the phase-randomised surrogate**
+used for the coupling test. A phase-randomised surrogate preserves the
+amplitude spectrum exactly, so it has the same spectral peak as the real
+signal and cannot test whether that peak is real. AR(1) noise reproduces
+the smooth, autocorrelated background a non-oscillating rate signal has,
+and asks whether the peak stands out above it.
+
+Calibration, measured not assumed:
+
+| | |
+|---|---|
+| false positives, white noise | **5.0%** (nominal 5%) |
+| false positives, red noise (φ = 0.9) | **3.3%** |
+| detection, real trace + noise at 1× its in-band amplitude | **100%** |
+| detection, at 2× | **100%** |
+| detection, at 4× | **94%** |
+| detection, at 8× | 22% |
+| on real published data | 66.7% of active leg-trials called rhythmic |
+
+On the real data the rejected legs are visibly weak (peak strength
+0.18–0.43) against a stable threshold near 0.49, while accepted ones sit
+at 0.70–0.97.
+
+**Per trial.** Coupling is computed only for pairs where **both** legs are
+rhythmic. A trial with fewer than 2 rhythmic legs yields no coupling
+numbers at all (NaN, `has_rhythm = False`), not a zero.
+
+**Per condition.** If fewer than 50% of a condition's trials have ≥ 2
+rhythmic legs, the condition is reported as **"no rhythm"** and **no
+coupling metric is reported for it** — not a null coupling result, which
+would wrongly imply coupling was measured and found absent. The number of
+rhythmic legs per trial is reported for every condition regardless.
+
+A condition showing "no rhythm" is a real and reportable outcome: it says
+the manipulation abolished the oscillation itself, which is a different
+finding from abolishing coordination.
 
 ---
 
@@ -306,7 +384,14 @@ bootstrap CI excluding zero, at matched `g_fb` and drive.
 
 **H3 is supported** if C1, C2 and C3 each show a lower primary metric than
 E3 with CIs excluding zero. Each control is reported separately — partial
-support (e.g. C1 yes, C2 no) is reported as partial, not rounded up.
+support (e.g. C1 yes, C2 no) is reported as partial, not rounded up. C1b
+is reported alongside C1; a disagreement between them is reported as such
+and is never grounds for preferring whichever looks better.
+
+**A control that abolishes the rhythm** (§4a) supports H3 only in the
+weaker sense that the manipulation mattered. It is reported as "no
+rhythm", explicitly distinguished from "rhythm present, coupling lost",
+because the two mean different things.
 
 **Same-side coupling** is tested only as a *change* from the matched
 baseline, with the same three criteria. Its open-loop level is reported in
@@ -379,11 +464,13 @@ change anything in §1–§5:
    built in `fly_robot/bodies/tethered_ball.py`, parameters fixed in §2.
 3. ~~Define the degree- and sign-preserving shuffle for C1~~ — **done**, §4b.
 4. ~~Define "rate-matched" for C2~~ — **done**, §4b.
-5. **Build the coupled neural↔physics loop runner** — the one remaining
-   piece before main runs. Everything it composes exists and is tested;
-   nothing about §1–§5 depends on how it is written.
-6. **Decide C1's protected-edge variant** (§4b) — default is to shuffle
-   everything including motor neurons' incoming edges.
+5. **Build the coupled neural↔physics loop runner**, then run a PILOT on
+   the pilot seed set only (parameter seed 641, indices 0–7). Gates before
+   any main run: (a) `g_fb = 0` in the full runner reproduces open-loop
+   output exactly at the same seed; (b) pilot uses pilot seeds only;
+   (c) timing and any instability reported. **Stop after the pilot.**
+6. ~~Decide C1's protected-edge variant~~ — **done**: C1 is protected,
+   C1b is shuffle-everything (§4b).
 
 ---
 
