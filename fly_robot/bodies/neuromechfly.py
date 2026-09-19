@@ -22,6 +22,30 @@ from flygym.anatomy import ActuatedDOFPreset, AxisOrder, JointPreset, Skeleton
 from flygym.compose import KinematicPosePreset, NeuroMechFly, TetheredWorld
 from flygym.utils.math import Rotation3D
 
+# FlyGym's own default tracking camera (`add_tracking_camera()` with no
+# args) sits at pos_offset=(-0.5,-7.5,5) with an xyaxes rotation of
+# (1,0,0, 0,0.6,0.8) — i.e. on one side of the fly (Y is the fly's
+# left-right axis; X forward, Z up, the standard body-frame convention).
+# This is the same 180-degree-about-Z rotation of that setup, derived
+# (not guessed — see docs/logs/2026-09-19.md) to view the OTHER side:
+# position and both axis vectors get their x,y components negated
+# (z unchanged), which is exactly what a rotation about the vertical
+# axis does. Confirmed empirically to show real, distinct leg positions
+# (pixel-diffed against a neutral-pose frame) rather than pointing at
+# empty space, which a naive single-component sign flip did.
+OPPOSITE_SIDE_CAMERA_POS_OFFSET = (0.5, 7.5, 5)
+OPPOSITE_SIDE_CAMERA_ROTATION = Rotation3D("xyaxes", (-1, 0, 0, 0, -0.6, 0.8))
+
+# Top-down view — standard framing in this research field (including
+# NeuroMechFly's own papers) for seeing all six legs without wing
+# occlusion, which both side cameras above suffer from. Derived, not
+# guessed: xaxis=(1,0,0) [image-right = body forward], yaxis=(0,1,0)
+# [image-up = body's +Y] => local Z = cross(X,Y) = (0,0,1), so the
+# camera's view direction (-Z) points straight down. Confirmed visually
+# (docs/logs/2026-09-19.md, Phase 3) to show all six legs clearly.
+TOP_DOWN_CAMERA_POS_OFFSET = (0, 0, 12)
+TOP_DOWN_CAMERA_ROTATION = Rotation3D("xyaxes", (1, 0, 0, 0, 1, 0))
+
 # Position-actuator gain (torque per radian of angle error). 50 is FlyGym's
 # own tutorial default (see tutorials/1a_basic_model_composition.ipynb) —
 # not tuned by us yet. Revisit once we're driving real joint targets and
@@ -35,7 +59,11 @@ def build_harnessed_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN):
     place... useful for motor control experiments without locomotion",
     per FlyGym's own docstring).
 
-    Returns (fly, world, mj_model, mj_data, camera).
+    Returns (fly, world, mj_model, mj_data, camera, opposite_camera,
+    top_down_camera) — three tracking cameras (two side, one top-down),
+    since a single leg's real movement can be occluded from either side
+    angle alone (see docs/logs/2026-09-19.md, Phase 3) — the top-down
+    view is the one that reliably shows all six legs.
     """
     fly = NeuroMechFly(name=name)
 
@@ -55,6 +83,16 @@ def build_harnessed_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN):
     fly.add_joint_sites(JointPreset.LEGS_ONLY.to_joint_list())
     fly.colorize()
     camera = fly.add_tracking_camera()
+    opposite_camera = fly.add_tracking_camera(
+        name="opposite_side_cam",
+        pos_offset=OPPOSITE_SIDE_CAMERA_POS_OFFSET,
+        rotation=OPPOSITE_SIDE_CAMERA_ROTATION,
+    )
+    top_down_camera = fly.add_tracking_camera(
+        name="top_down_cam",
+        pos_offset=TOP_DOWN_CAMERA_POS_OFFSET,
+        rotation=TOP_DOWN_CAMERA_ROTATION,
+    )
 
     world = TetheredWorld()
     spawn_pos = [0, 0, 0.7]  # mm; matches FlyGym tutorial's free-standing spawn height
@@ -62,4 +100,4 @@ def build_harnessed_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN):
     world.add_fly(fly, spawn_pos, spawn_rot)
 
     mj_model, mj_data = world.compile()
-    return fly, world, mj_model, mj_data, camera
+    return fly, world, mj_model, mj_data, camera, opposite_camera, top_down_camera

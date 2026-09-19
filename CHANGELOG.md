@@ -21,6 +21,13 @@ explain *why*, not just *what*.
   (this file included), then started Phase 2: chose FlyGym/NeuroMechFly
   (real fly anatomy, MuJoCo-native, 7 DOF/leg) as the robot body instead
   of a generic hexapod, and got the harness-mode sanity gait working.
+  Phase 3 (open loop): built the motor-neuron-rate-to-joint interface,
+  caught and fixed a replicate-instability bug and a subtler
+  averaging-cancels-rhythm bug (switched to one real representative
+  replicate instead), recalibrated the rate-to-angle scale against
+  measured data, and got real connectome-driven leg movement both
+  numerically and visually confirmed (top-down camera, derived not
+  guessed).
 - **[2026-09-18](docs/logs/2026-09-18.md)** — Decided to use MaleCNS
   instead of MANC going forward; identified and resolved Pugliese et
   al.'s published T1 walking circuit into MaleCNS; first 3D circuit

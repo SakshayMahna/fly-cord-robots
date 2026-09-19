@@ -82,9 +82,9 @@ if __name__ == "__main__":
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    fly, world, mj_model, mj_data, camera = build_harnessed_fly()
+    fly, world, mj_model, mj_data, camera, opposite_camera, top_down_camera = build_harnessed_fly()
     sim = Simulation(world)
-    renderer = sim.set_renderer([camera])
+    renderer = sim.set_renderer([camera, opposite_camera, top_down_camera])
 
     dof_order = fly.get_actuated_jointdofs_order(ActuatorType.POSITION)
     target_angles = build_target_angle_function(fly, dof_order)
@@ -100,6 +100,10 @@ if __name__ == "__main__":
         sim.step()
         sim.render_as_needed()
 
-    video_path = out_dir / "phase2_sanity_gait.mp4"
-    sim.renderer.save_video(video_path)
-    print(f"Simulated {args.duration}s ({n_steps} steps). Wrote {video_path}")
+    video_paths = {
+        camera: out_dir / "phase2_sanity_gait.mp4",
+        opposite_camera: out_dir / "phase2_sanity_gait_opposite_side.mp4",
+        top_down_camera: out_dir / "phase2_sanity_gait_top_down.mp4",
+    }
+    sim.renderer.save_video(video_paths)
+    print(f"Simulated {args.duration}s ({n_steps} steps). Wrote {list(video_paths.values())}")

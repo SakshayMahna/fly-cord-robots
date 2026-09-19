@@ -222,8 +222,22 @@ short version for orientation.
   `media/phase2/phase2_sanity_gait.mp4`) — confirms the mechanical
   pipeline (body, actuators, harness, physics, rendering) works. This
   sine wave is a synthetic test signal only, not connectome-derived.
-- **Phase 3 — Open loop.** Motor neuron rates → joint targets; legs step in
-  harness.
+- **Phase 3 — Open loop. DONE.** Real motor-neuron rates → joint targets
+  (`fly_robot/interface/motor_neuron_to_joint.py`,
+  `fly_robot/experiments/phase3_open_loop.py`). Uses Pugliese's own
+  real published 128-replicate full-VNC data (not new simulation — see
+  `load_published_full_vnc_replicates`), one representative stable
+  replicate (never an average across replicates — averaging cancels real
+  rhythmic signal since each replicate's oscillation has an independent
+  random phase; see docs/logs/2026-09-19.md). Only 3 of 9 per-leg
+  motor-neuron modules (coxa swing/stance, femur extend/flex, tibia
+  extend/flex) have a clear antagonist-pair mapping to a joint; the
+  other 3 (femur reductor, substrate grip, tarsus control) are left
+  unmapped — a real limitation. Verified both numerically (~20°
+  deviation on the most-driven joints) and visually (three tracking
+  cameras — side, opposite-side, top-down — built into
+  `build_harnessed_fly()`; top-down is the one that clearly shows leg
+  movement without wing occlusion).
 - **Phase 4 — Closed loop.** Joint angle → chordotonal-like inputs; foot
   load → campaniform-like inputs. Measure interleg phase coupling.
 - **Phase 5 — Ground walking.** Tune interface with CMA-ES (brain weights
