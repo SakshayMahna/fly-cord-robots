@@ -46,7 +46,7 @@ solid, directly-read fact from the data (class == motor neuron + a
 joint-module label), not an inference.
 
 Usage:
-    python -m fly_robot.connectome.identify_all_legs \
+    python -m fly_robot.connectome.identify_all_leg_circuits \
         --pugliese-repo /path/to/Pugliese_cpg_2025 \
         --out data/circuit_map/all_legs_circuit.csv
 """
@@ -59,7 +59,7 @@ import pandas as pd
 
 from fly_robot.connectome.client import resolve_manc_bodyids_to_malecns
 
-# The 3 CPG cell types from Pugliese's T1 circuit (see identify_circuit.py
+# The 3 CPG cell types from Pugliese's T1 circuit (see identify_t1_circuit.py
 # for how these were decoded from their experiment config row-indices).
 CPG_TYPES = {
     "IN17A001": "excit_hub",   # strong DNg100 target, drives excit2 + inhib

@@ -3,7 +3,7 @@
 
 Status as of 2026-09-19 (see CHANGELOG): T1's circuit is Pugliese's
 published, validated result. T2/T3's circuits were identified by us from
-static connectivity alone (`identify_all_legs.py`), then confirmed
+static connectivity alone (`identify_all_leg_circuits.py`), then confirmed
 rhythmically active by checking these exact neurons against Pugliese's
 real published full-VNC simulation output (104-124/128 replicates active,
 scores in the same range as T1). All three segments are now confirmed,

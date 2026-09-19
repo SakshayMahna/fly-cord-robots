@@ -12,7 +12,7 @@ signs) is modified or re-derived; we are relocating known neurons in a
 different specimen's coordinate/ID space.
 
 Usage:
-    python -m fly_robot.connectome.identify_circuit \
+    python -m fly_robot.connectome.identify_t1_circuit \
         --pugliese-table "/path/to/wTable_20250813_DNtoMN_unsorted_withModules.csv" \
         --out data/circuit_map/t1_front_leg_circuit.csv
 """

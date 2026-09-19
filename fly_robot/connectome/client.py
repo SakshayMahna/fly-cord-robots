@@ -40,7 +40,7 @@ def resolve_manc_bodyids_to_malecns(manc_bodyids: list[int]) -> pd.DataFrame:
     """Look up MaleCNS neurons by their `mancBodyid` cross-reference field
     (computed by Janelia's own annotation team — not something we derive).
 
-    Shared by `identify_circuit.py` (T1-only) and `identify_all_legs.py`
+    Shared by `identify_t1_circuit.py` (T1-only) and `identify_all_leg_circuits.py`
     (all six legs), which both need the same MANC-bodyId -> MaleCNS lookup;
     previously each had its own near-identical copy of this query.
     """

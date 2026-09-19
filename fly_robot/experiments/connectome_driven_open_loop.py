@@ -1,22 +1,23 @@
-"""Phase 3: open loop — real Pugliese/MANC motor-neuron rates -> joint
-targets, no sensory feedback yet (that's Phase 4).
+"""Open-loop control: real Pugliese/MANC motor-neuron rates -> joint
+targets, no sensory feedback yet (that's the closed-loop work to follow —
+see fly_robot/sim/ once it exists).
 
 Pipeline:
 1. Use Pugliese's own real published full-VNC simulation output — 128
-   replicates, downloaded from Zenodo in Phase 0 — rather than running
-   new simulations ourselves. Analysis showed a single leg's single
-   motor-neuron module often has only a handful of neurons, each
-   independently recruited with modest probability per replicate; a
-   handful of our own fresh replicates can't average that out the way
-   128 real ones can, at zero extra simulation cost (see
+   replicates, downloaded from Zenodo during the connectome-identification
+   work — rather than running new simulations ourselves. Analysis showed
+   a single leg's single motor-neuron module often has only a handful of
+   neurons, each independently recruited with modest probability per
+   replicate; a handful of our own fresh replicates can't average that
+   out the way 128 real ones can, at zero extra simulation cost (see
    docs/logs/2026-09-19.md for the investigation this replaced a
    smaller from-scratch run with, and why).
 2. Map the resulting real motor-neuron firing rates onto FlyGym joint
    targets via fly_robot.interface.motor_neuron_to_joint (our own
    interface design — see that module's docstring for exactly what's
    mapped and what isn't, and why).
-3. Drive the SAME harnessed FlyGym body from Phase 2 with these targets
-   instead of the Phase 2 sanity sine wave.
+3. Drive the SAME harnessed FlyGym body from `harness_sine_wave_test.py`
+   with these targets instead of a synthetic sine wave.
 
 Timestep note: Pugliese's neural sim runs at dt=0.001s; FlyGym's physics
 runs at dt=0.0001s — an exact 10x ratio. Each neural sample is held
@@ -28,7 +29,7 @@ own future item (`fly_robot/sim/`); this is a placeholder for it, not
 that final design.
 
 Usage:
-    MUJOCO_GL=cgl python -m fly_robot.experiments.phase3_open_loop
+    MUJOCO_GL=cgl python -m fly_robot.experiments.connectome_driven_open_loop
 """
 
 import argparse
@@ -44,17 +45,17 @@ from fly_robot.bodies.neuromechfly import build_harnessed_fly
 from fly_robot.interface.motor_neuron_to_joint import (
     build_motor_neuron_groups, compute_joint_targets,
 )
-from fly_robot.neural.run_pugliese_sim import (  # sets up sys.path for Pugliese's src/ on import
+from fly_robot.neural.replicate_ensemble import (  # sets up sys.path for Pugliese's src/ on import
     load_published_full_vnc_replicates, select_representative_replicate,
 )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out-dir", default="media/phase3")
+    parser.add_argument("--out-dir", default="media/connectome_driven_open_loop")
     parser.add_argument(
         "--circuit-csv", default="data/circuit_map/all_legs_circuit.csv",
-        help="Motor-neuron-to-module mapping from Phase 1 (identify_all_legs.py)",
+        help="Motor-neuron-to-module mapping from fly_robot.connectome.identify_all_leg_circuits",
     )
     args = parser.parse_args()
 
@@ -108,9 +109,9 @@ if __name__ == "__main__":
             physics_sim.render_as_needed()
 
     video_paths = {
-        camera: out_dir / "phase3_open_loop.mp4",
-        opposite_camera: out_dir / "phase3_open_loop_opposite_side.mp4",
-        top_down_camera: out_dir / "phase3_open_loop_top_down.mp4",
+        camera: out_dir / "connectome_driven_open_loop.mp4",
+        opposite_camera: out_dir / "connectome_driven_open_loop_opposite_side.mp4",
+        top_down_camera: out_dir / "connectome_driven_open_loop_top_down.mp4",
     }
     physics_sim.renderer.save_video(video_paths)
     print(f"Simulated {n_neural_steps * substeps_per_neural_step} physics steps "

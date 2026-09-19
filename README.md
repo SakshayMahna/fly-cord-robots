@@ -39,6 +39,75 @@ python -m fly_robot.neural.setup_pugliese_configs
 
 ## Status
 
-Phase 0 (reproduce the published science) and Phase 1 (identify all six
-leg circuits) are done — see `CHANGELOG.md`. Phase 2 (hexapod body in
-MuJoCo) is next.
+Reproduced the published connectome science, identified and confirmed
+all six leg circuits, built a real fly body in MuJoCo, and got real
+connectome-derived motor-neuron data driving actual joint movement
+(open loop, no sensory feedback yet) — see `CHANGELOG.md` for the full,
+dated trail. Closing the loop with real proprioceptive feedback is next.
+
+## References & resources
+
+Every claim of authorship/institution below is exactly as stated by the
+source (paper text, official project page, or repo README) — nothing
+here is inferred or guessed.
+
+**Papers**
+- Pugliese et al., ["Connectome simulations identify a central pattern
+  generator circuit for fly walking,"](https://www.biorxiv.org/content/10.1101/2025.09.12.675944)
+  bioRxiv (v1: Sept 2025; v2, substantially expanded: April 2026) — the
+  core neuroscience this project builds on; we run their own simulation
+  code (`fly_robot/neural/`) unmodified.
+- Takemura et al., ["A Connectome of the Male *Drosophila* Ventral Nerve
+  Cord,"](https://elifesciences.org/reviewed-preprints/97769) and Marin
+  et al., ["Systematic annotation of a complete adult male *Drosophila*
+  nerve cord connectome reveals principles of functional
+  organisation,"](https://elifesciences.org/reviewed-preprints/97766)
+  both eLife (2024) — the two companion papers behind the MANC dataset.
+- The MaleCNS connectome (Cell, Sept 2026) — see
+  [male-cns.janelia.org](https://male-cns.janelia.org/) for the primary
+  publication and full author list; the dataset was "acquired,
+  reconstructed, and annotated" by the Janelia FlyEM Project Team and the
+  Cambridge Drosophila Connectomics Group / MRC LMB, in collaboration
+  with the Connectomics group at Google (their site's own description).
+- ["Connectomic reconstruction of a female *Drosophila* ventral nerve
+  cord,"](https://www.nature.com/articles/s41586-024-07389-x) Nature 631,
+  360–368 (2024) — the FANC dataset, referenced for cross-connectome
+  comparison.
+- ["NeuroMechFly, a neuromechanical model of adult *Drosophila
+  melanogaster*,"](https://www.nature.com/articles/s41592-022-01466-7)
+  and ["NeuroMechFly v2: simulating embodied sensorimotor control in
+  adult *Drosophila*,"](https://www.nature.com/articles/s41592-024-02497-y)
+  both Nature Methods (2022, 2024) — from the EPFL Neuroengineering
+  ("Ramdya") Lab; the body model (`fly_robot/bodies/`).
+- ["Whole-Brain Connectomic Graph Model Enables Whole-Body Locomotion
+  Control in Fruit Fly,"](https://arxiv.org/abs/2602.17997) NeurIPS
+  (2025) — a related but methodologically distinct effort (RL-trained
+  policy shaped by connectome topology, vs. this project's literal,
+  untrained connectome dynamics); see `CLAUDE.md` for the comparison.
+- Todorov, Erez & Tassa, ["MuJoCo: A physics engine for model-based
+  control,"](https://doi.org/10.1109/IROS.2012.6386109) IEEE/RSJ IROS
+  (2012) — the physics engine underlying FlyGym/MuJoCo.
+- Bates, Manton, Jagannathan, Costa, Schlegel, Rohlfing & Jefferis, ["The
+  natverse, a versatile toolbox for combining and analysing
+  neuroanatomical data,"](https://elifesciences.org/articles/53350)
+  eLife 9 (2020) — [navis](https://github.com/navis-org/navis), used for
+  the 3D circuit renders in `fly_robot/analysis/`.
+
+**Datasets**
+- [MANC](https://www.janelia.org/project-team/flyem/manc-connectome)
+  (Male Adult Nerve Cord) — Janelia FlyEM, 2023.
+- [MaleCNS](https://male-cns.janelia.org/) (male brain + nerve cord) —
+  Janelia FlyEM et al. (see paper credit above), 2026. Our primary
+  connectome for neuron identification.
+- Queried via [neuprint](https://neuprint.janelia.org).
+
+**Code and data we build on**
+- [Pugliese_cpg_2025](https://github.com/smpuglie/Pugliese_cpg_2025) —
+  the simulation code this project runs unmodified; their [published
+  simulation data](https://zenodo.org/records/22260924) on Zenodo.
+- [FlyGym / NeuroMechFly v2](https://github.com/NeLy-EPFL/flygym)
+  ([docs](https://neuromechfly.org/)) — the body simulator, built on
+  [MuJoCo](https://mujoco.org/).
+- [navis](https://github.com/navis-org/navis) and
+  [neuprint-python](https://github.com/connectome-neuprint/neuprint-python) —
+  connectome querying and 3D neuron rendering.

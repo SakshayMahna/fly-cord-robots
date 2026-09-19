@@ -14,9 +14,9 @@ external/Pugliese_cpg_2025`):
 import shutil
 from pathlib import Path
 
+from fly_robot.neural.pugliese_paths import PROJECT_ROOT, PUGLIESE_REPO
+
 THIS_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = THIS_DIR.parents[1]
-PUGLIESE_REPO = PROJECT_ROOT / "external" / "Pugliese_cpg_2025"
 
 FILES = {
     "paths_fly_robot.yaml": PUGLIESE_REPO / "configs" / "paths" / "fly_robot.yaml",
@@ -34,4 +34,5 @@ if __name__ == "__main__":
         shutil.copy(THIS_DIR / "pugliese_extra_configs" / src_name, dest)
         print(f"Installed {dest}")
     print(f"\nSet FLY_ROBOT_REPO={PROJECT_ROOT} in your environment "
-          f"(run_pugliese_sim.py does this automatically) before running simulations.")
+          f"(fly_robot.neural.pugliese_paths does this automatically on import) "
+          f"before running simulations.")

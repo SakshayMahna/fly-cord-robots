@@ -1,7 +1,7 @@
 """Render the DNg100 T1 walking circuit (MaleCNS) as a 3D skeleton plot.
 
 Purpose: this is a Phase 0 sanity check as much as it is video footage. If
-the neurons we resolved via `identify_circuit.py` are correctly identified,
+the neurons we resolved via `identify_t1_circuit.py` are correctly identified,
 the leg motor neurons should cluster spatially in the T1 (front) leg
 neuropil/nerve, and the CPG neurons + DNg100 should sit in the central VNC
 neuropil, not scattered randomly.

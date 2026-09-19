@@ -1,5 +1,5 @@
-"""Shared helpers for the circuit-render scripts (`visualize_circuit.py`,
-`visualize_all_legs.py`) — extracted because both independently duplicated
+"""Shared helpers for the circuit-render scripts (`visualize_t1_circuit.py`,
+`visualize_all_leg_circuits.py`) — extracted because both independently duplicated
 the same VNC-cropping and theme logic.
 """
 

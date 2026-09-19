@@ -1,4 +1,4 @@
-"""Phase 2: harness-mode sanity check for the NeuroMechFly body.
+"""Harness-mode mechanical sanity check for the NeuroMechFly body.
 
 This drives each leg's coxa-pitch and femur-tibia-pitch joints with a
 plain sine wave, alternating a tripod pattern (LF+RM+LH vs RF+LM+RH) by
@@ -6,8 +6,9 @@ phase. This is NOT a biological signal, NOT derived from the connectome,
 and NOT meant to look like real fly walking — it's a synthetic test
 signal whose only purpose is to confirm the mechanical pipeline (body,
 actuators, harness, physics stepping, rendering) works before any real
-neural data (Phase 3) drives it. Explicitly flagging this per this
-project's honesty rule: anything not from the fly is a labeled addition.
+neural data (see `connectome_driven_open_loop.py`) drives it. Explicitly
+flagging this per this project's honesty rule: anything not from the fly
+is a labeled addition.
 
 The fly is held fixed in space (TetheredWorld/"harness mode" — see
 fly_robot/bodies/neuromechfly.py) so nothing here tests actual locomotion
@@ -15,7 +16,7 @@ or ground contact; it only tests that commanding joint angles produces
 the expected mechanical motion.
 
 Usage:
-    MUJOCO_GL=cgl python -m fly_robot.experiments.phase2_sanity_gait
+    MUJOCO_GL=cgl python -m fly_robot.experiments.harness_sine_wave_test
 """
 
 import argparse
@@ -76,7 +77,7 @@ def build_target_angle_function(fly, dof_order):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--duration", type=float, default=3.0, help="Simulation seconds")
-    parser.add_argument("--out-dir", default="media/phase2")
+    parser.add_argument("--out-dir", default="media/harness_sine_wave_test")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -101,9 +102,9 @@ if __name__ == "__main__":
         sim.render_as_needed()
 
     video_paths = {
-        camera: out_dir / "phase2_sanity_gait.mp4",
-        opposite_camera: out_dir / "phase2_sanity_gait_opposite_side.mp4",
-        top_down_camera: out_dir / "phase2_sanity_gait_top_down.mp4",
+        camera: out_dir / "harness_sine_wave_test.mp4",
+        opposite_camera: out_dir / "harness_sine_wave_test_opposite_side.mp4",
+        top_down_camera: out_dir / "harness_sine_wave_test_top_down.mp4",
     }
     sim.renderer.save_video(video_paths)
     print(f"Simulated {args.duration}s ({n_steps} steps). Wrote {list(video_paths.values())}")

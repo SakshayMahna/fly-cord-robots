@@ -1,5 +1,5 @@
-"""Phase 3: map real Pugliese/MANC leg motor-neuron firing rates onto
-FlyGym joint targets.
+"""Map real Pugliese/MANC leg motor-neuron firing rates onto FlyGym joint
+targets — the open-loop motor-neuron-to-joint interface.
 
 This is OUR ADDITION, not something read off the connectome — flagged per
 this project's honesty rule. The real fly's motor neurons drive actual
@@ -126,7 +126,7 @@ def compute_joint_targets(
     rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
 ) -> np.ndarray:
     """R: (n_neurons, n_timesteps) real firing rates from a Pugliese
-    simulation (e.g. fly_robot.neural.run_pugliese_sim). Returns
+    simulation (e.g. fly_robot.neural.replicate_ensemble). Returns
     (n_timesteps, len(dof_order)) joint angle targets — neutral pose
     everywhere except the mapped antagonist-pair DOFs.
     """

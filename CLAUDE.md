@@ -126,14 +126,14 @@ We use **MaleCNS v1.0** (`male-cns:v1.0` on neuprint, server
   cross-reference to the corresponding MANC specimen body, computed by
   Janelia's annotation team. We use this (not `type`-string matching) to
   relocate neurons Pugliese identified in MANC into MaleCNS's ID space.
-  See `fly_robot/connectome/identify_circuit.py` and
+  See `fly_robot/connectome/identify_t1_circuit.py` and
   `docs/logs/2026-09-18.md` for the worked example (T1 circuit, 142/152
   neurons resolved).
 - Open caveat: Phase 0's original goal (match Pugliese's published rhythm
   figures) assumed MANC-derived weights. Running on MaleCNS-derived weights
   is not numerically the same circuit even with matching neuron identities.
   For direct pipeline validation we run Pugliese's own unmodified code on
-  their own MANC data first (see `fly_robot/neural/run_pugliese_sim.py`,
+  their own MANC data first (see `fly_robot/neural/reproduce_rhythmic_output.py`,
   `--mode t1` and `--mode full_vnc`), then treat MaleCNS-based results as a
   separate, not-numerically-identical reproduction.
 
@@ -192,7 +192,7 @@ fly_robot/
   bodies/             # NeuroMechFly/FlyGym v2 body composition (not a hand-built hexapod — see
                       # docs/logs/2026-09-19.md). 7 real DOF/leg, not the originally-sketched 3.
   sim/                # *not yet created* — coupled loop: neural dt vs physics dt synchronisation
-  experiments/        # phase scripts (phase2_sanity_gait.py so far — harness-mode mechanical test)
+  experiments/        # phase scripts (harness_sine_wave_test.py so far — harness-mode mechanical test)
   analysis/           # circuit visualizations; rhythm/phase-coupling/gait plots come later
 docs/
   logs/               # dated findings, one file per day — the actual content
@@ -228,7 +228,7 @@ short version for orientation.
 - **Phase 1 — All six legs.** Extract T2/T3 (mid/hind leg) DN/CPG/motor-neuron
   circuits in MaleCNS. **CPG identification: DONE, confirmed by real
   dynamics, not just connectivity** — the 6 candidate T2/T3 neurons we
-  identified from wiring alone (`identify_all_legs.py`) were checked
+  identified from wiring alone (`identify_all_leg_circuits.py`) were checked
   directly against Pugliese's real published simulation output and all 6
   show substantial rhythmic activity (104-124/128 replicates active,
   scores 0.37-0.71 — see CHANGELOG 2026-09-19). **Not yet done:** the
@@ -240,13 +240,13 @@ short version for orientation.
   (real fly anatomy, 7 DOF/leg — not the originally-sketched simplified
   3 DOF/leg; see `fly_robot/bodies/neuromechfly.py` and
   `docs/logs/2026-09-19.md`). **Harness mode (fixed base) + sanity sine
-  gait: DONE** (`fly_robot/experiments/phase2_sanity_gait.py`,
-  `media/phase2/phase2_sanity_gait.mp4`) — confirms the mechanical
+  gait: DONE** (`fly_robot/experiments/harness_sine_wave_test.py`,
+  `media/harness_sine_wave_test/harness_sine_wave_test.mp4`) — confirms the mechanical
   pipeline (body, actuators, harness, physics, rendering) works. This
   sine wave is a synthetic test signal only, not connectome-derived.
 - **Phase 3 — Open loop. DONE.** Real motor-neuron rates → joint targets
   (`fly_robot/interface/motor_neuron_to_joint.py`,
-  `fly_robot/experiments/phase3_open_loop.py`). Uses Pugliese's own
+  `fly_robot/experiments/connectome_driven_open_loop.py`). Uses Pugliese's own
   real published 128-replicate full-VNC data (not new simulation — see
   `load_published_full_vnc_replicates`), one representative stable
   replicate (never an average across replicates — averaging cancels real

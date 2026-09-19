@@ -31,7 +31,11 @@ explain *why*, not just *what*.
   the literature that Phase 4's closed-loop experiment is a real open
   question — proposed as future work by Pugliese et al. themselves, not
   yet published by anyone in this literal (untrained, unmodified
-  connectome) form.
+  connectome) form. Reorganized again: dropped phase-numbered file/folder
+  names in favor of content-derived ones, split an overgrown 408-line
+  module into four focused ones, verified every renamed script still
+  behaves identically, and added a fully-verified references section to
+  `README.md`.
 - **[2026-09-18](docs/logs/2026-09-18.md)** — Decided to use MaleCNS
   instead of MANC going forward; identified and resolved Pugliese et
   al.'s published T1 walking circuit into MaleCNS; first 3D circuit
