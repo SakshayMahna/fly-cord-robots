@@ -25,6 +25,7 @@ import navis.interfaces.neuprint as neu
 import pandas as pd
 
 from fly_robot.connectome.client import get_client
+from fly_robot.analysis.render_utils import theme_colors, vnc_crop_bounds
 
 COLOR_MOTOR_NEURON = "#8a8a86"
 COLOR_DN = "#e34948"
@@ -75,35 +76,9 @@ LEGEND_ENTRIES = [
 ]
 
 
-def _vnc_crop_bounds(skeletons, highlight_list, margin_frac=0.35):
-    """Bounding box (in plot x / z coords) of the non-highlighted (motor
-    neuron) skeletons — i.e. the VNC leg neuropil, excluding the brain
-    arbor that only DNg100 has. Expanded by a margin so the thin CPG
-    neurons (which sit inside this volume) aren't clipped at the edge.
-
-    Note: `view=("x", "-z")` in navis.plot2d inverts the *displayed* axis
-    direction, it does not negate the underlying data — so bounds here
-    must be computed from raw `z`, not `-z`, to match what's on screen.
-    """
-    vnc_skels = [s for s, hl in zip(skeletons, highlight_list) if not hl]
-    xs, zs = [], []
-    for s in vnc_skels:
-        nodes = s.nodes
-        xs.append(nodes["x"])
-        zs.append(nodes["z"])
-    import pandas as pd  # local import to avoid polluting module namespace
-    xs = pd.concat(xs)
-    zs = pd.concat(zs)
-    x_margin = (xs.max() - xs.min()) * margin_frac
-    z_margin = (zs.max() - zs.min()) * margin_frac
-    return (xs.min() - x_margin, xs.max() + x_margin,
-            zs.min() - z_margin, zs.max() + z_margin)
-
-
 def render(skeletons, color_list, highlight_list, out_dir: Path, theme: str,
            zoom_vnc: bool):
-    bg = "#1a1a19" if theme == "dark" else "#fcfcfb"
-    fg = "#ffffff" if theme == "dark" else "#0b0b0b"
+    bg, fg = theme_colors(theme)
 
     # Base pass: all neurons, thin lines.
     fig, ax = navis.plot2d(
@@ -135,7 +110,7 @@ def render(skeletons, color_list, highlight_list, out_dir: Path, theme: str,
 
     suffix = theme
     if zoom_vnc:
-        x0, x1, z0, z1 = _vnc_crop_bounds(skeletons, highlight_list)
+        x0, x1, z0, z1 = vnc_crop_bounds(skeletons, highlight_list)
         ax.set_xlim(x0, x1)
         # y-axis here is displaying z inverted (view=("x","-z")); the
         # existing full-range ylim is (large, small), so match that

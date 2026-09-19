@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from fly_robot.connectome.client import get_client
+from fly_robot.connectome.client import resolve_manc_bodyids_to_malecns
 
 # CPG neurons, identified from Pugliese's `DNg100_Stim_CoreCPG.yaml` config
 # (`keepOnly: [31, 277, 617, 1167]`), resolved to MANC bodyIds via row index
@@ -34,19 +34,6 @@ CPG_MANC_BODY_IDS = {
     11751: "INXXX466",   # excitatory (acetylcholine)
     13905: "IN16B036",   # inhibitory (glutamate)
 }
-
-
-def _fetch_by_manc_bodyid(manc_ids: list[int]) -> pd.DataFrame:
-    client = get_client()
-    query = f"""
-    MATCH (n:Neuron)
-    WHERE n.mancBodyid IN {list(manc_ids)}
-    RETURN n.bodyId AS malecns_bodyId, n.type AS type, n.instance AS instance,
-           n.mancBodyid AS manc_bodyId, n.mancType AS mancType,
-           n.status AS status, n.somaNeuromere AS somaNeuromere,
-           n.predictedNt AS predictedNt
-    """
-    return client.fetch_custom(query)
 
 
 def build_circuit_map(pugliese_table_path: str) -> pd.DataFrame:
@@ -63,7 +50,7 @@ def build_circuit_map(pugliese_table_path: str) -> pd.DataFrame:
     manc_side = pd.concat([cpg_rows, mn_rows], ignore_index=True)
     manc_ids = manc_side["bodyId"].tolist()
 
-    malecns_side = _fetch_by_manc_bodyid(manc_ids)
+    malecns_side = resolve_manc_bodyids_to_malecns(manc_ids)
 
     merged = manc_side.merge(
         malecns_side, left_on="bodyId", right_on="manc_bodyId", how="left"

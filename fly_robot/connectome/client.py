@@ -10,6 +10,7 @@ later re-run Pugliese's exact pipeline for validation.
 
 import os
 
+import pandas as pd
 from dotenv import load_dotenv
 from neuprint import Client
 
@@ -33,3 +34,23 @@ def get_client() -> Client:
             )
         _client = Client(NEUPRINT_SERVER, dataset=DATASET, token=token)
     return _client
+
+
+def resolve_manc_bodyids_to_malecns(manc_bodyids: list[int]) -> pd.DataFrame:
+    """Look up MaleCNS neurons by their `mancBodyid` cross-reference field
+    (computed by Janelia's own annotation team — not something we derive).
+
+    Shared by `identify_circuit.py` (T1-only) and `identify_all_legs.py`
+    (all six legs), which both need the same MANC-bodyId -> MaleCNS lookup;
+    previously each had its own near-identical copy of this query.
+    """
+    client = get_client()
+    query = f"""
+    MATCH (n:Neuron)
+    WHERE n.mancBodyid IN {list(int(b) for b in manc_bodyids)}
+    RETURN n.bodyId AS malecns_bodyId, n.type AS type, n.instance AS instance,
+           n.mancBodyid AS manc_bodyId, n.mancType AS mancType,
+           n.status AS status, n.somaNeuromere AS somaNeuromere,
+           n.predictedNt AS predictedNt
+    """
+    return client.fetch_custom(query)

@@ -57,7 +57,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from fly_robot.connectome.client import get_client
+from fly_robot.connectome.client import resolve_manc_bodyids_to_malecns
 
 # The 3 CPG cell types from Pugliese's T1 circuit (see identify_circuit.py
 # for how these were decoded from their experiment config row-indices).
@@ -143,15 +143,12 @@ def collect_motor_neurons(wtable) -> pd.DataFrame:
 
 
 def resolve_to_malecns(manc_bodyids: list[int]) -> pd.DataFrame:
-    client = get_client()
-    query = f"""
-    MATCH (n:Neuron)
-    WHERE n.mancBodyid IN {list(int(b) for b in manc_bodyids)}
-    RETURN n.bodyId AS malecns_bodyId, n.type AS type, n.instance AS instance,
-           n.mancBodyid AS manc_bodyId, n.status AS status,
-           n.somaNeuromere AS malecns_somaNeuromere
-    """
-    return client.fetch_custom(query)
+    """Thin wrapper: this script only needs a subset of the shared
+    lookup's columns, renamed for this CSV's existing schema."""
+    result = resolve_manc_bodyids_to_malecns(manc_bodyids)
+    return result.rename(columns={"somaNeuromere": "malecns_somaNeuromere"})[
+        ["malecns_bodyId", "type", "instance", "manc_bodyId", "status", "malecns_somaNeuromere"]
+    ]
 
 
 if __name__ == "__main__":

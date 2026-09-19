@@ -37,6 +37,7 @@ import navis.interfaces.neuprint as neu
 import pandas as pd
 
 from fly_robot.connectome.client import get_client
+from fly_robot.analysis.render_utils import theme_colors, vnc_crop_bounds
 
 COLOR_MOTOR_NEURON = "#8a8a86"
 
@@ -116,21 +117,8 @@ def fetch_and_color(df: pd.DataFrame):
     return skeletons, color_list, highlight_list
 
 
-def _vnc_crop_bounds(skeletons, highlight_list, margin_frac=0.15):
-    """See visualize_circuit.py — same caveat: view=('x','-z') inverts the
-    displayed axis but doesn't negate the data, so bounds must use raw z."""
-    vnc_skels = [s for s, hl in zip(skeletons, highlight_list) if not hl]
-    xs = pd.concat([s.nodes["x"] for s in vnc_skels])
-    zs = pd.concat([s.nodes["z"] for s in vnc_skels])
-    x_margin = (xs.max() - xs.min()) * margin_frac
-    z_margin = (zs.max() - zs.min()) * margin_frac
-    return (xs.min() - x_margin, xs.max() + x_margin,
-            zs.min() - z_margin, zs.max() + z_margin)
-
-
 def render(skeletons, color_list, highlight_list, out_dir: Path, theme: str):
-    bg = "#1a1a19" if theme == "dark" else "#fcfcfb"
-    fg = "#ffffff" if theme == "dark" else "#0b0b0b"
+    bg, fg = theme_colors(theme)
 
     fig, ax = navis.plot2d(
         skeletons, color=color_list, linewidth=0.5,
@@ -148,9 +136,9 @@ def render(skeletons, color_list, highlight_list, out_dir: Path, theme: str):
     ax.set_facecolor(bg)
     ax.axis("off")
 
-    x0, x1, z0, z1 = _vnc_crop_bounds(skeletons, highlight_list)
+    x0, x1, z0, z1 = vnc_crop_bounds(skeletons, highlight_list, margin_frac=0.15)
     ax.set_xlim(x0, x1)
-    ax.set_ylim(z1, z0)  # inverted, see _vnc_crop_bounds docstring
+    ax.set_ylim(z1, z0)  # inverted, see vnc_crop_bounds docstring
 
     handles = [plt.Line2D([0], [0], color=c, lw=2.5, label=label)
                for label, c in LEGEND_ENTRIES]
