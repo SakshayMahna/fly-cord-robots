@@ -18,7 +18,9 @@ explain *why*, not just *what*.
   Verified our independently-identified T2/T3 candidate neurons directly
   against their real published output: all 6 genuinely rhythmic. Closed
   Phase 1's remaining motor-neuron grouping. Reorganized the repo
-  (this file included) before starting Phase 2.
+  (this file included), then started Phase 2: chose FlyGym/NeuroMechFly
+  (real fly anatomy, MuJoCo-native, 7 DOF/leg) as the robot body instead
+  of a generic hexapod, and got the harness-mode sanity gait working.
 - **[2026-09-18](docs/logs/2026-09-18.md)** — Decided to use MaleCNS
   instead of MANC going forward; identified and resolved Pugliese et
   al.'s published T1 walking circuit into MaleCNS; first 3D circuit

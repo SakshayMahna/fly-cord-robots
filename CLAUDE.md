@@ -154,7 +154,9 @@ harder-to-catch errors.
   plan on CPU JAX locally.
 - Sessions can disconnect: checkpoint state, configs, and logs to Google Drive
   frequently once we move to Colab/Kaggle; all runs must be resumable.
-- Headless rendering: MUJOCO_GL=egl.
+- Headless rendering: `MUJOCO_GL=cgl` on macOS (Apple's Core OpenGL — verified
+  2026-09-19; EGL is Linux-only and does not work here), `MUJOCO_GL=egl` on
+  Linux/Colab.
 - Fixed random seeds; every run is reproducible from its config.
 - neuprint auth token lives in `.env` (gitignored, never commit).
 
@@ -165,9 +167,10 @@ fly_robot/
   neural/             # runs Pugliese's JAX rate model; our own model lives here later
     pugliese_extra_configs/  # our Hydra config additions, tracked (external/ is gitignored)
   interface/          # *not yet created* — motor-neuron → joint mapping; sensors → sensory-neuron inputs
-  bodies/             # *not yet created* — MuJoCo MJCF: hexapod (3 DOF/leg), quadruped (amputated variant)
+  bodies/             # NeuroMechFly/FlyGym v2 body composition (not a hand-built hexapod — see
+                      # docs/logs/2026-09-19.md). 7 real DOF/leg, not the originally-sketched 3.
   sim/                # *not yet created* — coupled loop: neural dt vs physics dt synchronisation
-  experiments/        # *not yet created* — phase scripts
+  experiments/        # phase scripts (phase2_sanity_gait.py so far — harness-mode mechanical test)
   analysis/           # circuit visualizations; rhythm/phase-coupling/gait plots come later
 docs/
   logs/               # dated findings, one file per day — the actual content
@@ -211,8 +214,14 @@ short version for orientation.
   segment) still needs the same level of scrutiny; grouping by
   joint/flexor-extensor for T2/T3 motor neurons is the remaining Phase 1
   work.
-- **Phase 2 — Hexapod body in MuJoCo.** Harness mode (fixed base), sanity
-  sine gait, 3 DOF/leg.
+- **Phase 2 — Hexapod body in MuJoCo.** Body: FlyGym/NeuroMechFly v2
+  (real fly anatomy, 7 DOF/leg — not the originally-sketched simplified
+  3 DOF/leg; see `fly_robot/bodies/neuromechfly.py` and
+  `docs/logs/2026-09-19.md`). **Harness mode (fixed base) + sanity sine
+  gait: DONE** (`fly_robot/experiments/phase2_sanity_gait.py`,
+  `media/phase2/phase2_sanity_gait.mp4`) — confirms the mechanical
+  pipeline (body, actuators, harness, physics, rendering) works. This
+  sine wave is a synthetic test signal only, not connectome-derived.
 - **Phase 3 — Open loop.** Motor neuron rates → joint targets; legs step in
   harness.
 - **Phase 4 — Closed loop.** Joint angle → chordotonal-like inputs; foot

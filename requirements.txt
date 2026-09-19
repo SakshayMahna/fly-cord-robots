@@ -21,3 +21,12 @@ h5py==3.16.0
 natsort==8.4.0
 psutil==7.2.2
 pypdf==6.19.0  # reading their bioRxiv preprint PDF directly
+
+# Phase 2: hexapod body — FlyGym/NeuroMechFly v2 (github.com/NeLy-EPFL/flygym,
+# Apache-2.0), NOT a hand-built or generic hobby-robot hexapod. See
+# docs/logs/2026-09-19.md for why. Requires Python >=3.12,<3.15 (our venv is 3.12).
+flygym==2.1.0
+mujoco==3.9.0
+mediapy==1.2.7
+glfw==2.10.2
+PyOpenGL==3.1.10
