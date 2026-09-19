@@ -43,6 +43,29 @@ motor interface stays frozen at config hash
 
 ---
 
+## 0b. What body this runs on — stated explicitly
+
+**The body is NeuroMechFly v2's anatomically accurate *Drosophila* body,
+not a hexapod robot.** It is a micro-CT-derived fly model with 7 real
+degrees of freedom per leg (42 actuated), from FlyGym (EPFL
+Neuroengineering Lab, Nature Methods 2024). See
+`fly_robot/bodies/neuromechfly.py`.
+
+This is deliberate for the closed-loop work, and it is a **narrowing** of
+the project's eventual scope, which is a fly connectome driving a body it
+did not evolve for. The hypotheses here are about whether connectome plus
+body produces coordination that connectome alone does not. Asking that on
+a fly-shaped body first removes a whole class of confound: if coordination
+fails on a robot body, it is ambiguous whether the wiring cannot do it or
+the body was simply wrong for it. On the fly's own body, a negative result
+means something. Transfer to a non-fly body is later work and a separate
+claim.
+
+Consequence to state in any write-up: a positive result here shows the
+connectome coordinates **its own body**, not that it generalises.
+
+---
+
 ## 1. Hypotheses
 
 **H1 — Feedback induces left↔right coupling.**
@@ -77,11 +100,38 @@ are permuted across legs (C3).
 
 ## 2. Conditions
 
-Body support: **harness** = base rigidly fixed, legs in air (`TetheredWorld`).
-**ground** = feet contacting ground with partial body-weight support, held
-**identical across every ground condition**. The support mechanism is an
-open implementation item (see §8); whatever is chosen is documented in
-`LOG.md` and used unchanged everywhere.
+Body support: **harness** = thorax rigidly fixed, legs in air
+(`TetheredWorld`). **ground** = thorax fixed identically, feet on a
+freely-rotating sphere — the standard **tethered-on-ball** rig used in
+real *Drosophila* labs (`fly_robot/bodies/tethered_ball.py`).
+
+The ball is what makes the two conditions differ in **exactly one thing**:
+whether the feet have a substrate. A free-standing body would differ in
+two (substrate *and* freedom to move), and would also fall over, since
+raw connectome drive is not a balance controller. The ball gives real
+contact, real load, and real mechanical coupling through a shared
+substrate — the "biomechanical coupling" Pugliese et al. name as a
+candidate mechanism — with the body pose identical to the harness.
+
+Fixed parameters, held identical across every ground condition:
+
+| | value | basis |
+|---|---|---|
+| radius | 3.0 mm | real rigs use a ~6 mm foam ball for a ~2.5 mm fly |
+| mass | 3.4e-3 g | expanded polystyrene at ~0.03 g/cm³; 3.3× the fly's 1.02 mg |
+| centre | (0.16, 0, −1.64) mm | fitted to the settled neutral stance, then raised until all six feet contact (§ LOG) |
+| joint | MuJoCo `ball` (3 rotational DoF, 0 translational) | an air bearing's kinematics without modelling the air |
+| damping | 1e-6 | residual air-bearing drag; nonzero only to stop numerical drift accumulating |
+| contact | FlyGym's own `_GroundContactMixin`, `tibia_tarsus_only` | identical friction/solref/solimp to its flat-ground world |
+
+Verified: all six tarsi contact at rest and throughout a driven gait, and
+under a synthetic tripod drive the ball turns about the **pitch** axis
+(−0.95 rad/s) with roll and yaw near zero — i.e. straight-line forward
+walking.
+
+**Ball rotation (quaternion + angular velocity) is logged every trial** as
+an extra output. No hypothesis depends on it; it is the rig's own measure
+of intended locomotion and is cheap to record.
 
 | ID | loop | body | connectome | sensory | tests |
 |---|---|---|---|---|---|
@@ -136,6 +186,63 @@ after seeing a result.
 **Budget:** E1 and E3 at 6 × 3 × 20 = 360 trials each; E0 and E2 at 3 × 20
 = 60 each; C1–C4 at 20 each = 80. **920 trials**, ~24 s each (22.4 s neural
 + 0.8 s physics, measured) ≈ **6.1 hours**. No reduced matrix needed.
+
+---
+
+## 4b. Control definitions (C1, C2)
+
+Both implemented in `fly_robot/neural/connectome_controls.py`. Neither
+modifies the real connectome — the shuffle returns a new matrix and the
+original is untouched.
+
+**C1 — degree-preserving edge shuffle.** Classic double-edge swap: edges
+a→b and c→d become a→d and c→b, which leaves the out-degree of a and c
+and the in-degree of b and d unchanged. Weights travel with their source,
+so the weight multiset is identical. Swaps happen **within sign class
+only** — well-defined here because the connectome obeys **Dale's law
+exactly** (verified: 0 of 22,769 presynaptic neurons have outgoing edges
+of both signs), so a source can never change sign as a side effect.
+Neurons are never relabelled, so sensory injection and motor readout
+still address the same cells.
+
+A swap is **rejected** if it would create a self-loop or duplicate an
+existing edge, because `csr_matrix` silently *sums* duplicates and
+destroys edges. Verified on the real matrix (seed 0, 10 rounds):
+
+| | |
+|---|---|
+| swaps proposed / accepted | 6,862,020 / 6,491,786 (94.6%) |
+| targets changed | 99.99% |
+| out-degree preserved | **yes, max error 0** |
+| in-degree preserved | **yes, max error 0** |
+| weight multiset preserved | **yes** |
+| per-neuron (excitatory, inhibitory) out-counts | **identical** |
+| self-loops | 16 → 0 (existing ones can be swapped away; new ones are never created) |
+| deterministic for a fixed seed | yes |
+
+*Open question flagged, not silently decided:* the shuffle currently
+rewires motor neurons' incoming edges too, so each leg's motor pool is
+driven by arbitrary interneurons. A loss of coordination could then come
+from the readout becoming meaningless rather than from coupling failing.
+`degree_preserving_shuffle` takes `protected_rows`/`protected_cols` to
+hold those edges out. **Default is to shuffle everything**; if the user
+prefers the protected variant it must be decided before the first C1 run.
+
+**C2 — rate-matched noise.** Phase-randomised surrogates of **each
+channel's actual recorded sensory drive from the matched E3 trial**, not
+synthetic noise. The surrogate preserves the amplitude spectrum exactly,
+hence the mean, variance and autocorrelation, and destroys only the timing
+relationship to the body. Channels are randomised independently, so
+cross-channel timing structure goes too. Surrogates are injected through
+exactly the same code path as the real drive
+(`SensoryEncoder.input_current(..., drives=...)`).
+
+Verified over 200 draws × 6 channels: mean correlation with the real
+signal **−0.011**, mean preserved to 4e-17, standard-deviation ratio
+1.000, amplitude spectrum to 1e-16. Individual draws vary widely
+(|r| median 0.61) because a narrowband signal keeps its frequency under
+phase randomisation — which is exactly why the null needs many draws
+rather than one.
 
 ---
 
@@ -217,13 +324,29 @@ Each must pass and be recorded in `LOG.md`:
 - [x] Coordination metric is dt-robust — PLV correlation 1.0000, 100%
       significance agreement at 4× finer steps (`AUDIT.md` §6).
 - [x] Significance test calibrated — 7.6% false-positive rate measured.
-- [ ] `g_fb = 0` reproduces open-loop **bit-identically**, same seed.
-- [ ] Determinism: same seed + config → identical results, twice.
-- [ ] Locality test passes: perturbing leg *i*'s sensors changes only leg
-      *i*'s sensory input (all conditions except C3).
+- [x] `g_fb = 0` emits exactly zero current (not merely small), so the
+      closed loop reduces to open loop bit-for-bit —
+      `tests/test_sensory_interface.py::test_gain_zero_gives_exactly_zero_current`.
+- [x] Determinism: identical input → identical current, repeated —
+      `::test_deterministic_for_identical_input`. Shuffle determinism for
+      a fixed seed verified separately (§4b).
+- [x] **Locality**: perturbing leg *i*'s joints alone changes only leg
+      *i*'s sensory neurons, for all six legs —
+      `::test_locality_perturbing_one_leg_changes_only_that_legs_neurons`.
+      The C3 permutation is confirmed to be the *only* cross-leg path —
+      `::test_c3_permutation_is_the_only_cross_leg_path`.
+- [x] Encoder output bounded, finite and non-negative under extreme input
+      (±1e3 rad, ±1e4 rad/s) — `::test_current_is_finite_and_non_negative_over_extreme_input`.
+- [x] Ball world: all six feet contact at rest and under drive; ball
+      rotates about pitch with roll/yaw ≈ 0; no NaN over 4 s.
+- [ ] **End-to-end `g_fb = 0` ≡ E0 on a full trial** (needs the coupled
+      loop runner, not yet built).
 - [ ] dt-robustness re-checked at the 4 s duration.
 - [ ] Firing rates bounded and physics stable across the full sweep range;
       any failing condition is **reported, not silently dropped**.
+
+All passing gates run as tests, not notebook assertions:
+`python -m pytest tests/test_sensory_interface.py` — 13 passed.
 
 ---
 
@@ -249,19 +372,18 @@ reported, and is resolved by the H1 reframing in §0.1.)*
 These must be closed before the first main trial, and none of them may
 change anything in §1–§5:
 
-1. **De-duplicate the 16 repeated motor-neuron rows** in
-   `all_legs_circuit.csv` (T1-L 2, T1-R 5, T2-L 1, T2-R 1, T3-L 4, T3-R 3;
-   346 rows → 330 unique). They currently double-count neurons in the
-   per-leg sum.
-2. **Choose the partial body-weight support mechanism.** FlyGym ships
-   `TetheredWorld` (rigid) and `FlatGroundWorld` (free) with nothing in
-   between. Candidates: reduced gravity, or a vertical spring between
-   thorax and a fixed site. Whichever is chosen is documented and held
-   identical across E2, E3 and C1–C4.
-3. **Define the degree- and sign-preserving shuffle for C1**, reusing
-   Pugliese's own `shuffle_utils` where it fits.
-4. **Define "rate-matched" for C2** — noise matched to each leg's real
-   sensory drive in mean and variance, uncorrelated across legs.
+1. ~~De-duplicate the 16 repeated motor-neuron rows~~ — **done**; root
+   cause was a one-to-many MaleCNS join, fixed at source. Baseline
+   recomputed; every figure moved by <1 percentage point (`AUDIT.md` §3, §6).
+2. ~~Choose the body-support mechanism~~ — **done**: tethered-on-ball,
+   built in `fly_robot/bodies/tethered_ball.py`, parameters fixed in §2.
+3. ~~Define the degree- and sign-preserving shuffle for C1~~ — **done**, §4b.
+4. ~~Define "rate-matched" for C2~~ — **done**, §4b.
+5. **Build the coupled neural↔physics loop runner** — the one remaining
+   piece before main runs. Everything it composes exists and is tested;
+   nothing about §1–§5 depends on how it is written.
+6. **Decide C1's protected-edge variant** (§4b) — default is to shuffle
+   everything including motor neurons' incoming edges.
 
 ---
 

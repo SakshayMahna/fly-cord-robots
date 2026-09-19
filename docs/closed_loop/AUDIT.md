@@ -138,10 +138,23 @@ frozen motor interface actually maps to a joint:
 - **`tibia extend` has exactly 2 neurons per leg**, against 11–17 for
   `tibia flex`. Any antagonist-difference signal on the tibia joint is
   therefore built from a very small extensor pool.
-- **16 duplicate rows.** The file has 346 motor-neuron rows but only **330
-  unique** MANC bodyIds (T1-L 2, T1-R 5, T2-L 1, T2-R 1, T3-L 4, T3-R 3).
-  A neuron listed twice is summed twice in a per-leg readout. Small, but it
-  must be de-duplicated before the main runs — **open item**.
+- **16 duplicate rows — found, root-caused and FIXED.** The file had 346
+  motor-neuron rows for only **330 unique** MANC bodyIds. The cause was a
+  one-to-many join: `mancBodyid` is not a 1:1 cross-reference, so merging
+  the MaleCNS lookup onto the circuit table fanned single MANC neurons out
+  into several rows, each then summed again in every per-leg readout.
+  Fixed in `client.collapse_malecns_matches`, which resolves a multi-match
+  by preferring the MaleCNS neuron whose `superclass` fits the role
+  (`vnc_motor` for a motor neuron) and otherwise tie-breaks
+  deterministically, recording `malecns_n_matches` and
+  `malecns_ambiguous` so the ambiguity stays visible. Now 330 rows, zero
+  duplicates. Note `class` cannot be used for this — it is NaN for every
+  MaleCNS motor neuron; only `superclass` carries the distinction.
+- **9 MANC motor neurons cross-reference to NON-motor MaleCNS cells** (7
+  `vnc_intrinsic`, 2 `vnc_sensory`, e.g. MANC 13163 "tibia flex" matching
+  `SNta02,SNta09`). This does not affect any dynamics — the simulation is
+  indexed by MANC bodyId — but it means those neurons' *MaleCNS identity*
+  should not be asserted. Flagged in the regenerated CSV.
 - **No motor neuron is shared between legs.** Checked explicitly: all 15 leg
   pairs have empty intersection. This matters because it rules out the most
   obvious artifact behind the coupling result in §6.
@@ -331,13 +344,20 @@ active in 69–97% of replicates.
 
 | pair class | pairs | valid trials | significant | median PLV |
 |---|---:|---:|---:|---:|
-| **ipsilateral** (same side, front↔mid↔hind) | 6 | 521 | **52.0%** | **0.535** |
-| **contralateral** (left↔right, same segment) | 3 | 243 | 16.9% | 0.155 |
-| **diagonal** (opposite side, different segment) | 6 | 498 | 16.7% | 0.147 |
+| **ipsilateral** (same side, front↔mid↔hind) | 6 | 521 | **51.8%** | **0.535** |
+| **contralateral** (left↔right, same segment) | 3 | 243 | 17.3% | 0.156 |
+| **diagonal** (opposite side, different segment) | 6 | 498 | 16.5% | 0.146 |
 
 *(chance = 7.6%)*
 
-**Tripod index: median −0.221**; only 14.4% of replicates positive.
+**Tripod index: median −0.229**; only 13.6% of replicates positive.
+
+These are the corrected numbers, recomputed after the duplicate
+motor-neuron rows were removed (§3). The de-duplication moved every
+figure by less than one percentage point — ipsilateral 52.0 → 51.8%,
+contralateral 16.9 → 17.3%, tripod −0.221 → −0.229 — so the finding was
+never an artifact of the duplicates. Reproduce with
+`python -m fly_robot.experiments.open_loop_coordination_baseline`.
 
 Strongest pairs are all same-side: T2-RHS↔T3-RHS (PLV 0.935, 77.6%
 significant), T1-RHS↔T3-RHS (0.557), T1-LHS↔T2-LHS (0.559),
@@ -366,11 +386,11 @@ paper.
 ### Reading this honestly
 
 Our baseline **agrees with both specific claims the paper tests**: left↔right
-coupling is weak (16.9% vs 7.6% chance, PLV 0.155), and the tripod pattern is
-absent (index −0.22).
+coupling is weak (17.3% vs 7.6% chance, PLV 0.156), and the tripod pattern is
+absent (index −0.23).
 
 It **adds a distinction the paper does not report**: same-side
-front↔middle↔hind coupling is substantial (52%, PLV 0.535). Their broad
+front↔middle↔hind coupling is substantial (51.8%, PLV 0.535). Their broad
 summary sentence — "phase coupling was absent across the six leg CPGs" —
 is not what we measure, if that sentence is read as covering all 15 pairs.
 
@@ -454,10 +474,13 @@ Both are annotation-coverage properties of MANC, not choices of ours.
 
 ## 8. Open items
 
-- [ ] De-duplicate the 16 repeated motor-neuron rows before main runs.
-- [ ] Decide how to handle near-absent leg campaniform sensilla (§7.1).
-- [ ] Decide whether sensory left/right asymmetry (§7.2) needs mitigating.
-- [ ] Resolve the E0 ipsilateral-coupling finding (§6) before pre-registering.
+- [x] De-duplicate the 16 repeated motor-neuron rows — **done** (§3).
+- [x] Near-absent leg campaniform sensilla (§7.1) — H2 reframed around
+      joint-angle feedback; no load channel invented.
+- [x] Sensory left/right asymmetry (§7.2) — equalised at the interface,
+      with C4 as the un-normalised control.
+- [x] Resolve the E0 ipsilateral-coupling finding (§6) — reframed into H1;
+      see `PREREGISTRATION.md` §0.
 - [x] dt-robustness of the coordination metric — **passed** (§6).
 - [ ] MaleCNS-derived weights still never simulated (§1) — inherited gap.
 

@@ -57,7 +57,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from fly_robot.connectome.client import resolve_manc_bodyids_to_malecns
+from fly_robot.connectome.client import (
+    collapse_malecns_matches, resolve_manc_bodyids_to_malecns,
+)
 
 # The 3 CPG cell types from Pugliese's T1 circuit (see identify_t1_circuit.py
 # for how these were decoded from their experiment config row-indices).
@@ -147,8 +149,26 @@ def resolve_to_malecns(manc_bodyids: list[int]) -> pd.DataFrame:
     lookup's columns, renamed for this CSV's existing schema."""
     result = resolve_manc_bodyids_to_malecns(manc_bodyids)
     return result.rename(columns={"somaNeuromere": "malecns_somaNeuromere"})[
-        ["malecns_bodyId", "type", "instance", "manc_bodyId", "status", "malecns_somaNeuromere"]
+        ["malecns_bodyId", "type", "instance", "manc_bodyId", "status",
+         "malecns_somaNeuromere", "malecns_class", "malecns_superclass"]
     ]
+
+
+def _expected_malecns_superclass(row) -> str | None:
+    """Which MaleCNS `superclass` a given circuit role should land on,
+    used to resolve one-to-many `mancBodyid` matches (see
+    `client.collapse_malecns_matches`).
+
+    A MANC leg motor neuron should match a MaleCNS neuron with
+    `superclass` containing "motor" (`vnc_motor`). The CPG interneurons
+    and the DN have no single positive substring covering both
+    `vnc_intrinsic` and `descending_neuron`, so they are left to the
+    deterministic tie-break rather than given a rule that would be
+    half-right.
+
+    Note `class` cannot be used for this: it is NaN for every MaleCNS
+    motor neuron. Only `superclass` carries the distinction."""
+    return "motor" if row["role"] == "leg_motor_neuron" else None
 
 
 if __name__ == "__main__":
@@ -191,6 +211,23 @@ if __name__ == "__main__":
 
     long_df = pd.DataFrame(rows).drop_duplicates(subset=["manc_bodyId", "role"])
     merged = long_df.merge(malecns, on="manc_bodyId", how="left")
+
+    # `mancBodyid` is not 1:1 — a plain merge fans one MANC neuron out into
+    # several rows, which double-counts it in every downstream per-leg
+    # readout. Collapse back to one row per (MANC neuron, role).
+    n_before = len(merged)
+    merged = collapse_malecns_matches(
+        merged, key_cols=["manc_bodyId", "role"],
+        expected_class_substring=_expected_malecns_superclass,
+    )
+    n_ambiguous = int(merged["malecns_ambiguous"].sum())
+    print(f"\nCollapsed {n_before} joined rows -> {len(merged)} unique (MANC neuron, role) "
+          f"pairs; {int((merged['malecns_n_matches'] > 1).sum())} had multiple MaleCNS "
+          f"matches, of which {n_ambiguous} could not be resolved by cell class "
+          f"(tie-broken deterministically, flagged as malecns_ambiguous).")
+
+    assert not merged.duplicated(["manc_bodyId", "role"]).any(), \
+        "Duplicate (manc_bodyId, role) survived collapsing — do not proceed."
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

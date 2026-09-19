@@ -53,11 +53,21 @@ TOP_DOWN_CAMERA_ROTATION = Rotation3D("xyaxes", (1, 0, 0, 0, 1, 0))
 DEFAULT_ACTUATOR_GAIN = 50
 
 
-def build_harnessed_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN):
+SPAWN_POS_MM = [0, 0, 0.7]  # mm; matches FlyGym tutorial's free-standing spawn height
+
+
+def build_harnessed_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN,
+                         world=None):
     """Compose a NeuroMechFly instance with only leg DOFs actuated, fixed
     in space (harness/tethered mode — `TetheredWorld` "holds the body in
     place... useful for motor control experiments without locomotion",
     per FlyGym's own docstring).
+
+    `world` defaults to a plain `TetheredWorld` (legs in air). Pass a
+    `TetheredBallWorld` instead for the ground condition — the body is
+    held identically either way, so the two conditions differ in exactly
+    one thing: whether the feet have a substrate. See
+    `fly_robot.bodies.tethered_ball`.
 
     Returns (fly, world, mj_model, mj_data, camera, opposite_camera,
     top_down_camera) — three tracking cameras (two side, one top-down),
@@ -94,10 +104,20 @@ def build_harnessed_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN):
         rotation=TOP_DOWN_CAMERA_ROTATION,
     )
 
-    world = TetheredWorld()
-    spawn_pos = [0, 0, 0.7]  # mm; matches FlyGym tutorial's free-standing spawn height
+    if world is None:
+        world = TetheredWorld()
     spawn_rot = Rotation3D(format="quat", values=[1, 0, 0, 0])
-    world.add_fly(fly, spawn_pos, spawn_rot)
+    world.add_fly(fly, list(SPAWN_POS_MM), spawn_rot)
 
     mj_model, mj_data = world.compile()
     return fly, world, mj_model, mj_data, camera, opposite_camera, top_down_camera
+
+
+def build_ball_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN, **ball_kwargs):
+    """Same body and cameras as `build_harnessed_fly`, standing on a
+    freely-rotating sphere — the standard fly-on-ball rig. See
+    `fly_robot.bodies.tethered_ball` for why this is the ground condition.
+    """
+    from fly_robot.bodies.tethered_ball import TetheredBallWorld
+
+    return build_harnessed_fly(name=name, gain=gain, world=TetheredBallWorld(**ball_kwargs))

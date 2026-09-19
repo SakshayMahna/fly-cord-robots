@@ -187,3 +187,158 @@ Written: `SENSORY_MAP.md`, `PREREGISTRATION.md`. Four open implementation
 items recorded in `PREREGISTRATION.md` §8 — none of them may change §1–§5.
 
 **No main-experiment trial has been run.**
+
+---
+
+## 2026-09-19 — De-duplication, ball world, controls, sensory interface
+
+### De-duplicating the motor neurons (and finding why they duplicated)
+
+The 16 repeated rows were not a data-entry quirk. `mancBodyid` is **not a
+1:1 cross-reference**, so `long_df.merge(malecns, on="manc_bodyId")` in
+`identify_all_leg_circuits.py` fanned single MANC neurons out into several
+rows — a classic one-to-many join blow-up — each then counted again in
+every per-leg sum.
+
+Several of the extra matches were plainly wrong: MANC *motor* neurons
+matching MaleCNS **sensory** neurons (`SNta02,SNta09`, `SNpp45`, `SNta29`)
+or interneurons (`IN13A030`, `INXXX471`, `IN20A.22A009`).
+
+Fixed at source with `client.collapse_malecns_matches`: prefer the match
+whose MaleCNS **`superclass`** fits the role (`vnc_motor` for a motor
+neuron), else tie-break deterministically on lowest bodyId, and record
+`malecns_n_matches` / `malecns_ambiguous` so ambiguity stays visible.
+
+First attempt used `class` and resolved **zero** of the 17 multi-matches —
+`class` is NaN for every MaleCNS motor neuron. Only `superclass` carries
+the distinction. With `superclass`, 5 resolve by cell class and 12 remain
+genuine ties (both candidates equally plausible, e.g. two different
+`Ti flexor MN`s).
+
+Result: 367 → 350 rows, motor neurons 346 → **330, zero duplicates**. Also
+surfaced **9 MANC motor neurons whose only MaleCNS match is non-motor** —
+no effect on dynamics (the sim indexes by MANC bodyId) but their MaleCNS
+identity should not be asserted.
+
+### E0 baseline recomputed
+
+`fly_robot/experiments/open_loop_coordination_baseline.py`, now a proper
+script rather than ad-hoc analysis, with an assertion that the circuit map
+contains no duplicate bodyIds.
+
+| | before de-dup | after |
+|---|---|---|
+| ipsilateral significant | 52.0% | **51.8%** |
+| ipsilateral median PLV | 0.535 | **0.535** |
+| contralateral significant | 16.9% | **17.3%** |
+| contralateral median PLV | 0.155 | **0.156** |
+| tripod index (median) | −0.221 | **−0.229** |
+
+Everything moved by less than one percentage point. **The finding was never
+an artifact of the duplicates** — worth knowing, since it was the obvious
+thing to suspect.
+
+### Tethered-on-ball world
+
+Built `fly_robot/bodies/tethered_ball.py`. Three real bugs on the way,
+each caught by checking rather than assuming:
+
+1. **Nothing collided.** A sphere placed under the feet contacted nothing
+   at all, silently. FlyGym gives every fly geom `contype = conaffinity =
+   0` and wires contact through explicit `<pair>` elements instead, so
+   contype/conaffinity masks do nothing. Fixed by inheriting FlyGym's own
+   `_GroundContactMixin` with the ball registered as the ground geom, so
+   foot-ball physics is identical to its flat-ground world. Had to override
+   `_attach_fly_mjcf` rather than call `super()`, because the mixin's
+   version adds a **free joint** — precisely what a tethered world must not
+   have.
+2. **Fitted the ball to the wrong pose.** Tarsus positions were measured
+   straight from `world.compile()`, which is not the settled neutral
+   stance. Real tips are at z ≈ +0.65…+0.91, not −0.38…−0.91 — a ~2 mm
+   error. Re-measured after `reset()` + `warmup()` + 0.2 s of settling.
+3. **Geometric tangency is not contact.** At the best-fit height, the four
+   feet sitting 0.079 mm *above* the surface register nothing and only the
+   two middle legs touch. Swept centre height in 0.04 mm steps: all six
+   feet contact, with zero penetration, for centre_z ∈ [−1.66, −1.62].
+   Took −1.64, the middle of that band.
+
+Also found the centre needs a small **forward** offset (+0.16 mm): centred
+on the body axis, the front legs never reach the ball at all. Final
+parameters: R = 3.0 mm, 3.4 mg, centre (0.16, 0, −1.64), MuJoCo `ball`
+joint, damping 1e-6.
+
+Verified: 6/6 feet contact at rest and throughout a 4 s driven gait; under
+a synthetic tripod drive the ball turns about **pitch** with roll and yaw
+≈ 0 (straight-line forward walking); no NaN. Visual check rendered and
+inspected — the fly sits on top of the sphere with legs wrapping down
+around it, body clear of the surface.
+
+### C1 — degree-preserving shuffle
+
+Pugliese's own `shuffle_utils` permutes whole columns within a class,
+which is not the degree-preserving edge swap specified, so this is a new
+implementation.
+
+Two bugs, both caught by asserting rather than trusting:
+
+1. First version permuted targets wholesale and repaired collisions
+   afterwards. `csr_matrix` **silently sums** duplicate entries, so 15
+   edges vanished and out-degree errors reached 11. Replaced with
+   rejection: a swap that would create a self-loop or duplicate is simply
+   not taken, making the guarantee structural.
+2. Even then, **9,014 edges collapsed** — two swaps *within the same round*
+   can each be individually valid yet independently create the same new
+   edge, since both are checked against a snapshot taken before the round.
+   Fixed by also rejecting swaps whose new edges collide with another
+   accepted swap's in the same round.
+
+Dale's law verified first, since sign-class swapping depends on it: **0 of
+22,769** presynaptic neurons have outgoing edges of both signs.
+
+Final: 6,491,786 of 6,862,020 swaps accepted (94.6%), 99.99% of targets
+changed, out- and in-degree preserved with **max error 0**, weight multiset
+identical, per-neuron (excitatory, inhibitory) counts identical,
+deterministic per seed, 1.6 s. Self-loops 16 → 0 (existing ones can be
+swapped away; new ones are never created) — reported, not hidden.
+
+### C2 — rate-matched noise
+
+Phase-randomised surrogates of each channel's own recorded E3 drive.
+Over 200 draws × 6 channels: mean correlation with the real signal
+**−0.011**, mean preserved to 4e-17, std ratio 1.000, amplitude spectrum
+to 1e-16. Single draws vary widely (|r| median 0.61) because a narrowband
+signal keeps its frequency under phase randomisation — which is why the
+null needs many draws, not one.
+
+### Sensory interface
+
+`fly_robot/interface/joint_to_sensory_neuron.py` — the mirror of
+`motor_neuron_to_joint.py`. 472 neurons driven (394 chordotonal, 78 hair
+plate), matching `SENSORY_MAP.md` exactly.
+
+**Reference scales measured, not assumed.** Drove the frozen motor
+interface with a real representative replicate and recorded every joint:
+99th-percentile excursions reach 0.275 rad and velocities 9.8 rad/s, with
+most legs far smaller (right-hind is driven ~10× harder than the rest,
+consistent with its 14 active motor neurons against 1–2 elsewhere). Set
+`POSITION_REF_RAD = 0.3`, `VELOCITY_REF_RAD_S = 10.0`.
+
+Deliberately **not** the motor interface's theoretical ±0.5 rad maximum:
+most legs move far less, so a 0.5 rad reference would squash the real
+signal into the bottom of the encoder's range — the identical failure mode
+that made `DEFAULT_RATE_SCALE_HZ = 20` wrong on the motor side.
+
+Side normalisation verified: left and right pools of each segment receive
+equal **total** drive (T1 40.0/40.0, T2 72.0/72.0, T3 85.0/85.0) while
+per-neuron currents stay in a firing range.
+
+### Validation gates
+
+`tests/test_sensory_interface.py`, **13 passed**. Locality, determinism,
+`g_fb = 0` → exactly zero, linearity in gain, boundedness under absurd
+input, and a positive check that C3's permutation really is the only
+cross-leg path (a control that silently behaved like the real condition
+would be worthless).
+
+**No main-experiment trial has been run.** The one piece still missing is
+the coupled neural↔physics loop runner.
