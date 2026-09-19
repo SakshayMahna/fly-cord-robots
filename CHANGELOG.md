@@ -27,7 +27,11 @@ explain *why*, not just *what*.
   replicate instead), recalibrated the rate-to-angle scale against
   measured data, and got real connectome-driven leg movement both
   numerically and visually confirmed (top-down camera, derived not
-  guessed).
+  guessed). Recorded a teleoperation design (not built) and confirmed via
+  the literature that Phase 4's closed-loop experiment is a real open
+  question — proposed as future work by Pugliese et al. themselves, not
+  yet published by anyone in this literal (untrained, unmodified
+  connectome) form.
 - **[2026-09-18](docs/logs/2026-09-18.md)** — Decided to use MaleCNS
   instead of MANC going forward; identified and resolved Pugliese et
   al.'s published T1 walking circuit into MaleCNS; first 3D circuit

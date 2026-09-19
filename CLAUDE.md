@@ -81,6 +81,28 @@ Every claim in code, logs, plots, and docs must be precise:
   biomechanical coupling — may be needed for real interleg coordination.
   **Closing that loop with an actual physical body is the central bet of this
   entire project**, not a side detail.
+- **This is a known open question in the field, not something we invented
+  — but the specific experiment hasn't been published (checked 2026-09-19,
+  see docs/logs).** Pugliese et al.'s own Discussion section proposes
+  exactly this as unfinished future work, in almost these words: *"In the
+  future, it may be possible to test hypotheses by coupling VNC
+  connectome simulations to control and receive feedback from
+  biomechanical models of the fly body interacting with a simulated
+  physical environment, which would require adding biologically
+  realistic interfaces of proprioceptive sensors and muscle actuators."*
+  A closely related but methodologically different effort exists
+  ("FlyGM," NeurIPS 2025): it couples the connectome's wiring *topology*
+  to a biomechanical body, but as an architectural prior for a graph
+  neural network **trained by reinforcement learning** to solve
+  locomotion tasks — a different question ("does connectome-shaped
+  architecture help an RL policy learn to walk") from ours ("does the
+  literal, unmodified, untrained real synaptic wiring plus a real body
+  produce coordination"). We never train or optimize the connectome
+  itself — matching this project's core constraint (never modify the
+  wiring, only the interface) — which is precisely what distinguishes
+  our approach from FlyGM's. As far as we've found, nobody has published
+  the literal closed-loop result Phase 4 is attempting either way it
+  comes out.
 
 ## Dataset: MaleCNS, not MANC (decided 2026-09-18)
 We use **MaleCNS v1.0** (`male-cns:v1.0` on neuprint, server
