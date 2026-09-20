@@ -342,3 +342,198 @@ would be worthless).
 
 **No main-experiment trial has been run.** The one piece still missing is
 the coupled neural↔physics loop runner.
+
+---
+
+## 2026-09-19 — Rhythm-first gating, C1/C1b, and the coupled loop runner
+
+### User decisions recorded
+
+1. Build the coupled loop runner. Gates before main runs: (a) `g_fb = 0`
+   in the full runner reproduces open-loop output exactly at the same
+   seed; (b) pilot on pilot seeds only; (c) report timing and any
+   instability. **Stop after the pilot.**
+2. C1 becomes the **protected** variant — hold out incoming edges to motor
+   neurons, outgoing edges from sensory neurons, and DNg100's outgoing
+   edges; shuffle the rest with the same verified procedure. Add **C1b** =
+   shuffle-everything as a secondary control.
+3. Pre-register that **rhythmicity is evaluated first**; conditions without
+   a significant rhythm are reported as "no rhythm" and coupling metrics
+   are not computed for them.
+4. Update `PREREGISTRATION.md` and commit **before** the pilot.
+
+### Rhythmicity gate
+
+Added to `interleg_coordination.py`. A leg is rhythmic only if its in-band
+spectral peak strength beats the 95th percentile of an **AR(1) null**
+matched to its own variance and lag-1 autocorrelation.
+
+The choice of null mattered and is not the obvious one: the
+phase-randomised surrogate used for the *coupling* test preserves the
+amplitude spectrum **exactly**, so it carries the same spectral peak as
+the real signal and can never test whether that peak is real. Red noise
+reproduces the autocorrelated background a non-oscillating rate signal
+has, and asks whether the peak stands above it.
+
+**A first calibration attempt looked catastrophic** — an 11 Hz rhythm
+detected only 10% of the time at "SNR 2". That turned out to be a broken
+*test*, not a broken gate: the synthetic signal added an oscillation to
+AR(1) noise in a way that corrupted the AR(1) refit, and its nominal SNR
+bore little relation to in-band SNR. Re-run properly, by burying a **real**
+strongly-rhythmic trace in controlled noise:
+
+| | |
+|---|---|
+| detection at 1x / 2x / 4x / 8x the signal's in-band amplitude | 100% / 100% / 94% / 22% |
+| false positives, white noise | 5.0% (nominal 5%) |
+| false positives, red noise (φ = 0.9) | 3.3% |
+| on real published data | 66.7% of active leg-trials pass |
+
+On real data the rejected legs have peak strength 0.18-0.43 against a
+stable threshold near 0.49; accepted ones sit at 0.70-0.97. Worth
+recording that the first calibration was wrong and was caught by checking
+against real data rather than trusting the synthetic number.
+
+### C1 protected / C1b
+
+Protected sets: 87,534 edges into motor neurons + 236,224 out of sensory
+neurons + 1,043 out of DNg100 = **320,551 of 1,372,404 (23.4%)**. With
+them held out the shuffle still changes 76.6% of targets, preserves in-
+and out-degree with **max error 0**, preserves the weight multiset, and
+leaves every protected edge present and unchanged (verified by set
+comparison, not assumed).
+
+Rationale recorded in `PREREGISTRATION.md` §4b: shuffling those edges
+would randomise the *interface* rather than the circuit, so a coordination
+loss could come from the per-leg readout ceasing to mean "this leg"
+instead of from coupling genuinely failing.
+
+### The coupled loop runner
+
+`fly_robot/sim/closed_loop.py` plus `fly_robot/sim/trial_setup.py`. One
+iteration is one neural step of 1 ms containing 10 physics substeps (exact
+integer ratio, asserted). Sensory current is held constant across a neural
+step — the same zero-order hold the motor side already uses.
+
+One piece needed writing rather than reusing: the frozen motor interface's
+`compute_joint_targets` operates on a whole precomputed
+(n_neurons, n_timesteps) trace, which a closed loop does not have because
+the next timestep does not exist yet. `_joint_targets_from_rates` applies
+the identical rule to one instantaneous rate vector, importing the frozen
+module's constants rather than restating them, and a test asserts it
+reproduces the batch function to 1e-12. The frozen module itself is
+untouched.
+
+Sensory feedback enters exactly where the stimulation current already
+enters — an additive term in the input vector `I`. **W is never touched.**
+
+### Gates (`tests/test_closed_loop.py`, 7 passed)
+
+- **`g_fb = 0` reproduces open loop bit-identically**, in both the harness
+  and the ball condition — the decisive gate. Arrays compared with
+  `array_equal`, not `allclose`.
+- Single-step motor rule matches the frozen batch rule to 1e-12.
+- Determinism: same seed and config, twice, identical.
+- **Feedback actually changes the neural trajectory** at `g_fb = 20` — a
+  positive check, because a disconnected feedback path would otherwise
+  produce a null result by construction and look like a finding.
+- Ball state recorded on the ball, absent in the harness.
+- No instability at default settings.
+
+### Timing
+
+`build_trial_components` 6.1 s; a full 4 s trial 23-24 s, matching the
+audit's projection. Full 940-trial matrix projects to ~6.3 hours.
+
+---
+
+## 2026-09-20 — PILOT RESULTS (pilot seeds only; stopped after, as instructed)
+
+36 trials: parameter seed 641, replicates 0–3, conditions E0 / E1 / E2 and
+E3 across the full pre-registered `g_fb` sweep. **No main-experiment seed
+was touched.** Raw output in `media/closed_loop/pilot/`.
+
+### (c) Timing
+
+| | |
+|---|---|
+| per trial (4 s simulated) | **24.9 s** (range 23.5–26.0) |
+| `build_trial_components` | 6.1–7.0 s per replicate |
+| 36 trials | 16.1 min |
+| **projected full matrix (940 trials)** | **6.5 hours** |
+
+Matches the audit's 6.3 h projection. Compute is not a constraint.
+
+### (a) `g_fb = 0` gate — passes at condition level too
+
+E0 (harness), E2 (ball) and E3 (ball, feedback disabled) produce
+**identical** `n_active` and `n_rhythmic` for every replicate:
+
+| replicate | 0 | 1 | 2 | 3 |
+|---|---:|---:|---:|---:|
+| n_active (all three conditions) | 522 | 380 | 4176 | 367 |
+| rhythmic legs (all three) | 5 | 3 | 3 | 4 |
+
+The body differs between these conditions; the neural path does not. This
+is the same gate `tests/test_closed_loop.py` asserts bit-identically, now
+confirmed end-to-end on full 4 s trials.
+
+Replicate 2 is oversaturated (4176) **at baseline, with no feedback at
+all** — a pre-existing unstable draw, not something the loop caused. Under
+the pre-registered filter (`n_active ≤ 1500`) it would be excluded. 1 of 4
+here against a known base rate of 10/128; small-sample noise.
+
+### (b) Stability — and a hard finding that blocks the main runs
+
+**Nothing went numerically unstable.** 0 of 36 trials flagged; no NaN, no
+divergence, no physics blow-up; peak firing rate 235.6 Hz against a
+1000 Hz clip.
+
+But the network does something else, and it invalidates the
+pre-registered sweep:
+
+| `g_fb` | median n_active | fraction oversaturated | median rhythmic legs |
+|---:|---:|---:|---:|
+| 0 | 451 | 0.25 | 3.5 |
+| **2.5** | **462** | **0.25** | **3.5** |
+| **5** | **3983** | **1.00** | **1.0** |
+| 10 | 4095 | 1.00 | 1.0 |
+| 20 | 3708 | 1.00 | 1.5 |
+| 40 | 4846 | 1.00 | 1.5 |
+
+Per replicate, E3:
+
+| replicate | 0 | 2.5 | 5 | 10 | 20 | 40 |
+|---|---:|---:|---:|---:|---:|---:|
+| 0 | 522 | 539 | 4318 | 4650 | 3790 | 4058 |
+| 1 | 380 | 386 | 3578 | 4051 | 3626 | 4804 |
+| 3 | 367 | 379 | 4492 | 3569 | 4109 | 4888 |
+
+**This is a bifurcation, not a dose-response.** `g_fb = 2.5` changes
+`n_active` by about 3% (522→539, 380→386, 367→379) — barely distinguishable
+from no feedback. `g_fb = 5` jumps it roughly tenfold and the rhythm
+collapses from a median of 3.5 rhythmic legs to 1. Every level at or above
+5 sits in that saturated regime. The network flips into a self-sustaining
+high-activity state: runaway excitation, not instability in the numerical
+sense.
+
+**So the pre-registered sweep {0, 2.5, 5, 10, 20, 40} has effectively two
+usable points, one of which is nearly a no-op.** Four of six levels
+destroy the very rhythm the experiment measures.
+
+### Why the earlier calibration missed this
+
+`g_fb` was set from **single-neuron steady-state activation**: with
+threshold median 3.10, `I = 5` activates 76% of the sensory pool at ~4 Hz,
+`I = 10` 95% at ~16 Hz. That arithmetic is correct and irrelevant — it
+ignores what those neurons then do downstream. 472 sensory neurons with
+median out-degree 22–44, injecting into a network already driven by
+DNg100, deliver an aggregate drive roughly an order of magnitude beyond
+what the single-neuron figure suggests.
+
+The same class of error as the `rate_scale_hz = 20` and 0.5–10 Hz band
+mistakes: a number derived from the right formula applied at the wrong
+level of description. Caught here by the pilot, which is what it was for.
+
+**Stopped and reported rather than re-deriving the sweep unilaterally** —
+changing a pre-registered parameter is the user's call.
