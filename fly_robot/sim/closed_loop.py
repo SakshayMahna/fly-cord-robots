@@ -119,6 +119,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               neural_dt: float = NEURAL_DT,
               leg_permutation: dict | None = None,
               substitute_drive=None,
+              encoder_mode: str = "signed",
               initial_joint_noise_rad: float = 0.0,
               seed: int = 0,
               motor_gain_rad: float = DEFAULT_GAIN_RAD,
@@ -162,7 +163,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         encoder = SensoryEncoder(
             sensory_groups, all_jointdofs,
             {d.name: neutral_lookup.get(d.name, 0.0) for d in all_jointdofs},
-            gain=feedback_gain, leg_permutation=leg_permutation,
+            gain=feedback_gain, leg_permutation=leg_permutation, mode=encoder_mode,
         )
 
     ball_reader = None
@@ -183,6 +184,14 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     physics.reset()
     physics.set_actuator_inputs(fly.name, ActuatorType.POSITION, start_targets)
     physics.warmup()
+
+    # "deviation" mode measures drive relative to the body's SETTLED pose,
+    # so capture it now — after warmup, before stimulation onset. Doing it
+    # here rather than hard-coding a value keeps it a measured property of
+    # the body configuration (which differs between harness and ball) and
+    # not a tuned parameter.
+    if encoder is not None:
+        encoder.set_rest_angles(physics.get_joint_angles(fly.name))
 
     n_steps = int(round(duration_s / neural_dt))
     channel_keys = sensory_groups.group_keys() if sensory_groups is not None else []
@@ -256,5 +265,6 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         n_active_neurons=n_active, max_firing_rate=max_rate,
         wall_clock_s=elapsed, unstable=unstable, instability_reason=reason,
         meta={"n_steps": n_steps, "substeps_per_neural_step": substeps,
-              "on_ball": on_ball, "feedback_gain": feedback_gain, "seed": seed},
+              "on_ball": on_ball, "feedback_gain": feedback_gain, "seed": seed,
+              "encoder_mode": encoder_mode},
     )

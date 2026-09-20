@@ -34,19 +34,27 @@ from fly_robot.neural.replicate_ensemble import N_ACTIVE_UPPER
 from fly_robot.sim.closed_loop import NEURAL_DT, run_trial
 from fly_robot.sim.trial_setup import PILOT_PARAM_SEED, build_trial_components
 
-# Pre-registered sweep (PREREGISTRATION.md §3).
-G_FB_LEVELS = (0.0, 2.5, 5.0, 10.0, 20.0, 40.0)
+# Original pre-registered sweep. The first pilot showed it sits almost
+# entirely past a bifurcation: g_fb=2.5 is a near no-op and everything
+# >= 5 is oversaturated. See the pilot-informed amendment in
+# PREREGISTRATION.md.
+G_FB_LEVELS_ORIGINAL = (0.0, 2.5, 5.0, 10.0, 20.0, 40.0)
+
+# Re-derived sweep, concentrated in the window the first pilot left
+# unsampled.
+G_FB_LEVELS = (0.0, 1.0, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5)
 
 
-def pilot_conditions(g_fb_levels):
-    """(condition id, on_ball, uses_sensory, g_fb) for each pilot trial."""
-    conditions = [("E0", False, False, 0.0), ("E2", True, False, 0.0),
-                  ("E1", False, True, 10.0)]
-    conditions += [("E3", True, True, g) for g in g_fb_levels]
+def pilot_conditions(g_fb_levels, encoder_modes=("signed",)):
+    """(condition id, on_ball, uses_sensory, g_fb, encoder_mode) per trial."""
+    conditions = [("E0", False, False, 0.0, encoder_modes[0])]
+    for mode in encoder_modes:
+        conditions += [("E3", True, True, g, mode) for g in g_fb_levels]
     return conditions
 
 
-def run(replicates, g_fb_levels, duration_s, out_dir: Path):
+def run(replicates, g_fb_levels, duration_s, out_dir: Path,
+        encoder_modes=("signed",)):
     rows = []
     total_start = time.time()
 
@@ -58,17 +66,25 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path):
         print(f"\n=== pilot replicate {replicate} (param seed {PILOT_PARAM_SEED}), "
               f"setup {setup_s:.1f}s ===", flush=True)
 
-        for condition, on_ball, uses_sensory, g_fb in pilot_conditions(g_fb_levels):
+        for condition, on_ball, uses_sensory, g_fb, mode in pilot_conditions(
+                g_fb_levels, encoder_modes):
             result = run_trial(
                 model, motor_groups,
                 sensory_groups=sensory_groups if uses_sensory else None,
-                feedback_gain=g_fb, on_ball=on_ball,
+                feedback_gain=g_fb, on_ball=on_ball, encoder_mode=mode,
                 duration_s=duration_s, seed=replicate)
 
             rhythm, coord = coordination(result.motor_rates, NEURAL_DT,
                                           n_surrogates=100, seed=replicate)
+            transient = int(0.5 / NEURAL_DT)
+            drive = result.sensory_drive[:, transient:]
+            dc = float(drive.mean(axis=1).sum()) if drive.size else 0.0
+            modulation = float(drive.std(axis=1).sum()) if drive.size else 0.0
             row = dict(
-                replicate=replicate, condition=condition, on_ball=on_ball, g_fb=g_fb,
+                replicate=replicate, condition=condition, encoder=mode,
+                on_ball=on_ball, g_fb=g_fb,
+                drive_dc=round(dc, 3), drive_mod=round(modulation, 3),
+                dc_share=round(dc / (dc + modulation), 3) if (dc + modulation) > 0 else np.nan,
                 wall_s=round(result.wall_clock_s, 1),
                 n_active=result.n_active_neurons,
                 oversaturated=result.n_active_neurons > N_ACTIVE_UPPER,
@@ -86,7 +102,7 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path):
                 if result.ball_angvel is not None else np.nan,
             )
             rows.append(row)
-            print(f"  {condition:3s} ball={int(on_ball)} g_fb={g_fb:5.1f}  "
+            print(f"  {condition:3s} {mode:9s} g_fb={g_fb:5.1f}  "
                   f"{result.wall_clock_s:5.1f}s  n_active={result.n_active_neurons:5d}"
                   f"{'  OVERSATURATED' if row['oversaturated'] else ''}"
                   f"  max_fr={result.max_firing_rate:7.1f}  "
@@ -107,7 +123,7 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path):
           f"{frame.wall_s.min():.1f}-{frame.wall_s.max():.1f}s)")
 
     print("\n--- stability and rhythm, by condition ---")
-    summary = frame.groupby(["condition", "g_fb"]).agg(
+    summary = frame.groupby(["condition", "encoder", "g_fb"]).agg(
         n=("replicate", "size"),
         median_n_active=("n_active", "median"),
         frac_oversaturated=("oversaturated", "mean"),
@@ -139,6 +155,9 @@ if __name__ == "__main__":
     parser.add_argument("--replicates", type=int, nargs="+", default=[0, 1, 2, 3],
                         help="pilot replicate indices (must be within 0-7)")
     parser.add_argument("--duration", type=float, default=4.0)
+    parser.add_argument("--encoders", nargs="+", default=["signed", "deviation"],
+                        choices=["signed", "deviation"])
+    parser.add_argument("--g-fb", type=float, nargs="+", default=list(G_FB_LEVELS))
     parser.add_argument("--out-dir", type=Path, default=Path("media/closed_loop/pilot"))
     args = parser.parse_args()
 
@@ -146,4 +165,5 @@ if __name__ == "__main__":
         "Pilot must use pilot seeds only (replicate indices 0-7 of parameter "
         "seed 641). Main-experiment seeds must never be used for tuning."
     )
-    run(args.replicates, G_FB_LEVELS, args.duration, args.out_dir)
+    run(args.replicates, tuple(args.g_fb), args.duration, args.out_dir,
+        encoder_modes=tuple(args.encoders))

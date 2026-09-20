@@ -485,3 +485,135 @@ change anything in §1–§5:
   properties but not a measured fly transfer function.
 - The body is **NeuroMechFly's fly body**, driven by a connectome from a
   *different specimen* than the body was built from.
+
+---
+
+# AMENDMENT 1 — pilot-informed, 2026-09-20
+
+**Added after the pilot, before any main-experiment trial.** Pilot used
+pilot seeds only (parameter seed 641, replicates 0–3); no main seed
+(20260919) has been touched. Nothing above §0–§9 has been edited; this
+amendment is additive and timestamped, per the rule at the top of this
+file.
+
+## A1. The `g_fb` sweep was wrong, and is re-derived
+
+**What the first pilot found.** The pre-registered sweep
+{0, 2.5, 5, 10, 20, 40} sits almost entirely past a bifurcation:
+`g_fb = 2.5` changed `n_active` by ~3% (a near no-op), and every level
+≥ 5 pushed the network into a self-sustaining high-activity state
+(`n_active` ≈ 3,600–4,900 against Pugliese's oversaturation criterion of
+1,500) with rhythmicity collapsing from a median of 3.5 rhythmic legs
+to 1.
+
+**Why it was wrong.** `g_fb` was calibrated from *single-neuron*
+steady-state activation — threshold median 3.10, so `I = 5` activates 76%
+of the sensory pool. Correct arithmetic, wrong level of description: it
+ignores that 472 sensory neurons with out-degree 22–44 deliver an
+aggregate downstream drive roughly an order of magnitude larger. The same
+class of error as `rate_scale_hz = 20` and the 0.5–10 Hz band.
+
+**Replacement sweep: {0, 1, 2, 2.5, 3, 3.5, 4, 4.5}**, concentrated in
+the window the first pilot left unsampled.
+
+## A2. A second encoder formulation is added as a pre-registered factor
+
+**Why.** Decomposing the recorded sensory drive showed the feedback was
+overwhelmingly a standing bias rather than feedback:
+
+| | chordotonal DC | modulation | modulation/DC |
+|---|---:|---:|---:|
+| `signed` (original) | 0.2961 | 0.0347 | **11.7%** |
+
+**88.1% of all injected current was DC** — every chordotonal neuron
+receives 0.25 × `g_fb` at rest, because the signed position code sits at
+0.5 when the joint is at its reference angle. And the **hair plate
+channel was identically silent** (mean and std exactly 0.0000): the
+thorax–coxa joint never reaches 75% of range in the extension direction,
+so the limit detectors never fire at all.
+
+**`deviation` encoder.** Drive proportional to the rectified deviation
+from the **settled resting pose** (measured after warmup, before
+stimulation onset — a deterministic property of the body configuration,
+not a tuned parameter, and necessarily different in harness and on the
+ball). Rest gives ≈ 0 input.
+
+Measured effect: chordotonal DC 0.3085 → **0.0789**, modulation 0.1024 →
+**0.1335** — modulation now *exceeds* DC — and hair plates become
+functional (DC 0.0184, modulation 0.0860) instead of identically zero.
+
+Cost, stated: `|deviation|` cannot distinguish flexion from extension.
+Acceptable because the data does not resolve chordotonal subtypes anyway,
+so a pooled population could not signal direction either way. For hair
+plates, firing at *either* extreme is arguably closer to the real
+population than picking one direction: MANC annotates only a generic
+"hair plate" subclass with no CxHP3/4/8 identity, and the source paper
+states the three hair plates "wrap the joint along the
+anterior-posterior axis".
+
+**Encoder is now a pre-registered factor**, not a fixed choice. Both are
+run; neither is selected after seeing results.
+
+## A3. Baseline rhythmicity confirmed
+
+The pilot's `g_fb = 0` median of **3.5 rhythmic legs** was checked against
+the audit baseline rather than assumed to match:
+
+| | median rhythmic legs |
+|---|---:|
+| published data, 2 s, all 118 stable replicates | **3.0** (mean 3.25) |
+| published data, 2 s, the 4 pilot replicates | 3.5 |
+| our model, 2 s, same 4 replicates | 3.0 |
+| our model, 4 s, same 4 replicates | **3.5** |
+
+Consistent. Our model matches the published data on 3 of 4 replicates at
+matched duration (the one that differs by 1 is replicate 2, the
+oversaturated draw). The +0.5 is the **longer analysis window**: 3.5 s
+gives more cycles and therefore more power to detect a rhythm, adding one
+leg on 2 of 4 replicates. Published distribution has 3 (n=36) and 4
+(n=30) as its two commonest values, so the pilot's four draws are typical.
+
+## A4. The bifurcation persists across BOTH encoders
+
+Per the instruction not to treat it as a result until tested against both
+formulations. Fine sweep, 3 usable replicates (replicate 2 excluded by
+the pre-registered stability filter — oversaturated at baseline, with no
+feedback at all):
+
+| `g_fb` | signed: n_active | rhythmic | deviation: n_active | rhythmic |
+|---:|---:|---:|---:|---:|
+| 0 | 380 | 4 | 380 | 4 |
+| 1 | 384 | 4 | 380 | 4 |
+| 2 | 389 | 4 | 384 | 4 |
+| 2.5 | 385 | 4 | 384 | 4 |
+| 3 | 396 | 4 | 384 | 4 |
+| 3.5 | **4135** | **1** | 388 | 4 |
+| 4 | **4216** | **1** | 388 | 3 |
+| 4.5 | **4710** | **1** | **3794** | **1** |
+
+The `deviation` encoder moves the cliff from ~3.25 to ~4.25 but does not
+remove it. **More importantly, neither encoder has a graded regime**:
+below the cliff, feedback changes `n_active` by 2–4% and leaves the median
+rhythmic-leg count unchanged at 4; above it, the rhythm is destroyed.
+Feedback is either negligible or catastrophic, with nothing in between.
+
+Note the deviation encoder bifurcates at roughly **one third** of the
+total DC current that destabilises the signed one, so DC alone does not
+explain the cliff. The mechanism is consistent with positive feedback:
+movement → sensory drive → more motor drive → more movement. The
+deviation encoder, by design, responds to movement, which makes its peak
+drive higher even though its mean is far lower.
+
+Zero numerical instability in any of the 68 trials; peak firing rate
+235.6 Hz against a 1000 Hz clip. This is a property of the modelled
+circuit, not of the integrator.
+
+## A5. What is NOT decided here
+
+Whether "proprioceptive feedback of any effective strength destabilises
+the unmodified connectome" is reportable as a *finding* is deferred to
+the user. It now satisfies the stated bar (persists across both
+encoders), but alternatives remain untested — for example capping
+per-neuron current, driving a random fixed subset of proprioceptors, or
+introducing the inhibitory component a real sensory pathway would have.
+No main run is started until that is decided.
