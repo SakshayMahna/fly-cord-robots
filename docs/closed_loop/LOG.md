@@ -606,3 +606,73 @@ inhibitory and present throughout; real inhibition does not prevent the
 runaway), and an explicit list of what the result does and does not mean.
 H1/H2/H3 remain **untested**; the pilot establishes they are not testable
 with this interface.
+
+---
+
+## 2026-09-20 — Code dedup + a stale-numbers bug found while verifying it
+
+### Dedup (clean-up pass, no behavior change)
+
+Two independent implementations of "per-leg motor-neuron row indices,
+de-duplicated" existed: `_leg_motor_row_indices` in `sim/closed_loop.py`
+(derived from `MotorNeuronGroups`) and `build_motor_indices` in
+`experiments/open_loop_coordination_baseline.py` (read the circuit CSV
+directly). Centralized as `leg_motor_row_indices` in
+`interface/motor_neuron_to_joint.py`, next to `build_motor_neuron_groups`
+which is the actual source of truth both call sites build from. Verified
+the two old implementations returned bit-identical index sets before
+removing either (not just matching counts — checked set equality per
+leg). Also removed two other pieces of dead code found while at it:
+`PULSE_START_S`/`PULSE_END_MARGIN_S` constants in `closed_loop.py` that
+were defined and never read (real pulse timing comes from
+`sim_params.pulse_start/pulse_end`, built by `trial_setup.py` from the
+actual Hydra config), and an unused `record_every` parameter on
+`run_trial`.
+
+### While verifying the dedup: found AUDIT.md §6 was stale
+
+Re-ran `open_loop_coordination_baseline.py` (unchanged by the dedup — the
+index sets are identical) to confirm the E0 numbers still matched
+`AUDIT.md` before committing. **They didn't**: current output gives
+ipsilateral n=227/54.6%/PLV=0.906 against the committed 521/51.8%/0.535 —
+not a small drift, a large one, in both trial count and PLV.
+
+Isolated with `git stash`: the *original, unmodified, committed* script
+gives the same 227/54.6%/0.906 as the current one, reproducibly across
+two independent runs — so this was never caused by today's dedup. Traced
+via `git log` on `interleg_coordination.py` (only two commits): `AUDIT.md`
+§6's table was written from commits `7d7c995`/`de3a231`, **before**
+`83ec15b` changed `coordination()`'s definition of `valid` from
+`active[i] and active[j]` to the stricter, pre-registered
+`rhythmic[i] and rhythmic[j]` (AR(1)-gated). The audit table was never
+recomputed after that methodology change and silently drifted out of
+sync with every other analysis in this project, which already uses the
+rhythm-gated version (`PREREGISTRATION.md` §4a, every pilot run).
+
+**The finding survives, more strongly.** Recomputed on the same 118
+stable replicates with current code:
+
+| | was (stale) | now (current methodology) |
+|---|---:|---:|
+| ipsilateral significant / PLV | 51.8% / 0.535 | **54.6% / 0.906** |
+| contralateral significant / PLV | 17.3% / 0.156 | **16.8% / 0.130** |
+| diagonal significant / PLV | 16.5% / 0.146 | **17.5% / 0.115** |
+| tripod index (median) | −0.229 | **−0.280** |
+
+Fewer pairs qualify as "valid" under the stricter gate (ambiguous,
+weakly-rhythmic legs are excluded entirely rather than diluting the
+median), but among survivors ipsilateral phase-locking is *more*
+pronounced, not less. Contralateral/diagonal and the tripod index barely
+move. The stop condition, the H1 reframing, and everything decided on the
+strength of this finding stand.
+
+**Fixed, not silently**: `AUDIT.md` §6 keeps its original table with a
+dated, clearly-marked superseding note underneath (per this project's
+rule — an amendment is additive and dated, never an edit that erases what
+was there); `PREREGISTRATION.md` §0.1 now points to `AUDIT.md` rather
+than repeating figures that could drift again. Caught by verifying a
+refactor's output against the committed record before trusting either —
+exactly the discipline that surfaced the v1/v2 paper-version mixup and
+the wrong replicate-instability threshold earlier in this project.
+
+All 20 existing gates (`pytest tests/`) still pass after the dedup.

@@ -18,10 +18,13 @@ convenience:
 
 1. **H1 is now specifically about left↔right coupling.** The open-loop
    baseline is not uncoupled. Same-side (front↔middle↔hind) pairs show
-   substantial coupling already — 52% significant, median PLV 0.535 — while
-   left↔right pairs do not (16.9%, PLV 0.155; chance 7.6%). See `AUDIT.md`
-   §6. The original "feedback creates coupling that is absent open-loop"
-   only holds for the left↔right case, so that is the primary metric, and
+   substantial coupling already, while left↔right pairs do not (both far
+   from chance in opposite directions). See `AUDIT.md` §6 for the exact
+   figures — **updated 2026-09-20** after the rhythm-first gate was added
+   (the numbers moved, the qualitative pattern got stronger; cite the
+   superseded-table note there, not the figures as first written here).
+   The original "feedback creates coupling that is absent open-loop" only
+   holds for the left↔right case, so that is the primary metric, and
    same-side coupling is tested baseline-relatively instead.
 
 2. **H2 no longer involves load sensing.** MANC annotates 9 leg campaniform

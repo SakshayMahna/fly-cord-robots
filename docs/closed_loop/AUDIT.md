@@ -352,17 +352,50 @@ active in 69–97% of replicates.
 
 **Tripod index: median −0.229**; only 13.6% of replicates positive.
 
-These are the corrected numbers, recomputed after the duplicate
-motor-neuron rows were removed (§3). The de-duplication moved every
-figure by less than one percentage point — ipsilateral 52.0 → 51.8%,
-contralateral 16.9 → 17.3%, tripod −0.221 → −0.229 — so the finding was
-never an artifact of the duplicates. Reproduce with
-`python -m fly_robot.experiments.open_loop_coordination_baseline`.
+These were the corrected numbers after the duplicate motor-neuron rows
+were removed (§3). The de-duplication moved every figure by less than one
+percentage point — ipsilateral 52.0 → 51.8%, contralateral 16.9 → 17.3%,
+tripod −0.221 → −0.229 — so the finding was never an artifact of the
+duplicates.
 
-Strongest pairs are all same-side: T2-RHS↔T3-RHS (PLV 0.935, 77.6%
-significant), T1-RHS↔T3-RHS (0.557), T1-LHS↔T2-LHS (0.559),
-T1-RHS↔T2-RHS (0.543). Weakest are the three left↔right pairs
-(0.143–0.168).
+> **Superseded 2026-09-20 — methodology, not data, changed.** The table
+> above used `valid = active[i] and active[j]` (a leg counts if it merely
+> has enough amplitude). `interleg_coordination.py` was later changed
+> (commit `83ec15b`, per the user's pre-registered rhythm-first rule) to
+> `valid = rhythmic[i] and rhythmic[j]` — a leg's spectral peak must beat
+> an AR(1) null before its phase counts for anything. This table was
+> never recomputed under that stricter rule until now, so it silently
+> drifted out of sync with the methodology everywhere else in this
+> project (`PREREGISTRATION.md` §4a, every pilot analysis). Caught by
+> re-running the committed script and finding it disagreed with this
+> table — not assumed to still be current.
+>
+> Recomputed on the same 118 stable replicates, current code
+> (`python -m fly_robot.experiments.open_loop_coordination_baseline`):
+>
+> | pair class | pairs | valid trials | significant | median PLV |
+> |---|---:|---:|---:|---:|
+> | **ipsilateral** | 6 | **227** (was 521) | **54.6%** (was 51.8%) | **0.906** (was 0.535) |
+> | **contralateral** | 3 | **95** (was 243) | **16.8%** (was 17.3%) | **0.130** (was 0.156) |
+> | **diagonal** | 6 | **234** (was 498) | **17.5%** (was 16.5%) | **0.115** (was 0.146) |
+>
+> **Tripod index: median −0.280** (was −0.229); 21.2% positive (was 13.6%).
+>
+> **The finding is unchanged and, if anything, stronger.** Fewer pairs
+> now qualify as "valid" — the stricter rhythm gate filters out
+> ambiguous, weakly-rhythmic legs entirely rather than letting them drag
+> PLV toward the middle — but among the pairs that survive, ipsilateral
+> phase-locking is even more pronounced (0.906 vs 0.535) while
+> contralateral/diagonal and the tripod index barely move. This is the
+> table that should be treated as current; the original one above is left
+> in place, struck through in spirit but not in text, so the discrepancy
+> and its resolution are both on the record rather than only the fix.
+> `PREREGISTRATION.md` §0.1 points here rather than repeating the numbers.
+
+Strongest pairs (current methodology) are all same-side: T2-RHS↔T3-RHS
+(PLV 0.946, 76.8% significant), T1-LHS↔T2-LHS (0.910, 50.0%),
+T1-RHS↔T2-RHS (0.803, 50.0%), T1-RHS↔T3-RHS (0.797, 45.2%). Weakest are
+diagonal and contralateral pairs (0.073–0.198).
 
 ### What the paper actually claims
 
@@ -386,11 +419,12 @@ paper.
 ### Reading this honestly
 
 Our baseline **agrees with both specific claims the paper tests**: left↔right
-coupling is weak (17.3% vs 7.6% chance, PLV 0.156), and the tripod pattern is
-absent (index −0.23).
+coupling is weak (16.8% vs 7.6% chance, PLV 0.130 — current methodology,
+see the superseded-table note above), and the tripod pattern is absent
+(index −0.28).
 
 It **adds a distinction the paper does not report**: same-side
-front↔middle↔hind coupling is substantial (51.8%, PLV 0.535). Their broad
+front↔middle↔hind coupling is substantial (54.6%, PLV 0.906). Their broad
 summary sentence — "phase coupling was absent across the six leg CPGs" —
 is not what we measure, if that sentence is read as covering all 15 pairs.
 

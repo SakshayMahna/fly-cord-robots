@@ -117,6 +117,26 @@ def build_motor_neuron_groups(circuit_csv: str, wtable: pd.DataFrame) -> MotorNe
     return MotorNeuronGroups(dof_name_by_group, indices_by_group)
 
 
+def leg_motor_row_indices(groups: MotorNeuronGroups) -> dict:
+    """{(leg, side): sorted unique row indices} across ALL of that leg's
+    motor modules (mapped and unmapped alike) — the per-leg pool used by
+    every summed motor-neuron readout in this project (open-loop
+    coordination baseline, closed-loop trial runner).
+
+    De-duplicated by construction (each row appears once per module it
+    belongs to; a neuron listed under two modules would otherwise be
+    double-counted in a per-leg sum). Previously implemented twice —
+    independently in the closed-loop runner and in the open-loop
+    coordination baseline script — with the same semantics reached by
+    different paths; centralized here since both read from the same
+    `MotorNeuronGroups`.
+    """
+    out = {}
+    for (leg, side, _module), idxs in groups.indices_by_group.items():
+        out.setdefault((leg, side), set()).update(idxs)
+    return {k: sorted(v) for k, v in out.items()}
+
+
 def compute_joint_targets(
     R: np.ndarray,
     groups: MotorNeuronGroups,

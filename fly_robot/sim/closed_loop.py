@@ -47,12 +47,17 @@ from fly_robot.interface.joint_to_sensory_neuron import SensoryEncoder
 from fly_robot.interface.motor_neuron_to_joint import (
     ANTAGONIST_PAIRS, DEFAULT_GAIN_RAD, DEFAULT_RATE_SCALE_HZ,
     LEG_NAME_TO_FLYGYM_PREFIX, MotorNeuronGroups, _dof_name_for_pair,
+    leg_motor_row_indices,
 )
 
 NEURAL_DT = 0.001
 TRIAL_DURATION_S = 4.0       # pre-registered
-PULSE_START_S = 0.02
-PULSE_END_MARGIN_S = 0.001   # stimulation ends one neural step before T
+
+# Pulse timing (stimulation window) is NOT set here — it comes from
+# `sim_params.pulse_start` / `pulse_end`, built into `neural_model` by
+# `trial_setup.build_trial_components` from the actual Hydra config. Two
+# stray constants duplicating those values used to live here unused;
+# removed rather than left as a second, driftable source of truth.
 
 
 @dataclass
@@ -71,16 +76,6 @@ class TrialResult:
     unstable: bool = False
     instability_reason: str = ""
     meta: dict = field(default_factory=dict)
-
-
-def _leg_motor_row_indices(groups: MotorNeuronGroups) -> dict:
-    """{(segment, side): sorted unique row indices} across all of that
-    leg's motor modules. De-duplicated: a neuron counted twice would be
-    double-weighted in the summed readout."""
-    out = {}
-    for (segment, side, _module), idxs in groups.indices_by_group.items():
-        out.setdefault((segment, side), set()).update(idxs)
-    return {k: sorted(v) for k, v in out.items()}
 
 
 def _joint_targets_from_rates(rates: np.ndarray, groups: MotorNeuronGroups,
@@ -123,8 +118,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               initial_joint_noise_rad: float = 0.0,
               seed: int = 0,
               motor_gain_rad: float = DEFAULT_GAIN_RAD,
-              motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
-              record_every: int = 1) -> TrialResult:
+              motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ) -> TrialResult:
     """Run one coupled trial.
 
     `feedback_gain = 0` makes the loop open: the sensory encoder emits
@@ -171,7 +165,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         from fly_robot.bodies.tethered_ball import read_ball_state
         ball_reader = read_ball_state
 
-    leg_rows = _leg_motor_row_indices(motor_groups)
+    leg_rows = leg_motor_row_indices(motor_groups)
     leg_keys = [(seg, side) for seg in ("T1", "T2", "T3") for side in ("LHS", "RHS")]
 
     neural_model.reset()

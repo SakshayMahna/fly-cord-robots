@@ -27,6 +27,9 @@ import pandas as pd
 from fly_robot.analysis.interleg_coordination import (
     BAND_HZ, LEG_LABELS, LEGS, coordination, leg_motor_readout, pair_indices,
 )
+from fly_robot.interface.motor_neuron_to_joint import (
+    build_motor_neuron_groups, leg_motor_row_indices,
+)
 from fly_robot.neural.replicate_ensemble import (
     N_ACTIVE_UPPER, load_published_full_vnc_replicates,
 )
@@ -39,24 +42,18 @@ CALIBRATED_CHANCE = 0.076
 def build_motor_indices(circuit_csv: str, wtable: pd.DataFrame) -> dict:
     """{(segment, side): [row indices into R]} for each leg's motor pool.
 
-    De-duplicates on MANC bodyId. The circuit map is generated
-    de-duplicated now, but a repeated neuron would be silently
-    double-weighted in the summed readout, so this asserts rather than
-    trusts.
+    Thin wrapper around the shared `leg_motor_row_indices` (previously an
+    independent, near-duplicate implementation lived here — reading the
+    CSV directly and asserting no dupes — see `docs/logs/` reorg entries
+    for the pattern of centralizing these). Equivalent in practice: every
+    `leg_motor_neuron` row in the circuit map carries a `motor_module`
+    label (verified — 0 of 330 are NaN), which is the only case where
+    `build_motor_neuron_groups`'s `dropna` could have excluded a row this
+    used to include.
     """
-    circuit = pd.read_csv(circuit_csv)
-    mn = circuit[circuit["role"] == "leg_motor_neuron"]
-    assert not mn["manc_bodyId"].duplicated().any(), (
-        "Duplicate motor-neuron bodyIds in the circuit map — they would be "
-        "double-counted in the per-leg readout. Regenerate with "
-        "fly_robot.connectome.identify_all_leg_circuits."
-    )
-    bodyid_to_idx = {b: i for i, b in enumerate(wtable["bodyId"])}
-    out = {}
-    for leg in LEGS:
-        rows = mn[(mn["leg"] == leg[0]) & (mn["side"] == leg[1])]
-        out[leg] = [bodyid_to_idx[b] for b in rows["manc_bodyId"] if b in bodyid_to_idx]
-    return out
+    wt_indexed = wtable.reset_index(drop=True)
+    groups = build_motor_neuron_groups(circuit_csv, wt_indexed)
+    return leg_motor_row_indices(groups)
 
 
 def pair_class(i: int, j: int) -> str:
