@@ -115,7 +115,58 @@ HAIR_PLATE_THRESHOLD_FRAC = 0.75
 #                 from extension — acceptable here because the data does
 #                 not resolve chordotonal subtypes anyway, so a pooled
 #                 population could not signal direction either way.
-ENCODER_MODES = ("signed", "deviation")
+#   "deviation_capped"       — deviation, plus a per-neuron saturation cap
+#                 on the injected current (variant A).
+#   "deviation_fractionated" — deviation, plus range-fractionated position
+#                 tuning: each chordotonal neuron has its own preferred
+#                 joint-angle band, so only a subset responds at any angle
+#                 (variant B).
+ENCODER_MODES = ("signed", "deviation", "deviation_capped", "deviation_fractionated")
+DEVIATION_MODES = ("deviation", "deviation_capped", "deviation_fractionated")
+
+# Variant A — per-neuron saturation cap, in the same units as the
+# stimulation current.
+#
+# MEASURED, not chosen for convenience. Recorded the per-neuron sensory
+# current across every stable-regime pilot trial (deviation encoder,
+# g_fb <= 3.5, 6.6M neuron-timesteps): p95 = 1.062, p99 = 1.589,
+# p99.9 = 2.251, **max = 2.386**. The runaway regime (g_fb >= 4.0) instead
+# runs at median 2.0-2.1 with p99 of 6.5-8.5 and max 8.5.
+#
+# A cap of 2.5 therefore sits just above everything the stable regime ever
+# produces, so it CANNOT alter behaviour below the cliff, and bites only on
+# the excursions that characterise runaway. That is the point of the
+# variant: it tests whether the bifurcation is driven by transient peaks
+# in per-neuron drive, without changing anything about the regime we can
+# already simulate.
+SENSORY_CURRENT_CAP = 2.5
+
+# Variant B — range fractionation.
+#
+# Grounded in primary text. "Biomechanical origins of proprioceptor feature
+# selectivity and topographic maps in the Drosophila leg" (bioRxiv
+# 2022.08.08.503192), verbatim: "Fractionation of the tibia joint angle
+# range across position-tuned proprioceptors has been previously described
+# in the grasshopper FeCO (Field, 1991; Matheson, 1992)", and "The cell
+# bodies of position-tuned proprioceptors form a goniotopic map of joint
+# angle". Individual claw neurons are narrowly tuned to particular tibia
+# angles rather than all responding to all angles.
+#
+# OUR DESIGN CHOICE, clearly: assigning each neuron a preferred band by
+# seeded random draw. The real map is orderly and anatomically arranged;
+# ours is unordered, because the connectome gives us no per-neuron tuning
+# annotation (types are opaque `SNppNN` identifiers). What is reproduced is
+# the population property that matters here — only a subset of the pool
+# responds at any given joint angle — not the spatial map itself. Note the
+# same paper reports that the goniotopic map is in the cell bodies in the
+# femur and that "calcium imaging from position-tuned axons failed to
+# resolve any topographic organization", so no claim is made about the
+# arrangement of these axons in the VNC.
+#
+# sigma = 0.1 over a preferred range of [0, 1] means roughly a quarter of
+# the pool responds above half-maximum at any one angle.
+FRACTIONATION_SIGMA = 0.1
+FRACTIONATION_SEED = 20260920
 
 
 def _femur_tibia_joint(leg_prefix: str) -> str:
@@ -191,6 +242,16 @@ def build_sensory_groups(wtable: pd.DataFrame, normalise_sides: bool = True) -> 
     return SensoryGroups(indices_by_group, scale_by_group, n_neurons=len(wtable))
 
 
+def normalised_position(angle_rad: float, reference_rad: float, mode: str) -> float:
+    """Joint position mapped into [0, 1]. Under `signed` this is a signed
+    monotonic code sitting at 0.5 at the reference angle; under every
+    deviation-family mode it is the unsigned distance from the settled
+    resting pose, so rest gives 0."""
+    if mode in DEVIATION_MODES:
+        return float(np.clip(abs(angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
+    return float(np.clip(0.5 + 0.5 * (angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
+
+
 def chordotonal_drive(angle_rad: float, velocity_rad_s: float, reference_rad: float,
                       mode: str = "signed") -> float:
     """Combined position + movement code for the femur-tibia joint, in [0, 1].
@@ -207,11 +268,7 @@ def chordotonal_drive(angle_rad: float, velocity_rad_s: float, reference_rad: fl
     direction.
     """
     movement = float(np.clip(abs(velocity_rad_s) / VELOCITY_REF_RAD_S, 0.0, 1.0))
-    if mode == "deviation":
-        position = float(np.clip(abs(angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
-    else:
-        position = float(np.clip(
-            0.5 + 0.5 * (angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
+    position = normalised_position(angle_rad, reference_rad, mode)
     return float(np.clip(W_POSITION * position + W_VELOCITY * movement, 0.0, 1.0))
 
 
@@ -234,11 +291,7 @@ def hair_plate_drive(angle_rad: float, reference_rad: float,
     thorax-coxa joint never reaches 75% of range in the extension
     direction, so the channel contributes exactly 0.0000 drive.
     """
-    if mode == "deviation":
-        position = float(np.clip(abs(angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
-    else:
-        position = float(np.clip(
-            0.5 + 0.5 * (angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
+    position = normalised_position(angle_rad, reference_rad, mode)
     if position <= HAIR_PLATE_THRESHOLD_FRAC:
         return 0.0
     return float((position - HAIR_PLATE_THRESHOLD_FRAC) / (1.0 - HAIR_PLATE_THRESHOLD_FRAC))
@@ -268,12 +321,25 @@ class SensoryEncoder:
         must be supplied via `set_rest_angles` after the body has settled;
         until then the neutral pose is used as the reference.
         """
-        if mode not in ENCODER_MODES:
+        if mode not in ENCODER_MODES:  # noqa: E501
             raise ValueError(f"mode must be one of {ENCODER_MODES}, got {mode!r}")
         self.groups = groups
         self.gain = float(gain)
         self.mode = mode
         self.leg_permutation = leg_permutation or {}
+        self.current_cap = SENSORY_CURRENT_CAP if mode == "deviation_capped" else None
+
+        # Variant B: one fixed preferred band per chordotonal neuron, drawn
+        # once from a fixed seed so the tuning is a property of the
+        # interface and identical across every trial, condition and seed —
+        # not something resampled per run.
+        self.preferred_by_group = {}
+        if mode == "deviation_fractionated":
+            rng = np.random.default_rng(FRACTIONATION_SEED)
+            for key in sorted(groups.indices_by_group):
+                n = len(groups.indices_by_group[key])
+                self.preferred_by_group[key] = (
+                    rng.uniform(0.0, 1.0, n) if key[2] == CHORDOTONAL else None)
 
         self._index_of = {d.name: i for i, d in enumerate(jointdof_order)}
         self._neutral = dict(neutral_angles_by_name)
@@ -319,6 +385,38 @@ class SensoryEncoder:
                     self._reference.get(ids["thorax_coxa_name"], 0.0), mode=self.mode)
         return drives
 
+    def _neuron_responses(self, key, drive: float,
+                          joint_angles: np.ndarray, joint_velocities: np.ndarray) -> np.ndarray:
+        """Per-neuron response in [0, 1] for one channel.
+
+        Uniform across the pool for every mode except
+        `deviation_fractionated`, where each chordotonal neuron responds
+        only near its own preferred joint-angle band (Gaussian tuning of
+        width FRACTIONATION_SIGMA). The shared movement term is kept
+        un-fractionated: in the fly, position tuning and movement tuning
+        belong to different FeCO subtypes (claw vs hook), so fractionating
+        the movement signal too would assert something the source does
+        not.
+        """
+        n = len(self.groups.indices_by_group[key])
+        preferred = self.preferred_by_group.get(key)
+        if preferred is None:
+            return np.full(n, drive, dtype=np.float64)
+
+        segment, side, _subclass = key
+        source = self.leg_permutation.get((segment, side), (segment, side))
+        ids = self._joint_ids[source]
+        i = ids["femur_tibia"]
+        if i is None:
+            return np.zeros(n, dtype=np.float64)
+        position = normalised_position(
+            float(joint_angles[i]), self._reference.get(ids["femur_tibia_name"], 0.0),
+            self.mode)
+        movement = float(np.clip(
+            abs(float(joint_velocities[i])) / VELOCITY_REF_RAD_S, 0.0, 1.0))
+        tuned = np.exp(-((position - preferred) ** 2) / (2 * FRACTIONATION_SIGMA ** 2))
+        return np.clip(W_POSITION * tuned + W_VELOCITY * movement, 0.0, 1.0)
+
     def input_current(self, joint_angles: np.ndarray, joint_velocities: np.ndarray,
                       drives: dict | None = None) -> np.ndarray:
         """Current to add to the network's input vector, shape
@@ -338,5 +436,9 @@ class SensoryEncoder:
         for key, idxs in self.groups.indices_by_group.items():
             if not idxs:
                 continue
-            current[idxs] = self.gain * drives[key] * self.groups.scale_by_group[key]
+            responses = self._neuron_responses(key, drives[key], joint_angles, joint_velocities)
+            neuron_current = self.gain * responses * self.groups.scale_by_group[key]
+            if self.current_cap is not None:
+                neuron_current = np.minimum(neuron_current, self.current_cap)
+            current[idxs] = neuron_current
         return current

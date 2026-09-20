@@ -617,3 +617,120 @@ encoders), but alternatives remain untested — for example capping
 per-neuron current, driving a random fixed subset of proprioceptors, or
 introducing the inhibitory component a real sensory pathway would have.
 No main run is started until that is decided.
+
+---
+
+# AMENDMENT 2 — encoder variants and stopping rule, 2026-09-20
+
+**Written and committed BEFORE the runs it governs.** Pilot seeds only
+(parameter seed 641, replicates 0–3). Additive; nothing above is edited.
+
+## B0. Encoder-side inhibition is rejected
+
+Adding an inhibitory component to the sensory encoder was considered and
+is **rejected on principle**: the sign of every sensory neuron's output is
+already given by the connectome (via `predictedNt`, and the connectome
+obeys Dale's law exactly — 0 of 22,769 presynaptic neurons carry both
+signs). Introducing encoder-side inhibition would override the data with a
+modelling choice, which this project's first constraint forbids.
+
+`RESULTS.md` must record the corollary explicitly: **the network's own
+inhibitory interneurons — 636,490 of its 1,372,404 edges, 46% — do not
+prevent the runaway.** Whatever destabilises the loop does so in the
+presence of the real inhibitory circuitry.
+
+## B1. Two further encoder variants, both built on `deviation`
+
+**No further encoder variants after this round**, regardless of outcome.
+
+### Variant A — `deviation_capped`: per-neuron saturation cap
+
+A ceiling on the current any single sensory neuron may receive.
+
+**Cap = 2.5, measured not chosen.** Per-neuron sensory current was
+recorded across every stable-regime pilot trial (deviation encoder,
+`g_fb ≤ 3.5`, 6.6M neuron-timesteps): p95 = 1.062, p99 = 1.589,
+p99.9 = 2.251, **max = 2.386**. The runaway regime (`g_fb ≥ 4.0`) instead
+runs at median 2.0–2.1, p99 6.5–8.5, max 8.5.
+
+A cap of 2.5 therefore sits just above everything the stable regime ever
+produces — so it **cannot** alter behaviour below the cliff — and bites
+only on the excursions that characterise runaway. The variant tests one
+specific hypothesis: that the bifurcation is driven by transient peaks in
+per-neuron drive.
+
+Verified: at extreme input the per-neuron maximum falls 7.556 → 2.500 and
+total injected current falls 32%.
+
+### Variant B — `deviation_fractionated`: range-fractionated tuning
+
+Each chordotonal neuron gets a fixed preferred joint-angle band, drawn
+once from seed 20260920, with Gaussian tuning of width σ = 0.1 over a
+normalised range of [0, 1]. Only the subset tuned near the current angle
+responds.
+
+**Motivation, from primary text** — "Biomechanical origins of
+proprioceptor feature selectivity and topographic maps in the Drosophila
+leg" (bioRxiv 2022.08.08.503192), verbatim: *"Fractionation of the tibia
+joint angle range across position-tuned proprioceptors has been
+previously described in the grasshopper FeCO"*, and *"The cell bodies of
+position-tuned proprioceptors form a goniotopic map of joint angle"*.
+
+**Labelled as OUR DESIGN CHOICE.** The real map is orderly and
+anatomically arranged; ours assigns bands at random, because the
+connectome carries no per-neuron tuning annotation (types are opaque
+`SNppNN` identifiers). What is reproduced is the population property that
+matters here — only a subset responds at any one angle — not the spatial
+map. No claim is made about arrangement in the VNC; the same paper reports
+that *"calcium imaging from position-tuned axons failed to resolve any
+topographic organization"*.
+
+The shared movement term is left un-fractionated: position tuning and
+movement tuning belong to different FeCO subtypes (claw vs hook), so
+fractionating movement too would assert more than the source supports.
+
+Verified: 22.0% of each chordotonal pool responds above half-maximum at
+mid-range (23.5% theoretical), 14–15% at the range extremes; total
+injected current falls 39% at extreme input.
+
+**Honest cost, recorded in advance:** fractionation *reintroduces* drive
+at rest — neurons tuned to the resting angle fire there, which is correct
+for a position code. Total rest current is 101.7 against 0.0 for plain
+`deviation`, though still roughly a quarter of the `signed` encoder's.
+If the bifurcation returns for this variant, that is a likely reason.
+
+## B2. Decision rule — committed before running
+
+The sweep is {0, 1, 2, 2.5, 3, 3.5, 4, 4.5}; replicates oversaturated at
+baseline are excluded by the existing stability filter.
+
+A variant is **USABLE** if BOTH hold:
+
+1. **Rhythm preserved** — at least **3 sweep levels above 0** have a median
+   rhythmic-leg count within **1** of that variant's own `g_fb = 0`
+   baseline.
+
+2. **Measurable feedback effect** — at those same levels, feedback
+   demonstrably changes the neural trajectory. Effect measure, declared
+   now: `E(seed, g) = 1 − (mean over legs of the Pearson correlation
+   between that leg's motor readout at gain g and at gain 0, same seed,
+   post-transient window)`. The runner is deterministic, so `E = 0`
+   exactly when feedback does nothing. Required: the **bootstrap 95% CI of
+   `E` across seeds excludes zero** (which demands consistency across
+   seeds, not merely a large effect in one), **and** median `E > 0.05`
+   — a floor, so an effect that is reproducible but negligible does not
+   count as usable.
+
+**Outcomes:**
+
+- **Either variant usable** → it is used for the main runs. If both
+  qualify, the one with more usable levels is chosen; on a tie, variant A
+  (fewer added assumptions).
+- **Neither usable** → the bifurcation across **all four encoders**
+  (`signed`, `deviation`, `deviation_capped`, `deviation_fractionated`)
+  becomes the reported result, written up in `RESULTS.md` with the
+  inhibition corollary from §B0.
+
+Both outcomes are reported in full regardless of which occurs, including
+the per-level `E` values so the dose-response shape is visible rather than
+summarised into a verdict.
