@@ -42,8 +42,13 @@ python -m fly_robot.neural.setup_pugliese_configs
 Reproduced the published connectome science, identified and confirmed
 all six leg circuits, built a real fly body in MuJoCo, and got real
 connectome-derived motor-neuron data driving actual joint movement
-(open loop, no sensory feedback yet) — see `CHANGELOG.md` for the full,
-dated trail. Closing the loop with real proprioceptive feedback is next.
+(open loop). Then closed the loop with real proprioceptive feedback: a
+pre-registered pilot found that, across four sensory-encoder designs, the
+feedback is either negligible or drives the network into a runaway,
+non-rhythmic state, with no usable middle ground — see
+`docs/closed_loop/RESULTS.md` for the full result and
+`docs/closed_loop/` for the audit trail and pre-registration behind it.
+See `CHANGELOG.md` for the full dated history.
 
 ## References & resources
 

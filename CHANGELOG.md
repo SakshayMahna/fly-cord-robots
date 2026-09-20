@@ -7,6 +7,25 @@ linked file for the full reasoning, quotes, and numbers. This is the
 source material for the video script, so the linked files are written to
 explain *why*, not just *what*.
 
+- **[2026-09-19 to 2026-09-20 — closed-loop work](docs/closed_loop/)** —
+  A continuous pre-registered arc, kept in its own subfolder rather than
+  daily logs (`AUDIT.md`, `SENSORY_MAP.md`, `PREREGISTRATION.md` + two
+  dated amendments, `RESULTS.md`, `LOG.md` for the full chronology).
+  Built a steppable reimplementation of Pugliese's rate model (their
+  adaptive solver can't be interrupted for feedback; ours is validated to
+  median r=0.9993 against their published output, ~400x faster), the
+  sensory interface, the tethered-on-ball ground rig, and rhythm-gated
+  coupling metrics. Ran a pre-registered pilot rather than the full
+  experiment: found the open-loop baseline itself already shows same-side
+  leg coupling the paper doesn't report (triggered a stop condition,
+  resolved by reframing the primary hypothesis to left/right coupling
+  specifically); found the first gain sweep sat almost entirely past a
+  bifurcation; tried four sensory encoder formulations in response,
+  including one grounded in real chordotonal range-fractionation; all
+  four land in the same place — feedback is either negligible or destroys
+  the rhythm entirely, with the network's own real inhibitory wiring
+  active throughout. Reported as the result rather than chased further,
+  per a stopping rule committed before the runs that produced it.
 - **[2026-09-19](docs/logs/2026-09-19.md)** — Corrected a stale paper
   version we'd been citing (v1 vs v2); v2 already confirms rhythmic
   activity in all six legs by simulation. Got Pugliese's real simulation

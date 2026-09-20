@@ -182,25 +182,65 @@ harder-to-catch errors.
 - Fixed random seeds; every run is reproducible from its config.
 - neuprint auth token lives in `.env` (gitignored, never commit).
 
-## Architecture (target — items marked *not yet created* are Phase 2+)
+## Architecture (current — items marked *not yet created* are still ahead)
 ```
 fly_robot/
-  connectome/         # neuprint client, MANC<->MaleCNS neuron identification
-  neural/             # runs Pugliese's JAX rate model; our own model lives here later
+  connectome/         # neuprint client, MANC<->MaleCNS neuron identification,
+                      # circuit extraction (identify_t1_circuit.py,
+                      # identify_all_leg_circuits.py), MANC/MaleCNS annotation
+                      # comparison (compare_sensory_annotation.py)
+  neural/             # Pugliese's own JAX rate model, run unmodified
+                      # (single_simulation.py, replicate_ensemble.py,
+                      # reproduce_rhythmic_output.py) plus our OWN steppable
+                      # reimplementation for closed-loop use — same equation,
+                      # connectome and neuron params, fixed-step RK4 + sparse
+                      # matvec instead of their adaptive/dense solver
+                      # (steppable_rate_model.py, validated against their
+                      # published output in validate_steppable_model.py).
+                      # connectome_controls.py: degree-preserving shuffle and
+                      # phase-randomised surrogates, for the shuffled-wiring
+                      # and rate-matched-noise controls (never modifies the
+                      # real connectome in place).
     pugliese_extra_configs/  # our Hydra config additions, tracked (external/ is gitignored)
-  interface/          # *not yet created* — motor-neuron → joint mapping; sensors → sensory-neuron inputs
+  interface/          # motor-neuron rates -> joint targets (motor_neuron_to_joint.py,
+                      # FROZEN once closed-loop work started, config hash tracked) and
+                      # joint state -> sensory-neuron input current
+                      # (joint_to_sensory_neuron.py, four encoder variants —
+                      # see docs/closed_loop/)
   bodies/             # NeuroMechFly/FlyGym v2 body composition (not a hand-built hexapod — see
                       # docs/logs/2026-09-19.md). 7 real DOF/leg, not the originally-sketched 3.
-  sim/                # *not yet created* — coupled loop: neural dt vs physics dt synchronisation
-  experiments/        # phase scripts (harness_sine_wave_test.py so far — harness-mode mechanical test)
-  analysis/           # circuit visualizations; rhythm/phase-coupling/gait plots come later
+                      # tethered_ball.py: the standard fly-lab rig (thorax fixed,
+                      # legs on a freely-rotating sphere) as the "ground" condition.
+  sim/                # the coupled loop: neural dt (1ms) and physics dt (0.1ms)
+                      # stepped together, sensory feedback entering as an
+                      # additive term in the stimulation current
+                      # (closed_loop.py, trial_setup.py)
+  experiments/        # runnable scripts: harness_sine_wave_test.py (mechanical
+                      # sanity), connectome_driven_open_loop.py (Phase 3 open
+                      # loop), open_loop_coordination_baseline.py (E0 baseline),
+                      # closed_loop_pilot.py (pre-registered pilot sweeps),
+                      # render_closed_loop_clips.py (video capture of specific
+                      # pilot states)
+  analysis/           # circuit visualizations (visualize_t1_circuit.py,
+                      # visualize_all_leg_circuits.py); interleg_coordination.py —
+                      # the rhythm/phase-locking/tripod-index metrics, with a
+                      # rhythm-first gate (AR(1) null) before any coupling
+                      # number is computed
+tests/                # pytest gates for the interface and closed loop —
+                      # locality, determinism, g_fb=0 bit-identity, degree
+                      # preservation. Run with `pytest tests/`.
 docs/
-  logs/               # dated findings, one file per day — the actual content
-CHANGELOG.md          # short index into docs/logs/, one line per day
+  logs/               # dated findings, one file per day — Phases 0-3
+  closed_loop/        # the closed-loop work's own audit trail — AUDIT.md,
+                      # SENSORY_MAP.md, PREREGISTRATION.md (pre-registration +
+                      # amendments), RESULTS.md, LOG.md (chronological). Kept
+                      # separate from docs/logs/ because it's one continuous
+                      # pre-registered arc, not daily findings.
+CHANGELOG.md          # short index into docs/logs/ and docs/closed_loop/, one line per entry
 external/             # cloned reference repos (e.g. Pugliese_cpg_2025) — gitignored, MIT-licensed reuse
 data/                 # connectome dumps/caches/simulation output — regenerable, gitignored
 media/                # renders, neuron-activity overlays for the video — gitignored
-                       # (regenerate via analysis/ scripts rather than versioning binaries)
+                       # (regenerate via analysis/ or experiments/ scripts rather than versioning binaries)
 configs/              # *not yet created* — our own experiment configs (Hydra or plain YAML), once we have our own model
 notebooks/            # *not yet created* — thin wrappers only; logic lives in the package
 ```
@@ -260,8 +300,33 @@ short version for orientation.
   cameras — side, opposite-side, top-down — built into
   `build_harnessed_fly()`; top-down is the one that clearly shows leg
   movement without wing occlusion).
-- **Phase 4 — Closed loop.** Joint angle → chordotonal-like inputs; foot
-  load → campaniform-like inputs. Measure interleg phase coupling.
+- **Phase 4 — Closed loop. Pre-registered pilot run; main experiment
+  BLOCKED pending a usable sensory encoder.** Full pre-registration and
+  audit trail in `docs/closed_loop/` (`AUDIT.md`, `SENSORY_MAP.md`,
+  `PREREGISTRATION.md` + two dated amendments, `RESULTS.md`, `LOG.md`).
+  Built a steppable reimplementation of Pugliese's rate model (theirs is
+  adaptive/dense and cannot be interrupted for feedback; ours is
+  fixed-step + sparse, validated to median r=0.9993 against their
+  published output, ~400x faster), the sensory interface (joint angle
+  → chordotonal/hair-plate input current — **no leg load/campaniform
+  channel exists in either MANC or MaleCNS annotation, so foot load
+  feedback is not modelled**, a real limitation not an oversight), the
+  tethered-on-ball ground condition, and rhythm-first coupling metrics
+  (AR(1)-gated — a leg's phase only counts if it's actually rhythmic).
+  **Pilot result: across four encoder formulations (signed position code,
+  deviation-from-rest, a per-neuron current cap, and range-fractionated
+  tuning — the last motivated by real FeCO range fractionation, labelled
+  as our design choice), feedback is either negligible (effect
+  ~0.0000-0.0010) or destroys the rhythm entirely (~1.01, i.e. total
+  decorrelation) — no gain produces a measurable, non-destructive effect.**
+  This holds with the network's own real inhibitory wiring fully active
+  (46% of edges); encoder-side inhibition was considered and rejected
+  since sensory neuron signs come from the connectome, not from us.
+  H1/H2/H3 (interleg coupling from feedback) remain **untested** — the
+  pilot establishes they aren't testable with this interface, not that
+  they're false. No further encoder variants after this round, per the
+  pre-registered stopping rule; next step is a design decision, not more
+  tuning.
 - **Phase 5 — Ground walking.** Tune interface with CMA-ES (brain weights
   frozen). GPU compute (Kaggle/Colab) likely needed here.
 - **Phase 6 — Amputate middle legs → quadruped.** Remap and re-tune

@@ -166,3 +166,30 @@ MUJOCO_GL=cgl python -m fly_robot.experiments.closed_loop_pilot \
 ```
 
 Raw per-trial output: `media/closed_loop/pilot*/pilot_trials.csv`.
+
+## 8. Video reference clips
+
+Four short (4 s) rendered clips of specific real pilot states — for
+illustration/video use, not additional data:
+
+```bash
+MUJOCO_GL=cgl python -m fly_robot.experiments.render_closed_loop_clips
+```
+
+Writes `media/closed_loop/clips/{name}_{side,opposite_side,top_down}.mp4`:
+
+| clip | condition | n_active | what it shows |
+|---|---|---:|---|
+| `no_drive` | no DNg100 stimulation at all | 0 | true non-movement — nothing is driving the animal |
+| `stable` | deviation encoder, g_fb=3.5 (pilot replicate 1) | 388 | normal connectome-driven leg motion; feedback active but measurably not doing anything (§3) |
+| `transition` | deviation encoder, g_fb=4.0 (pilot replicate 0) | 4040 | one sweep step past this replicate's cliff (was 543 at g_fb=3.5) — already the runaway state, since the "transition" between stable and unstable is itself the discontinuity §2 describes, not a gradual ramp |
+| `seizure` | deviation encoder, g_fb=4.5 (pilot replicate 0) | 4629 | fully saturated, rhythm gone |
+
+`no_drive`/`stable` and `transition`/`seizure` deliberately use different
+pilot replicates (1 and 0) — replicate 1 stays stable through the entire
+sweep including g_fb=4.5, so it cannot show the cliff at all. An earlier
+version of this script rendered all four clips from replicate 1 and
+`transition`/`seizure` silently came out identical to `stable`; caught by
+checking `n_active` against the pilot's own recorded sweep table
+(`docs/closed_loop/LOG.md`) rather than assuming the render matched the
+label.

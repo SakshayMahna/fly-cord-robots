@@ -118,7 +118,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               initial_joint_noise_rad: float = 0.0,
               seed: int = 0,
               motor_gain_rad: float = DEFAULT_GAIN_RAD,
-              motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ) -> TrialResult:
+              motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
+              video_paths: dict | None = None) -> TrialResult:
     """Run one coupled trial.
 
     `feedback_gain = 0` makes the loop open: the sensory encoder emits
@@ -132,11 +133,31 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
 
     `leg_permutation` is C3's deliberate locality violation; leave it None
     everywhere else.
+
+    `video_paths`: optional {camera_name: output_path} to render this
+    trial, camera_name one of "side", "opposite_side", "top_down" (the
+    three `build_harnessed_fly`/`build_ball_fly` already set up — see
+    `bodies/neuromechfly.py`). E.g. `{"top_down": "out.mp4"}`. `run_trial`
+    builds the body internally, so the camera OBJECTS don't exist until
+    then — hence naming rather than passing camera instances.
+
+    None (the default, used by every pre-registered condition and every
+    gate in `tests/test_closed_loop.py`) skips rendering entirely —
+    attaching a renderer is not free, so trials run for data rather than
+    viewing never pay for it. Rendering does not touch the neural or
+    physics path, only when frames are captured, so it cannot affect
+    `TrialResult`'s numbers (the g_fb=0 gate does not need re-checking
+    with video on).
     """
     rng = np.random.default_rng(seed)
     builder = build_ball_fly if on_ball else build_harnessed_fly
-    fly, world, _, _, *_cameras = builder()
+    fly, world, _mj_model, _mj_data, cam_side, cam_opposite, cam_top = builder()
+    camera_by_name = {"side": cam_side, "opposite_side": cam_opposite, "top_down": cam_top}
     physics = Simulation(world)
+    render_targets = None
+    if video_paths is not None:
+        render_targets = {camera_by_name[name]: path for name, path in video_paths.items()}
+        physics.set_renderer(list(render_targets.keys()))
 
     physics_dt = physics.timestep
     substeps = round(neural_dt / physics_dt)
@@ -239,6 +260,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         physics.set_actuator_inputs(fly.name, ActuatorType.POSITION, targets)
         for _ in range(substeps):
             physics.step()
+            if render_targets is not None:
+                physics.render_as_needed()
 
         if ball_reader is not None:
             state = ball_reader(physics.mj_model, physics.mj_data)
@@ -251,6 +274,9 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
 
     elapsed = time.time() - t0
     n_active = int((neural_model.rates > 0.01).sum())
+
+    if render_targets is not None:
+        physics.renderer.save_video(render_targets)
 
     return TrialResult(
         motor_rates=motor_rates, joint_angles=joint_angles,
