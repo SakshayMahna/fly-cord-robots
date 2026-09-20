@@ -537,3 +537,72 @@ level of description. Caught here by the pilot, which is what it was for.
 
 **Stopped and reported rather than re-deriving the sweep unilaterally** —
 changing a pre-registered parameter is the user's call.
+
+---
+
+## 2026-09-20 — Encoder variants A and B: both NOT usable; rule applied
+
+Amendment 2 committed at `809639d` **before** these runs. Pilot seeds only.
+
+### Verification done before writing the amendment
+
+- **Range fractionation checked against primary text**, not a search
+  summary: bioRxiv 2022.08.08.503192, verbatim — *"Fractionation of the
+  tibia joint angle range across position-tuned proprioceptors has been
+  previously described in the grasshopper FeCO"* and *"The cell bodies of
+  position-tuned proprioceptors form a goniotopic map of joint angle"*.
+  Also noted from the same paper that *"calcium imaging from position-tuned
+  axons failed to resolve any topographic organization"*, so no claim is
+  made about VNC arrangement.
+- **Cap value measured, not chosen**: per-neuron current across 6.6M
+  stable-regime neuron-timesteps — p95 1.062, p99 1.589, p99.9 2.251,
+  max 2.386; runaway regime median 2.0–2.1, max 8.5. Cap 2.5 sits above
+  everything stable, so it cannot change sub-cliff behaviour.
+- **Fractionation width verified**: 22.0% of each chordotonal pool
+  responds above half-maximum at mid-range against 23.5% theoretical,
+  14–15% at the range extremes (Gaussian truncated at the boundary).
+- **Recorded in advance** that fractionation reintroduces rest drive
+  (101.7 vs 0.0), since position-tuned neurons tuned to the resting angle
+  correctly fire there. Stated before the run rather than after.
+
+### Result — both variants NOT USABLE, 0 of 7 levels each
+
+| | rhythm-preserving levels | levels also passing the effect floor |
+|---|---:|---:|
+| `deviation_capped` | 6 | **0** |
+| `deviation_fractionated` | 5 | **0** |
+
+Where the rhythm survives, the effect size is 0.0000–0.0010. Where the
+effect is large (≈1.01, total decorrelation) the rhythm is gone. The
+bootstrap CI criterion was met at some mid levels, but the median-effect
+floor of 0.05 failed everywhere the rhythm survived — by two orders of
+magnitude.
+
+### Mechanism, measured rather than inferred
+
+**The sensory neurons essentially never fire.** The fraction of the 472
+proprioceptors whose input exceeds its own threshold is 0.0% at g_fb = 1
+and only 1.1% at g_fb = 4.5. Median threshold 3.06; typical per-neuron
+current ~0.1, peak 2.4 — about **30x below threshold on average and still
+below it at the peak**.
+
+So sub-cliff feedback is injected and recruits nobody; the 0.1%
+trajectory change is sub-threshold current nudging the dynamics without
+producing activity. The cliff is where transient excursions finally cross
+threshold — near-simultaneously, because the thresholds are narrowly
+distributed — and 472 neurons with out-degree 22–44 firing at once
+saturates the network.
+
+The mismatch is between the *distribution* of drive over time (near zero
+mostly, occasionally saturating) and a narrow threshold distribution.
+Recorded as a hypothesis for future work only — **no further encoder
+variants**, per the pre-registration.
+
+### Written up
+
+`docs/closed_loop/RESULTS.md` — pilot results, the decision rule applied
+verbatim, the mechanism, the inhibition corollary (46% of edges are
+inhibitory and present throughout; real inhibition does not prevent the
+runaway), and an explicit list of what the result does and does not mean.
+H1/H2/H3 remain **untested**; the pilot establishes they are not testable
+with this interface.

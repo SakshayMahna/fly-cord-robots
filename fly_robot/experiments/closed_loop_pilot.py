@@ -29,7 +29,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from fly_robot.analysis.interleg_coordination import LEGS, coordination
+from fly_robot.analysis.interleg_coordination import LEGS, TRANSIENT_S, coordination
 from fly_robot.neural.replicate_ensemble import N_ACTIVE_UPPER
 from fly_robot.sim.closed_loop import NEURAL_DT, run_trial
 from fly_robot.sim.trial_setup import PILOT_PARAM_SEED, build_trial_components
@@ -66,6 +66,7 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path,
         print(f"\n=== pilot replicate {replicate} (param seed {PILOT_PARAM_SEED}), "
               f"setup {setup_s:.1f}s ===", flush=True)
 
+        baseline_readout = {}
         for condition, on_ball, uses_sensory, g_fb, mode in pilot_conditions(
                 g_fb_levels, encoder_modes):
             result = run_trial(
@@ -73,6 +74,25 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path,
                 sensory_groups=sensory_groups if uses_sensory else None,
                 feedback_gain=g_fb, on_ball=on_ball, encoder_mode=mode,
                 duration_s=duration_s, seed=replicate)
+
+            # Pre-registered effect measure (PREREGISTRATION.md B2.2):
+            # 1 - mean per-leg correlation against the matched g_fb=0 trial.
+            # The runner is deterministic, so this is exactly 0 when
+            # feedback does nothing.
+            if condition == "E3" and g_fb == 0.0:
+                baseline_readout[mode] = result.motor_rates.copy()
+            effect = np.nan
+            base = baseline_readout.get(mode)
+            if base is not None and condition == "E3":
+                start = int(TRANSIENT_S / NEURAL_DT)
+                corrs = []
+                for leg_i in range(result.motor_rates.shape[0]):
+                    a = base[leg_i, start:].astype(float)
+                    b = result.motor_rates[leg_i, start:].astype(float)
+                    if a.std() > 1e-12 and b.std() > 1e-12:
+                        corrs.append(np.corrcoef(a, b)[0, 1])
+                if corrs:
+                    effect = float(1.0 - np.mean(corrs))
 
             rhythm, coord = coordination(result.motor_rates, NEURAL_DT,
                                           n_surrogates=100, seed=replicate)
@@ -83,6 +103,7 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path,
             row = dict(
                 replicate=replicate, condition=condition, encoder=mode,
                 on_ball=on_ball, g_fb=g_fb,
+                effect=round(effect, 5) if np.isfinite(effect) else np.nan,
                 drive_dc=round(dc, 3), drive_mod=round(modulation, 3),
                 dc_share=round(dc / (dc + modulation), 3) if (dc + modulation) > 0 else np.nan,
                 wall_s=round(result.wall_clock_s, 1),
@@ -107,6 +128,7 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path,
                   f"{'  OVERSATURATED' if row['oversaturated'] else ''}"
                   f"  max_fr={result.max_firing_rate:7.1f}  "
                   f"rhythmic={row['n_rhythmic']}/6"
+                  f"{'' if not np.isfinite(effect) else f'  effect={effect:.4f}'}"
                   f"{'  UNSTABLE: ' + result.instability_reason if result.unstable else ''}",
                   flush=True)
 
@@ -131,6 +153,7 @@ def run(replicates, g_fb_levels, duration_s, out_dir: Path,
         frac_unstable=("unstable", "mean"),
         median_rhythmic_legs=("n_rhythmic", "median"),
         frac_has_rhythm=("has_rhythm", "mean"),
+        median_effect=("effect", "median"),
     ).reset_index()
     print(summary.to_string(index=False))
 
@@ -156,7 +179,8 @@ if __name__ == "__main__":
                         help="pilot replicate indices (must be within 0-7)")
     parser.add_argument("--duration", type=float, default=4.0)
     parser.add_argument("--encoders", nargs="+", default=["signed", "deviation"],
-                        choices=["signed", "deviation"])
+                        choices=["signed", "deviation", "deviation_capped",
+                                 "deviation_fractionated"])
     parser.add_argument("--g-fb", type=float, nargs="+", default=list(G_FB_LEVELS))
     parser.add_argument("--out-dir", type=Path, default=Path("media/closed_loop/pilot"))
     args = parser.parse_args()
