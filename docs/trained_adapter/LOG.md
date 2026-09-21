@@ -320,3 +320,106 @@ whole population, which hides the single candidate one would actually want
 to inspect. It could not explain the gen-15 spike for exactly that reason.
 Fixing it requires a restart, so it is deferred to the powered run rather
 than applied mid-pilot.
+
+---
+
+## 2026-09-21 — pilot stopped at generation 120; the top candidate is a reward hack
+
+The pre-committed rule (`experiments/review_pilot.py`) fired on both
+criteria and the pilot was stopped at generation 120 of 250.
+
+| | gen 0-10 | gen 110-120 | r |
+|---|---:|---:|---:|
+| best | +0.270 | +0.312 | −0.006 |
+| median | −0.177 | +0.056 | +0.133 |
+| saturated | 22.5% | 13.8% | −0.226 |
+| sigma | 0.444 | 0.383 | −0.480 |
+
+**A.** `runmax(MA10(best))` was **+0.4111 at both gen 60 and gen 120** —
+identical, no improvement. **B.** median gained +0.2326, of which the
+saturation term contributed +0.2661.
+
+**Criterion B returned 114%, which is over 100% and therefore not a clean
+accounting.** That is the mean-vs-median mismatch flagged in advance when
+the rule was written: per-term values are population means, `median` is a
+median of candidate scores, and the two do not sum. The qualitative claim
+survives regardless — saturation's +0.2661 is four times the next largest
+term delta (progress, +0.0668) — but the percentage itself should not be
+quoted.
+
+### What the top candidate actually does
+
+It kicks the ball once and holds still.
+
+| | untrained | **all-time best** | CMA-ES mean |
+|---|---:|---:|---:|
+| reward | +0.1161 | **+0.9936** | +0.3309 |
+| progress (raw) | ~0 | **+0.9448** | −0.0000 |
+| total joint travel, all 42 DOFs | **61.94 rad** | **3.17 rad** | — |
+| share of motion in one leg | 64% | **100%** | 54% |
+| rhythmic legs | 3/6 | **1/6** | 4/6 |
+
+The best candidate scores **94% of reference walking speed while moving
+its joints 20x LESS than the untrained baseline**, with a single leg
+(T3-RHS) doing 100% of what motion there is.
+
+Ball pitch across the trial: −0.8978 at t = 0.08 s, −0.8975 at t = 4.00 s.
+Mean |angular acceleration| ≈ 0.0001 rad/s². **The ball is not being
+driven; it is coasting.** One joint swings 3.01 rad early on, the ball
+spins up to 0.90 rad/s, and the pre-registered damping of **1e-6** — chosen
+to model a frictionless air bearing — lets it hold that speed essentially
+forever. Measured coast-down time constant is ~**11,700 s** against a 4 s
+trial: the ball loses 0.03% of its speed over a whole trial.
+
+The progress term averages angular velocity over 3.5 s, so a single impulse
+reads as sustained walking. **Time-averaged ball velocity is not a measure
+of locomotion on a frictionless ball.**
+
+This is not a Phase 4 problem: `PREREGISTRATION.md` §2 states plainly that
+no hypothesis depends on ball rotation and it was logged only as an extra.
+
+### My detectors failed, and it is worth saying how
+
+**`impulsive_rotation` was built on the wrong derivative.** It measured the
+concentration of |angular *velocity*| in the busiest 10% of timesteps. A
+coasting ball has *constant* velocity, so concentration is ~10% — far below
+the 0.5 threshold. The signature of this exploit is a spike in
+*acceleration* followed by nothing. The detector written specifically to
+catch "a shove, not sustained gait" could not see the shove.
+
+**Two detectors fire on the untrained baseline**, so they were not
+discriminating anything:
+- `posture_exploit` computes `max|mean joint angle|` — distance from
+  **zero**, not from the **neutral pose**, which is nonzero for many DOFs.
+  It reports 2.44-2.45 rad for all three conditions including untrained.
+  That is a bug, not a finding.
+- `single_leg_dominance` fires at 64% on untrained against a 45%
+  threshold, so the threshold sits below baseline.
+
+### One genuinely interesting signal, stated as a lead not a finding
+
+The CMA-ES distribution mean shows **tripod index +0.312** against the
+untrained **−0.406** on the same replicate, with 4/6 rhythmic legs against
+3/6 — i.e. the search moved toward better interleg coordination while
+producing **zero** net locomotion. That is the project's actual question,
+so it is worth following. But it is **one trial on one replicate** and
+establishes nothing on its own.
+
+### Noise rerun on the filtered pool
+
+Reproduces the previously post-hoc-filtered figures **exactly** (progress
+SD 0.0066, tripod 0.2383, n_rhythmic 0.8944), as expected — same six
+replicates, deterministic. **E >= 6 still holds**, still bound by the
+tripod index (E>=6), not progress (E>=1).
+
+The caveat stands that this measures noise at the adapter-OFF defaults,
+while a powered run searches around a trained operating point.
+
+### The `best` candidate was never worth following, and CMA-ES knew
+
+Distance from the gen-15 best to the gen-120 search mean is **15.36** in
+z-space against a typical sampling radius of sqrt(65)*sigma = **3.06**. The
+search moved five times a normal step *away* from it. The +1.1053 was the
+max of a noisy mean-of-2 estimate, and the optimiser correctly ignored it —
+but `best.json`, and therefore any naive "top candidate" report, still
+points at it.

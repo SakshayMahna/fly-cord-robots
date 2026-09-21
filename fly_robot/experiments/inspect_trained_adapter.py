@@ -178,12 +178,21 @@ def main():
     fly, _w, _m, _d, *_c = build_ball_fly()
     leg_cols = leg_joint_columns(fly.get_jointdofs_order())
 
+    # Three conditions, not two. The all-time `best` is the maximum over a
+    # noisy mean-of-E estimate, so it is upward-biased by construction; the
+    # CMA-ES distribution mean is what the search actually converged toward
+    # and is the honest answer to "what did it learn".
+    conditions = [("untrained", "untrained (defaults)", default_params()),
+                  ("best", "all-time best candidate", trained)]
+    mean_path = run_dir / "search_mean.json"
+    if mean_path.exists():
+        mean_z = np.array(json.loads(mean_path.read_text())["mean_z"])
+        conditions.append(("searchmean", "CMA-ES distribution mean", from_z(mean_z)))
+
     rows = {}
-    for label, params in (("untrained (defaults)", default_params()),
-                          ("trained (top candidate)", trained)):
+    for tag, label, params in conditions:
         video = None
         if not args.no_video:
-            tag = "trained" if "trained" in label else "untrained"
             video = {c: clips / f"{tag}_{c}.mp4"
                      for c in ("side", "opposite_side", "top_down")}
         res = run_trial(model, mg, sensory_groups=sg, on_ball=True,
