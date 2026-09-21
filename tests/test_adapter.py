@@ -48,9 +48,10 @@ def _groups_and_dofs():
 
 # --- parameters -----------------------------------------------------------
 
-def test_parameter_count_is_68():
-    """65 interface parameters plus 3 per-segment adhesion thresholds."""
-    assert N_PARAMS == 68, "DESIGN.md §2 + §10 specify 68 trainable parameters"
+def test_parameter_count_is_71():
+    """65 interface parameters plus per-segment adhesion weight and
+    threshold (2 x 3)."""
+    assert N_PARAMS == 71, "DESIGN.md §2 + §10 specify 71 trainable parameters"
 
 
 def test_z_zero_decodes_to_the_documented_defaults():
@@ -153,44 +154,79 @@ def test_no_bypass_targets_depend_only_on_rates():
 
 
 def test_adhesion_depends_only_on_connectome_output():
-    """NO-BYPASS for the adhesion gate. Adhesion must be a pure function of
-    motor-neuron rates and the trainable threshold. If a sensor reading or
-    body state could reach it, adhesion would be a control channel that
-    skips the connectome entirely."""
-    from fly_robot.adapter.apply import adhesion_from_motor_output
+    """NO-BYPASS for the adhesion gate. Adhesion is a pure function of the
+    per-leg motor rates fed to it and the trainable parameters. No sensor
+    reading or body state may reach it, or adhesion becomes a control
+    channel that skips the connectome entirely."""
+    from fly_robot.adapter.apply import AdhesionGate
 
-    groups, _dofs, n_rows = _groups_and_dofs()
-    params = default_params()
     rng = np.random.default_rng(11)
+    series = [rng.uniform(0, 30, 6) for _ in range(200)]
 
-    rates = rng.uniform(0, 10, n_rows)
-    first = adhesion_from_motor_output(rates, groups, params)
-    for _ in range(5):          # same rates -> identical adhesion, always
-        np.testing.assert_array_equal(
-            adhesion_from_motor_output(rates, groups, params), first)
+    def run(params):
+        gate = AdhesionGate(params, dt=0.001)
+        return np.array([gate.step(x) for x in series])
 
-    assert first.shape == (6,)
+    first = run(default_params())
+    # Deterministic: identical input sequence -> identical output, always.
+    for _ in range(3):
+        np.testing.assert_array_equal(run(default_params()), first)
+
+    assert first.shape == (200, 6)
     assert set(np.unique(first)) <= {0.0, 1.0}, "adhesion must be on or off"
 
-    # It must actually respond to the connectome, not be a constant.
-    seen = {tuple(adhesion_from_motor_output(rng.uniform(0, 10, n_rows),
-                                             groups, params))
-            for _ in range(40)}
-    assert len(seen) > 1, "adhesion ignores the connectome's motor rates"
+
+def test_adhesion_is_not_stuck_and_responds_to_the_rhythm():
+    """A gate that never switches is useless, and one that ignores its
+    input would make the connectome irrelevant to adhesion."""
+    from fly_robot.adapter.apply import AdhesionGate
+
+    t = np.arange(400) * 0.001
+    rhythm = 10.0 + 5.0 * np.sin(2 * np.pi * 11.0 * t)   # ~11 Hz, as measured
+    gate = AdhesionGate(default_params(), dt=0.001)
+    out = np.array([gate.step(np.full(6, v)) for v in rhythm])
+
+    duty = out.mean()
+    transitions = np.abs(np.diff(out[:, 0])).sum()
+    assert 0.05 < duty < 0.95, f"gate is effectively stuck (duty {duty:.2f})"
+    assert transitions > 4, f"gate barely switches ({transitions} transitions)"
+
+    flat = AdhesionGate(default_params(), dt=0.001)
+    flat_out = np.array([flat.step(np.full(6, 10.0)) for _ in range(400)])
+    assert np.abs(np.diff(flat_out[:, 0])).sum() == 0, (
+        "a constant input must not produce switching")
 
 
-def test_adhesion_threshold_changes_the_gate():
-    """A threshold that did nothing would make the parameter a decoy."""
-    from fly_robot.adapter.apply import adhesion_from_motor_output
+def test_adhesion_polarity_is_trainable():
+    """`adhesion_weight` may go negative so the optimiser can choose which
+    half of the rhythm counts as stance, rather than us asserting it."""
+    from fly_robot.adapter.apply import AdhesionGate
+    from fly_robot.adapter.parameters import AdapterParams
 
-    groups, _dofs, n_rows = _groups_and_dofs()
-    rng = np.random.default_rng(3)
-    rates = rng.uniform(0, 10, n_rows)
-    low = from_z(np.full(N_PARAMS, -8.0))
-    high = from_z(np.full(N_PARAMS, 8.0))
-    assert not np.array_equal(
-        adhesion_from_motor_output(rates, groups, low, ),
-        adhesion_from_motor_output(rates, groups, high))
+    base = default_params()
+    def with_w(v):
+        vals = dict(base.values)
+        vals["adhesion_weight"] = np.full(3, v)
+        return AdapterParams(vals)
+
+    t = np.arange(400) * 0.001
+    rhythm = 10.0 + 5.0 * np.sin(2 * np.pi * 11.0 * t)
+
+    def run(params):
+        g = AdhesionGate(params, dt=0.001)
+        return np.array([g.step(np.full(6, v)) for v in rhythm])
+
+    pos, neg = run(with_w(1.0)), run(with_w(-1.0))
+    assert not np.array_equal(pos, neg), "polarity has no effect"
+    # Opposite polarity should gate the opposite half of the cycle.
+    assert 0.05 < neg.mean() < 0.95
+
+
+def test_adhesion_weight_can_be_negative_and_starts_positive():
+    spec = {n: (lo, hi, d) for n, _s, lo, hi, d in PARAM_SPEC}
+    lo, hi, default = spec["adhesion_weight"]
+    assert lo < 0 < hi, "weight must be able to change sign"
+    assert default > 0, "weight is initialised positive"
 
 
 def test_sensory_encoder_only_ever_injects_non_negative_current():

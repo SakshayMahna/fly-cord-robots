@@ -1,4 +1,4 @@
-"""The trainable adapter — 68 parameters, and nothing else.
+"""The trainable adapter — 71 parameters, and nothing else.
 
 **EVERYTHING IN THIS MODULE IS OUR OWN ADDITION**, per the project's
 honesty rule. The connectome supplies neurons, weights, signs and
@@ -25,7 +25,7 @@ legs" unfalsifiable.
 
 Search space
 ------------
-CMA-ES searches an unbounded, roughly unit-scale vector `z` in R^68. Each
+CMA-ES searches an unbounded, roughly unit-scale vector `z` in R^71. Each
 entry maps to its physical range through a logistic squash, so:
 
   * bounds are respected without clipping (clipping creates flat regions
@@ -78,10 +78,18 @@ PARAM_SPEC: tuple[tuple[str, tuple[int, ...], float, float, float], ...] = (
     ("motor_offset",    (3, 3), -0.30, 0.30, 0.0),
     ("motor_tau",       (3,),  0.0005, 0.05, 0.001),  # ~= no filtering at neural dt
     # --- adhesion gating, per segment --------------------------------------
-    # Stance/swing threshold on (coxa-stance rate - coxa-swing rate), in Hz.
-    # Default 0 means "adhere whenever the stance pool out-fires the swing
-    # pool", which needs no tuning to be meaningful.
-    ("adhesion_threshold", (3,), -3.0, 3.0, 0.0),
+    # Gate: w * (per-leg summed motor rate - its 50 ms running mean) > theta.
+    #
+    # `w` may go NEGATIVE so the optimiser can find the polarity itself --
+    # which half of the rhythm is stance is our modelling choice, and one we
+    # would rather not make by assertion. Initialised positive.
+    #
+    # Threshold bounds span the measured deviation scale: |rate - running
+    # mean| has p50 0.37, p95 6.41, p99 9.05, max 18.39 Hz across four
+    # untrained replicates, so +/-9 covers the usable range without the
+    # gate saturating at either bound.
+    ("adhesion_weight",    (3,), -2.0, 2.0, 1.0),
+    ("adhesion_threshold", (3,), -9.0, 9.0, 0.0),
 )
 
 N_PARAMS = sum(int(np.prod(shape)) if shape else 1 for _n, shape, *_ in PARAM_SPEC)

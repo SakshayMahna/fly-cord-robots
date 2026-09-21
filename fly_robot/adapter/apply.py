@@ -174,53 +174,97 @@ class AdapterSensoryEncoder(SensoryEncoder):
         return current
 
 
-# Adhesion gating: which motor pools say "stance".
+# Adhesion gating -- OUR INTERFACE ADDITION, and the signal is the
+# connectome's RHYTHM, not its stance anatomy. That distinction is real and
+# is recorded rather than glossed.
 #
-# OUR ADDITION, but the signal is not invented. Pugliese's own motor-module
-# annotation names two of the pools **"coxa stance"** and **"coxa swing"**,
-# and both are present in all six legs (stance 6/7/6, swing 7/3/3 for
-# T1/T2/T3 per side). They are an antagonist pair already used by the frozen
-# motor interface to drive thorax-coxa pitch, so the difference between
-# their mean rates is a signed, well-posed phase signal with a meaningful
-# zero: positive means the stance pool is out-firing the swing pool.
+# The anatomically correct signal would be Pugliese's own motor modules,
+# which literally name two pools "coxa stance" and "coxa swing". Measured on
+# the untrained connectome under DNg100 drive, those pools are near-silent:
+# each fires in only ~19% of (leg, side, replicate) pools, and "substrate
+# grip" and "tarsus control" -- the two modules semantically closest to
+# adhesion -- fire in 0%. A gate built on them sticks: three legs always-off,
+# one always-on, 0-1 transitions per 2 s where stepping needs ~44.
+#
+# So the gate uses the per-leg SUMMED motor rate, the same signal Phase 4's
+# AR(1) rhythm gate already found genuinely rhythmic in 3-5 of 6 legs,
+# high-passed against its own 50 ms running mean so it oscillates about
+# zero by construction:
+#
+#     adhere  <=>  w_seg * (rate - running_mean) > theta_seg
+#
+# `w_seg` may be negative: which half of the rhythm counts as stance is a
+# modelling choice, and the optimiser is allowed to find the polarity
+# rather than have us assert it.
 #
 # Adhesion is ON in stance and OFF in swing, matching what both baselines
-# do -- they take the same swing/stance distinction from the reference
-# kinematics' own `swing_stance_time`. Each controller gates adhesion with
-# its own phase signal; see DESIGN.md for why that is the fair comparison.
-#
-# Considered and not chosen as the primary signal: the **"substrate grip"**
-# module (47 neurons, 6-9 per leg), which is semantically the closest thing
-# to adhesion in the whole annotation. It is not an antagonist pair, so it
-# has no natural zero crossing and would need an absolute-rate threshold
-# whose scale depends on the replicate's overall activity level. Recorded in
-# DESIGN.md as a labelled alternative worth testing later, not silently
-# dropped.
-STANCE_MODULE = "coxa stance"
-SWING_MODULE = "coxa swing"
+# do. Each controller gates from its own phase signal -- see DESIGN.md
+# section 10 for why that is the fair comparison.
+ADHESION_TAU_S = 0.05
+
+# The anatomical pools are still LOGGED every step, so training can be
+# asked afterwards whether it ever recruited them.
+ANATOMICAL_POOLS = ("coxa stance", "coxa swing", "substrate grip",
+                    "tarsus control")
 
 # FlyGym's own adhesion actuator order, from `fly.get_legs_order()`.
 FLYGYM_LEG_ORDER = ("lf", "lm", "lh", "rf", "rm", "rh")
 _PREFIX_TO_LEG = {v: k for k, v in LEG_NAME_TO_FLYGYM_PREFIX.items()}
 
 
-def adhesion_from_motor_output(rates, groups, params: AdapterParams):
-    """Per-leg adhesion (6,) in FlyGym's leg order, from connectome output.
-
-    Depends ONLY on motor-neuron firing rates and the trainable threshold.
-    No sensor reading and no body state reaches it, so it cannot become a
-    bypass around the connectome -- asserted in tests/test_adapter.py.
-    """
+def per_leg_summed_rate(rates, leg_rows):
+    """(6,) summed motor-neuron rate per leg, in FlyGym's leg order."""
     out = np.zeros(len(FLYGYM_LEG_ORDER))
     for i, prefix in enumerate(FLYGYM_LEG_ORDER):
-        segment, side = _PREFIX_TO_LEG[prefix]
-        s = _SEG_INDEX[segment]
-        stance_idx = groups.indices_by_group.get((segment, side, STANCE_MODULE), [])
-        swing_idx = groups.indices_by_group.get((segment, side, SWING_MODULE), [])
-        stance = float(np.mean(rates[stance_idx])) if stance_idx else 0.0
-        swing = float(np.mean(rates[swing_idx])) if swing_idx else 0.0
-        out[i] = 1.0 if (stance - swing) > float(params.adhesion_threshold[s]) else 0.0
+        rows = leg_rows.get(_PREFIX_TO_LEG[prefix], [])
+        out[i] = float(np.sum(rates[rows])) if len(rows) else 0.0
     return out
+
+
+def anatomical_pool_rates(rates, groups):
+    """{module: (6,) mean rate per leg} for the anatomically named pools.
+
+    Logged but NOT used by the gate. Keeping it lets RESULTS answer whether
+    training ever recruits the pools the annotation calls stance, swing and
+    grip -- which are near-silent in the untrained network.
+    """
+    out = {}
+    for module in ANATOMICAL_POOLS:
+        vals = np.zeros(len(FLYGYM_LEG_ORDER))
+        for i, prefix in enumerate(FLYGYM_LEG_ORDER):
+            seg, side = _PREFIX_TO_LEG[prefix]
+            idx = groups.indices_by_group.get((seg, side, module), [])
+            vals[i] = float(np.mean(rates[idx])) if idx else 0.0
+        out[module] = vals
+    return out
+
+
+class AdhesionGate:
+    """Stateful per-leg adhesion gate driven only by connectome output.
+
+    Holds the running mean, so it must be constructed once per trial and
+    stepped in lockstep with the neural model.
+    """
+
+    def __init__(self, params: AdapterParams, dt: float = 0.001,
+                 tau_s: float = ADHESION_TAU_S):
+        self.params = params
+        self.alpha = dt / tau_s
+        self.baseline = None
+        # per-leg weight and threshold, expanded from per-segment values
+        self.w = np.array([float(params.adhesion_weight[
+            _SEG_INDEX[_PREFIX_TO_LEG[p][0]]]) for p in FLYGYM_LEG_ORDER])
+        self.theta = np.array([float(params.adhesion_threshold[
+            _SEG_INDEX[_PREFIX_TO_LEG[p][0]]]) for p in FLYGYM_LEG_ORDER])
+
+    def step(self, leg_rate):
+        """(6,) adhesion in FlyGym leg order from (6,) per-leg summed rate."""
+        leg_rate = np.asarray(leg_rate, dtype=float)
+        if self.baseline is None:
+            self.baseline = leg_rate.copy()
+        deviation = leg_rate - self.baseline
+        self.baseline = (1.0 - self.alpha) * self.baseline + self.alpha * leg_rate
+        return (self.w * deviation > self.theta).astype(float)
 
 
 def command_current(params: AdapterParams, n_neurons: int, t: float,

@@ -856,8 +856,38 @@ matches. No leg is stuck on or off across replicates. Duty sits at 0.29
 against the baselines' 0.62–0.69, which a trainable threshold offset can
 shift.
 
-It is a **different mechanism** from the approved one, so it is not
-substituted silently. The cost of adopting it, stated plainly: "above its
-own running mean" is a weaker claim about stance than "the pool the
-annotation calls stance is firing" — it uses the connectome's rhythm but
-not its anatomy.
+### ADOPTED 2026-09-21 — the rhythm signal, with trainable polarity
+
+    adhere  <=>  w_seg * (per-leg summed rate - 50 ms running mean) > theta_seg
+
+Two trainable parameters per segment, taking the adapter to **71**.
+`w_seg` may be **negative** and is initialised positive: which half of the
+rhythm counts as stance is a modelling choice, and the optimiser is allowed
+to find the polarity rather than have us assert it. Threshold bounds are
++/-9 Hz, spanning the measured deviation scale (p50 0.37, p95 6.41, p99
+9.05, max 18.39 Hz over four untrained replicates).
+
+**State it plainly wherever this is reported: the adhesion gate uses the
+connectome's RHYTHM, not its stance anatomy.** "Above its own running
+mean" is a weaker claim about stance than "the pool the annotation calls
+stance is firing". We use the weaker one because the stronger one is not
+available — see the silence measured above.
+
+**The anatomical pools are still logged** every step and every generation —
+`coxa stance`, `coxa swing`, `substrate grip`, `tarsus control` — so
+`RESULTS.md` can answer whether training ever recruits them. If a trained
+adapter brings the pools the annotation calls stance and grip to life, that
+is a far stronger result than the gate itself and should not be missed for
+want of logging.
+
+### Validation on the untrained connectome, both polarities
+
+| w | mean duty | legs stuck always-on | always-off | transitions per 2 s |
+|---:|---:|---:|---:|---|
+| +1 | 0.287 | 0 | 0 | 22-53 |
+| −1 | 0.295 | 0 | 0 | 2-52 |
+
+~44 transitions is what an ~11 Hz rhythm gives over 2 s. Legs showing zero
+duty do so only in specific replicates — those where that leg has no motor
+output at all, consistent with Phase 4 finding 3-5 of 6 legs rhythmic — and
+no leg is stuck across replicates at either polarity.

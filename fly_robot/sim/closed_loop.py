@@ -86,6 +86,7 @@ class TrialResult:
     terminated_at_step: int | None = None  # set when the fly flipped over
     n_steps_planned: int = 0
     adhesion: np.ndarray | None = None     # (n_steps, 6) per-leg adhesion state
+    anatomical_pools: dict | None = None   # {module: (n_steps, 6)} logged, unused by the gate
     unstable: bool = False
     instability_reason: str = ""
     meta: dict = field(default_factory=dict)
@@ -224,12 +225,13 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     adapter_alpha = saved_baseline = None
     if adapter is not None:
         from fly_robot.adapter.apply import (
-            adapter_joint_targets, adhesion_from_motor_output, command_current,
-            motor_filter_alpha,
+            AdhesionGate, adapter_joint_targets, anatomical_pool_rates,
+            command_current, motor_filter_alpha, per_leg_summed_rate,
         )
         saved_baseline = neural_model.baseline_input
         neural_model.baseline_input = np.zeros_like(saved_baseline)
         adapter_alpha = motor_filter_alpha(adapter, dof_index_by_name, neural_dt)
+        adhesion_gate = AdhesionGate(adapter, dt=neural_dt)
 
     ball_reader = None
     if on_ball:
@@ -281,6 +283,13 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         # stance/swing pools -- see adapter/apply.py.
         physics.set_leg_adhesion_states(fly.name, np.ones(6))
     adhesion_log = np.zeros((n_steps, 6), dtype=np.float32) if on_ground else None
+    # The anatomically named pools are logged but never drive the gate, so
+    # RESULTS can say whether training ever recruits them.
+    anatomical_log = None
+    if adapter is not None:
+        from fly_robot.adapter.apply import ANATOMICAL_POOLS
+        anatomical_log = {m: np.zeros((n_steps, 6), dtype=np.float32)
+                          for m in ANATOMICAL_POOLS}
 
     max_rate = 0.0
     terminated_at_step = None
@@ -336,9 +345,12 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
                 motor_gain_rad, motor_rate_scale_hz)
         physics.set_actuator_inputs(fly.name, ActuatorType.POSITION, targets)
         if on_ground and adhesion and adapter is not None:
-            leg_adhesion = adhesion_from_motor_output(rates, motor_groups, adapter)
+            leg_adhesion = adhesion_gate.step(per_leg_summed_rate(rates, leg_rows))
             adhesion_log[step] = leg_adhesion
             physics.set_leg_adhesion_states(fly.name, leg_adhesion)
+        if adapter is not None and anatomical_log is not None:
+            for module, vals in anatomical_pool_rates(rates, motor_groups).items():
+                anatomical_log[module][step] = vals
         for _ in range(substeps):
             physics.step()
             if render_targets is not None:
@@ -383,7 +395,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         sensory_channels=channel_keys, ball_quat=ball_quat, ball_angvel=ball_angvel,
         thorax_pos=thorax_pos, thorax_quat=thorax_quat,
         terminated_at_step=terminated_at_step, n_steps_planned=n_steps,
-        adhesion=adhesion_log,
+        adhesion=adhesion_log, anatomical_pools=anatomical_log,
         n_active_neurons=n_active, max_firing_rate=max_rate,
         wall_clock_s=elapsed, unstable=unstable, instability_reason=reason,
         meta={"n_steps": n_steps, "substeps_per_neural_step": substeps,
