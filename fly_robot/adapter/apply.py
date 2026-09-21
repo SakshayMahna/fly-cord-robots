@@ -19,11 +19,17 @@ import numpy as np
 
 from fly_robot.adapter.parameters import PAIRS, SEGMENTS, AdapterParams
 from fly_robot.interface.joint_to_sensory_neuron import (
-    CHORDOTONAL, VELOCITY_REF_RAD_S, SensoryEncoder, normalised_position,
+    CHORDOTONAL, STAGE_A_POSITION_REF_RAD, STAGE_A_VELOCITY_REF_RAD_S,
+    SensoryEncoder, normalised_position,
 )
 from fly_robot.interface.motor_neuron_to_joint import (
     ANTAGONIST_PAIRS, LEG_NAME_TO_FLYGYM_PREFIX, _dof_name_for_pair,
 )
+
+# The trainable encoder runs on the Stage A rig, so it uses the scales
+# measured there, not Phase 4's harness-derived ones.
+VELOCITY_REF_RAD_S = STAGE_A_VELOCITY_REF_RAD_S
+POSITION_REF_RAD = STAGE_A_POSITION_REF_RAD
 
 # Verified by query against the simulated MANC table, not assumed —
 # see docs/trained_adapter/DESIGN.md §2.2.
@@ -89,7 +95,7 @@ class AdapterSensoryEncoder(SensoryEncoder):
                     continue
                 pos = normalised_position(
                     float(joint_angles[i]),
-                    self._reference.get(ids["femur_tibia_name"], 0.0), self.mode)
+                    self._reference.get(ids["femur_tibia_name"], 0.0), self.mode, POSITION_REF_RAD)
                 vel = float(np.clip(abs(float(joint_velocities[i]))
                                     / VELOCITY_REF_RAD_S, 0.0, 1.0))
                 mix = float(p.chord_mix[s])
@@ -101,7 +107,8 @@ class AdapterSensoryEncoder(SensoryEncoder):
                     continue
                 pos = normalised_position(
                     float(joint_angles[i]),
-                    self._reference.get(ids["thorax_coxa_name"], 0.0), self.mode)
+                    self._reference.get(ids["thorax_coxa_name"], 0.0), self.mode,
+                    POSITION_REF_RAD)
                 thr = float(p.hp_threshold[s])
                 drives[key] = 0.0 if pos <= thr else float((pos - thr) / (1.0 - thr))
         return drives
@@ -125,7 +132,8 @@ class AdapterSensoryEncoder(SensoryEncoder):
 
         pos = normalised_position(
             float(joint_angles[i]),
-            self._reference.get(ids["femur_tibia_name"], 0.0), self.mode)
+            self._reference.get(ids["femur_tibia_name"], 0.0), self.mode,
+            POSITION_REF_RAD)
         vel = float(np.clip(abs(float(joint_velocities[i])) / VELOCITY_REF_RAD_S,
                             0.0, 1.0))
         sigma = float(p.chord_sigma[s])

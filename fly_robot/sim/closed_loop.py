@@ -55,6 +55,12 @@ from fly_robot.interface.motor_neuron_to_joint import (
 NEURAL_DT = 0.001
 TRIAL_DURATION_S = 4.0       # pre-registered
 
+# Body z-axis vertical component below which the fly counts as flipped.
+# 1 is level, 0 on its side, negative inverted. A standing fly reads 0.998
+# and the walking CPG baseline never drops below 0.966, so 0.5 (60 degrees
+# off vertical) is well clear of normal walking.
+FLIP_UPRIGHT_THRESHOLD = 0.5
+
 # Pulse timing (stimulation window) is NOT set here — it comes from
 # `sim_params.pulse_start` / `pulse_end`, built into `neural_model` by
 # `trial_setup.build_trial_components` from the actual Hydra config. Two
@@ -77,6 +83,8 @@ class TrialResult:
     wall_clock_s: float
     thorax_pos: np.ndarray | None = None   # (n_steps, 3) mm, free-ground rig only
     thorax_quat: np.ndarray | None = None  # (n_steps, 4), free-ground rig only
+    terminated_at_step: int | None = None  # set when the fly flipped over
+    n_steps_planned: int = 0
     unstable: bool = False
     instability_reason: str = ""
     meta: dict = field(default_factory=dict)
@@ -125,7 +133,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
               video_paths: dict | None = None,
               adapter=None, rig: str | None = None,
-              adhesion: bool = True) -> TrialResult:
+              adhesion: bool = True,
+              terminate_on_flip: bool = True) -> TrialResult:
     """Run one coupled trial.
 
     `feedback_gain = 0` makes the loop open: the sensory encoder emits
@@ -272,6 +281,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         physics.set_leg_adhesion_states(fly.name, np.ones(6))
 
     max_rate = 0.0
+    terminated_at_step = None
     unstable, reason = False, ""
     t0 = time.time()
 
@@ -335,7 +345,17 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         if on_ground:
             # Body 0 is the root segment (c_thorax) -- verified by query.
             thorax_pos[step] = physics.get_body_positions(fly.name)[0]
-            thorax_quat[step] = physics.get_body_rotations(fly.name)[0]
+            q = physics.get_body_rotations(fly.name)[0]
+            thorax_quat[step] = q
+            if terminate_on_flip:
+                upright = 1.0 - 2.0 * (float(q[1]) ** 2 + float(q[2]) ** 2)
+                if upright < FLIP_UPRIGHT_THRESHOLD:
+                    # A flipped fly cannot walk, and letting it flail for the
+                    # rest of the trial only adds noise. The reward charges
+                    # the remaining time as flipped with zero further
+                    # progress, so stopping early is never an advantage.
+                    terminated_at_step = step + 1
+                    break
 
         if not np.isfinite(angles).all():
             unstable, reason = True, f"non-finite joint angle at step {step}"
@@ -356,6 +376,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         joint_velocities=joint_velocities, sensory_drive=sensory_drive,
         sensory_channels=channel_keys, ball_quat=ball_quat, ball_angvel=ball_angvel,
         thorax_pos=thorax_pos, thorax_quat=thorax_quat,
+        terminated_at_step=terminated_at_step, n_steps_planned=n_steps,
         n_active_neurons=n_active, max_firing_rate=max_rate,
         wall_clock_s=elapsed, unstable=unstable, instability_reason=reason,
         meta={"n_steps": n_steps, "substeps_per_neural_step": substeps,

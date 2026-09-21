@@ -292,3 +292,119 @@ one step. Until then every weight above is proposed in ratio terms only.
    but it may make slipping impossible and so flatter the gait.
 3. Should a flipped or fallen trial **terminate early**? Currently it runs
    to completion and accrues penalty.
+
+---
+
+# FINALISED — 2026-09-21, free-walking rig, real numbers
+
+*Amendment 1's weights were approved as ratios pending a measured `v_ref`.
+It is now measured. Implemented in `fly_robot/adapter/reward_ground.py`,
+config hash below. **Still no training run.***
+
+## The rig
+
+`build_free_fly()` now carries FlyGym's own validated locomotion
+configuration verbatim, from
+`flygym_demo.complex_terrain.common.make_locomotion_fly`: `LEGS_ONLY`
+skeleton, **`AxisOrder.YAW_PITCH_ROLL`**, joint stiffness 0.05 / damping
+0.06, passive tarsus 7.5 / 1e-2, actuator gain 45, force range ±65,
+adhesion gain 40, spawn height 0.5 mm. The connectome, the CPG baseline and
+the rule-based baseline all run on this identical body.
+
+The decisive setting was the axis order. Changing only that in an otherwise
+working rig took the CPG from +13.6 mm/s upright to +0.9 mm/s with upright
+−0.96 — on its back.
+
+## `v_ref`, measured
+
+**`v_ref` = 14.025 mm/s**, the CPG baseline's mean forward speed on this
+exact rig.
+
+| seed | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| speed (mm/s) | 13.611 | 13.967 | 14.160 | 14.176 | 14.208 |
+
+mean **14.025**, sd **0.250**, min 13.611, minimum upright 0.966 across all
+five. Raw data: `media/baselines/baselines.json`.
+
+For comparison on the same body, the **rule-based** controller walks at
+**7.396 mm/s** (sd 0.392, 3 seeds, minimum upright 0.873) — about 53% of
+the CPG's speed. Both are video baselines.
+
+Untrained connectome on this rig, for scale: legs move a great deal
+(160 rad of total joint travel over 4 s) and the body goes **+0.011 mm**.
+It stays upright (0.901) and does not flip.
+
+## Final weights and references
+
+| # | term | definition | weight |
+|---|---|---|---:|
+| 1 | progress | forward thorax displacement / (T · 14.025 mm/s) | **+1.00** |
+| 2 | straightness | \|lateral displacement\| / (T · 14.025 mm/s) | **−0.20** |
+| 3 | upright | 1 − mean(body z · world z) | **−0.50** |
+| 4 | anti-flip | fraction of the FULL duration spent flipped | **−1.00** |
+| 5 | rhythmicity | n_rhythmic / 6 | **+0.30** |
+| 6 | coordination | (tripod_index + 1) / 2 | **+0.20** |
+| 7 | posture | mean\|joint − rest\| / 0.30 rad | **−0.10** |
+| 8 | energy | mean(Σ Δθ²) / 3.331e−05 | **−0.05** |
+| 9 | saturation | clip((n_active − 1500)/1500, 0, 2) | **−2.00** |
+
+Flip threshold: upright < **0.5**. A standing fly reads 0.998 and the
+walking CPG never drops below 0.966, so 0.5 is well clear of normal
+walking.
+
+## Early termination on flip
+
+A flipped trial stops immediately. Its remaining duration counts as
+flipped for term 4 and contributes **zero** progress for term 1 — progress
+is divided by the full planned duration, not the survived portion.
+
+Tested rather than asserted: a trial **flipping at 25% while travelling at
+full walking speed scores −0.7500**, against **+0.0375** for one that
+crawls upright at 5% of walking speed. Flipping is never the better option.
+
+One edge case found while testing and fixed: a trial that terminates inside
+the rhythm gate's own transient window leaves no signal to analyse. It now
+scores zero rhythmicity and coordination rather than crashing — or, worse,
+silently counting as rhythmic.
+
+## Encoder rescaling
+
+`POSITION_REF_RAD` and `VELOCITY_REF_RAD_S` were measured on the harness
+under ROLL_PITCH_YAW. The axis order changes what a joint angle means, so
+they were re-derived on the adopted rig by the same rule (99th percentile
+of what actually occurs, three connectome-driven replicates):
+
+| | Phase 4 | Stage A |
+|---|---:|---:|
+| position ref | 0.300 rad | **0.132 rad** |
+| velocity ref | 10.0 rad/s | **6.6 rad/s** |
+
+Keeping the old values would over-scale by ~2.3× and ~1.5×, squashing the
+real signal into the bottom of the encoder's range — the exact failure the
+original calibration note warned about. Phase 4 keeps its own constants.
+
+## Gate suite — all pass
+
+| check | result |
+|---|---|
+| CPG walks forward consistently | 14.025 ± 0.250 mm/s, upright ≥ 0.966 |
+| rule-based baseline walks | 7.396 ± 0.392 mm/s, upright ≥ 0.873 |
+| kick-then-freeze scores ~0 | coasts **+0.0%** of walking speed |
+| flips terminate and never pay | −0.7500 vs +0.0375 |
+| neural metrics at `g_fb = 0` unchanged | motor-rate traces **bit-identical** across rigs |
+
+`media/baselines/gate_suite.json`.
+
+## Reward config hash
+
+Recorded so a checkpoint cannot silently resume under a different
+objective — same discipline as the frozen motor interface's `04be9dec…`.
+`0d6485421541f4668a85c0f07a663f6b716122d47f826e6258f8eb4c104b26c6`
+
+## Still open
+
+Adhesion on the connectome path. Baselines gate it by swing/stance from the
+reference data; the connectome has no swing/stance signal of its own, so
+deriving one from the decoded motor output — **our addition**, and it must
+be labelled — is not yet built.

@@ -1,0 +1,39 @@
+{
+ "cpg_walks": {
+  "mean_speed": 14.02461177982343,
+  "sd_speed": 0.24966207762487327,
+  "min_upright": 0.9664560390605033,
+  "pass": true
+ },
+ "rule_based": {
+  "mean_speed": 7.396410250631873,
+  "sd_speed": 0.3924746465889143,
+  "min_upright": 0.8733822715930625,
+  "pass": true
+ },
+ "kick_then_freeze": {
+  "during_mm": 1.2993897436219788,
+  "after_mm": 0.009857106049247388,
+  "coast_frac_of_walking": 0.00037990484363819004,
+  "pass": true
+ },
+ "flip": {
+  "flip_score": -0.75,
+  "crawl_score": 0.037474997753340504,
+  "tipped_at_step": 38,
+  "pass": true
+ },
+ "neural_unchanged": {
+  "ball": {
+   "n_active": 392,
+   "max_fr": 19.135411,
+   "n_rhythmic": 3
+  },
+  "ground": {
+   "n_active": 392,
+   "max_fr": 19.135411,
+   "n_rhythmic": 3
+  },
+  "pass": true
+ }
+}

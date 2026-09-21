@@ -739,3 +739,91 @@ Two candidates, depending on which rig Stage A trains on: **13.9 mm/s**
 (tutorial settings) or **9.4 mm/s** (our settings with the axis order
 fixed). This is the constant that blocked the reward; it is now a
 measurement rather than a guess.
+
+---
+
+## 2026-09-21 — axis order switched; gate suite passes; reward finalised
+
+### The switch, and what stays reproducible
+
+Project default for Stage A is now **`AxisOrder.YAW_PITCH_ROLL`**, and
+`build_free_fly()` adopts FlyGym's validated locomotion configuration
+wholesale (`STAGE_A_FLY`) rather than approximating it. The connectome, the
+CPG baseline and the rule-based baseline all run on one identical body.
+
+**Phases 2–4 remain reproducible.** `build_harnessed_fly` and
+`build_ball_fly` are untouched and keep `LEGACY_AXIS_ORDER`
+(ROLL_PITCH_YAW); the two constants are named and explained in
+`bodies/neuromechfly.py` so the distinction cannot be lost.
+
+**What the axis order does and does not affect, stated precisely:**
+
+- **Phase 4's neural-side results are unaffected.** The harness and ball
+  hold the thorax fixed, so the body cannot flip; the motor and sensory
+  interfaces read and write the same named DOFs in the same convention, so
+  they are self-consistent; and at `g_fb = 0` there is no path from body to
+  neurons at all. Re-verified here: ball and ground give **bit-identical**
+  motor-rate traces.
+- **Phase 3's rendered kinematics were computed under ROLL_PITCH_YAW**, so
+  the limb geometry in those clips does not match the convention the
+  reference kinematics use. Re-rendered for video under the new convention
+  (`media/phase3_rerender/`).
+- **The encoder's angle→current mapping was also computed under
+  ROLL_PITCH_YAW.** Its reference scales are re-derived for Stage A (below).
+  Phase 4 keeps its own.
+
+### The 1.2.1 port is deleted
+
+`fly_robot/baselines/{cpg,preprogrammed_steps}.py` are gone. FlyGym 1.2.1
+was never needed: `flygym_demo` ships **inside** flygym 2.1.0 with native
+CPG, rule-based, hybrid and turning controllers plus the step data, and it
+was in my own `site-packages` listing earlier in the session.
+
+Recorded because it is the more useful lesson: that port's **"mirroring
+correction" was not a real convention difference.** Negating right-leg roll
+and yaw was partially cancelling the axis-order error. It looked like a
+success — −0.78 → +2.95 mm/s — while the fly was still face-planting. A
+wrong fix that improves the number is harder to catch than one that does
+nothing, and the thing that caught it was ablating one variable at a time
+against a known-good reference rather than trusting the improvement.
+
+### Baselines, measured on the adopted rig
+
+| controller | mean speed | sd | seeds | min upright |
+|---|---:|---:|---:|---:|
+| CPG | **14.025 mm/s** | 0.250 | 5 | 0.966 |
+| rule-based | **7.396 mm/s** | 0.392 | 3 | 0.873 |
+
+`v_ref = 14.025 mm/s`. The constant that blocked the reward for three
+sessions is now a measurement.
+
+Untrained connectome on the same rig, for scale: 160 rad of total joint
+travel over 4 s and **+0.011 mm** of displacement. It moves its legs
+energetically and goes nowhere — upright throughout (0.901), no flip.
+
+### Encoder rescaled
+
+Re-derived by the same rule as the original (99th percentile of what
+actually occurs, three connectome-driven replicates on the adopted rig):
+position 0.300 → **0.132 rad**, velocity 10.0 → **6.6 rad/s**. The old
+values would over-scale by ~2.3× and ~1.5×.
+
+### Gate suite: all five pass
+
+CPG walks; rule-based walks; kick-then-freeze coasts **+0.0%** of walking
+speed (the ball-rig exploit is dead); flips terminate and score −0.7500
+against +0.0375 for crawling upright; neural metrics at `g_fb = 0` are
+bit-identical across rigs.
+
+An edge case surfaced while testing the flip rule: a trial terminating
+inside the rhythm gate's transient window left an empty array to reduce
+over. It now scores zero rhythmicity rather than crashing — or silently
+counting as rhythmic, which would have been worse.
+
+### Still open, and deliberately not built
+
+Adhesion on the connectome path. Both baselines gate adhesion by
+swing/stance taken from the reference data. The connectome has no
+swing/stance signal of its own, so one would have to be derived from the
+decoded motor output — **our addition**, and it must be labelled as such.
+Not built.

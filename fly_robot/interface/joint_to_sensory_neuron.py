@@ -85,6 +85,23 @@ MODELLED_SUBCLASSES = (CHORDOTONAL, HAIR_PLATE)
 POSITION_REF_RAD = 0.3
 VELOCITY_REF_RAD_S = 10.0
 
+# STAGE A (free-walking rig, YAW_PITCH_ROLL). The constants above were
+# measured on the HARNESS under ROLL_PITCH_YAW, and the axis order changes
+# what a given joint angle means geometrically, so they had to be
+# re-derived rather than carried over. Same rule as before -- the 99th
+# percentile of what actually occurs -- measured over three
+# connectome-driven replicates on the adopted rig:
+#
+#   |deviation from rest|  p50 0.0066  p95 0.0708  p99 0.1324  max 0.1752 rad
+#   |angular velocity|     p50 0.363   p95 3.887   p99 6.571   max 11.618 rad/s
+#
+# Keeping 0.3 / 10.0 here would over-scale by ~2.3x and ~1.5x, squashing the
+# real signal into the bottom of the encoder's range -- the exact failure
+# the original calibration note warns about. Phase 4 keeps the old values,
+# so its results stay reproducible.
+STAGE_A_POSITION_REF_RAD = 0.132
+STAGE_A_VELOCITY_REF_RAD_S = 6.6
+
 # Position and movement contribute equally, because the real population
 # encodes both and we cannot separate the subtypes. A choice, not a
 # measurement.
@@ -242,14 +259,15 @@ def build_sensory_groups(wtable: pd.DataFrame, normalise_sides: bool = True) -> 
     return SensoryGroups(indices_by_group, scale_by_group, n_neurons=len(wtable))
 
 
-def normalised_position(angle_rad: float, reference_rad: float, mode: str) -> float:
+def normalised_position(angle_rad: float, reference_rad: float, mode: str,
+                        position_ref: float = POSITION_REF_RAD) -> float:
     """Joint position mapped into [0, 1]. Under `signed` this is a signed
     monotonic code sitting at 0.5 at the reference angle; under every
     deviation-family mode it is the unsigned distance from the settled
     resting pose, so rest gives 0."""
     if mode in DEVIATION_MODES:
-        return float(np.clip(abs(angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
-    return float(np.clip(0.5 + 0.5 * (angle_rad - reference_rad) / POSITION_REF_RAD, 0.0, 1.0))
+        return float(np.clip(abs(angle_rad - reference_rad) / position_ref, 0.0, 1.0))
+    return float(np.clip(0.5 + 0.5 * (angle_rad - reference_rad) / position_ref, 0.0, 1.0))
 
 
 def chordotonal_drive(angle_rad: float, velocity_rad_s: float, reference_rad: float,

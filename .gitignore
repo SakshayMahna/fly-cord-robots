@@ -48,6 +48,7 @@ media/**/*.json
 # walks (+14.4 mm/s, upright 1.000), plus the face-plant clips from our own
 # rig as contrast. Video material and evidence for the rig diagnosis.
 !media/baselines/**
+!media/phase3_rerender/**
 !media/closed_loop/*.json
 !media/closed_loop/*/*.json
 
