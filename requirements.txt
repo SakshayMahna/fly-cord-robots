@@ -34,6 +34,10 @@ mediapy==1.2.7
 glfw==2.10.2
 PyOpenGL==3.1.10
 
+# Evolution strategy for the trained adapter (fly_robot/training/). Gradient-free
+# by requirement: the connectome is never differentiated through.
+cma==4.5.0
+
 # Tests (tests/, run with `pytest tests/`) — locality, determinism, degree
 # preservation and other closed-loop pre-registration gates
 pytest==9.1.1

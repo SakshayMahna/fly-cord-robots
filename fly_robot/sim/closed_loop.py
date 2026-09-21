@@ -119,7 +119,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               seed: int = 0,
               motor_gain_rad: float = DEFAULT_GAIN_RAD,
               motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
-              video_paths: dict | None = None) -> TrialResult:
+              video_paths: dict | None = None,
+              adapter=None) -> TrialResult:
     """Run one coupled trial.
 
     `feedback_gain = 0` makes the loop open: the sensory encoder emits
@@ -175,11 +176,36 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     all_jointdofs = fly.get_jointdofs_order()
     encoder = None
     if sensory_groups is not None:
-        encoder = SensoryEncoder(
-            sensory_groups, all_jointdofs,
-            {d.name: neutral_lookup.get(d.name, 0.0) for d in all_jointdofs},
-            gain=feedback_gain, leg_permutation=leg_permutation, mode=encoder_mode,
+        if adapter is not None:
+            # Phase 5 path: every encoder constant is a trained parameter.
+            # `feedback_gain` and `encoder_mode` are ignored here because the
+            # adapter supplies per-class gains and always uses the deviation
+            # code — see fly_robot/adapter/apply.py.
+            from fly_robot.adapter.apply import AdapterSensoryEncoder
+            encoder = AdapterSensoryEncoder(
+                sensory_groups, all_jointdofs,
+                {d.name: neutral_lookup.get(d.name, 0.0) for d in all_jointdofs},
+                params=adapter, leg_permutation=leg_permutation,
+            )
+        else:
+            encoder = SensoryEncoder(
+                sensory_groups, all_jointdofs,
+                {d.name: neutral_lookup.get(d.name, 0.0) for d in all_jointdofs},
+                gain=feedback_gain, leg_permutation=leg_permutation, mode=encoder_mode,
+            )
+
+    # The adapter delivers descending command drive through `extra_input`
+    # rather than the model's pulse-gated `baseline_input`, so that its
+    # onset ramp is under adapter control. Zeroing the baseline avoids
+    # counting the same stimulation twice.
+    adapter_alpha = saved_baseline = None
+    if adapter is not None:
+        from fly_robot.adapter.apply import (
+            adapter_joint_targets, command_current, motor_filter_alpha,
         )
+        saved_baseline = neural_model.baseline_input
+        neural_model.baseline_input = np.zeros_like(saved_baseline)
+        adapter_alpha = motor_filter_alpha(adapter, dof_index_by_name, neural_dt)
 
     ball_reader = None
     if on_ball:
@@ -190,9 +216,14 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     leg_keys = [(seg, side) for seg in ("T1", "T2", "T3") for side in ("LHS", "RHS")]
 
     neural_model.reset()
-    start_targets = _joint_targets_from_rates(
-        neural_model.rates, motor_groups, dof_index_by_name, neutral_angles,
-        motor_gain_rad, motor_rate_scale_hz)
+    if adapter is not None:
+        start_targets = adapter_joint_targets(
+            neural_model.rates, motor_groups, dof_index_by_name, neutral_angles,
+            adapter)
+    else:
+        start_targets = _joint_targets_from_rates(
+            neural_model.rates, motor_groups, dof_index_by_name, neutral_angles,
+            motor_gain_rad, motor_rate_scale_hz)
     if initial_joint_noise_rad > 0:
         start_targets = start_targets + rng.normal(0, initial_joint_noise_rad,
                                                     start_targets.shape)
@@ -236,8 +267,13 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
                 drives = substitute_drive(step, channel_keys)
             for c, key in enumerate(channel_keys):
                 sensory_drive[c, step] = drives[key]
-            if feedback_gain != 0.0:
+            if adapter is not None or feedback_gain != 0.0:
                 extra_input = encoder.input_current(angles, velocities, drives=drives)
+        if adapter is not None:
+            command = command_current(
+                adapter, neural_model.neurons.n_neurons, neural_model.t,
+                neural_model.pulse_start, neural_model.pulse_end)
+            extra_input = command if extra_input is None else extra_input + command
 
         # --- neurons ---------------------------------------------------------
         rates = neural_model.step(neural_dt, extra_input=extra_input)
@@ -254,9 +290,16 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
             motor_rates[leg_i, step] = rates[rows].sum() if rows else 0.0
 
         # --- neurons -> body -------------------------------------------------
-        targets = _joint_targets_from_rates(
-            rates, motor_groups, dof_index_by_name, neutral_angles,
-            motor_gain_rad, motor_rate_scale_hz)
+        if adapter is not None:
+            raw_targets = adapter_joint_targets(
+                rates, motor_groups, dof_index_by_name, neutral_angles, adapter)
+            # first-order low-pass toward the raw target, per segment
+            targets = start_targets + adapter_alpha * (raw_targets - start_targets)
+            start_targets = targets
+        else:
+            targets = _joint_targets_from_rates(
+                rates, motor_groups, dof_index_by_name, neutral_angles,
+                motor_gain_rad, motor_rate_scale_hz)
         physics.set_actuator_inputs(fly.name, ActuatorType.POSITION, targets)
         for _ in range(substeps):
             physics.step()
@@ -274,6 +317,10 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
 
     elapsed = time.time() - t0
     n_active = int((neural_model.rates > 0.01).sum())
+    if saved_baseline is not None:
+        # The model is reused across trials in a worker; leaving it zeroed
+        # would silently un-stimulate every later non-adapter trial.
+        neural_model.baseline_input = saved_baseline
 
     if render_targets is not None:
         physics.renderer.save_video(render_targets)

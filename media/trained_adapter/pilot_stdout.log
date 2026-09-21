@@ -1,0 +1,8 @@
+=== real / pilot ===
+reward config hash: 88f681a4ab03d6d88fe4180b7ee03d07be3e165801c2439afb5c44bef9a93647
+running sign test (blocking gate)...
+  sign test [kinematic]: ball centre [ 0.16  0.   -1.64], w_y=-1 drags top surface v_x=-3.00 (backward)
+  sign test [forward]: pitch=-0.95 rad/s -> progress=+1.000
+  sign test [backward]: pitch=+0.95 rad/s -> progress=-1.000
+  sign test PASSED
+
