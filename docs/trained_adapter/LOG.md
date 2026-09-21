@@ -181,7 +181,8 @@ initial pose. It supports sampling the replicate rather than the initial
 condition, but must be re-measured once the adapter runs a nonzero feedback
 gain.
 
-**Caught a sign hazard that would have been very hard to see later.**
+**Caught a sign hazard that would have been very hard to see later — see
+below for the one I did NOT catch.**
 `PREREGISTRATION.md` §2 records forward walking as **−0.95 rad/s** on the
 pitch axis. So the reward's progress term has to be `−pitch`. With the sign
 flipped, the trainer would learn to walk backwards and the scalar score
@@ -190,3 +191,91 @@ in the document and requires a sign test — assert the synthetic tripod gait
 scores positive and its time-reversal negative — rather than a comment.
 Worth noting the untrained connectome sits at **+0.005 rad/s**, i.e.
 essentially stationary and marginally *backward*.
+
+---
+
+## 2026-09-21 (later) — the first pilot was contaminated, and why
+
+**Stopped at generation 24 and discarded.** The run was training on a
+replicate pool that violates the project's own pre-registered stability
+filter, and the contamination was large enough to swamp the fitness signal.
+
+### What happened
+
+`EPISODE_REPLICATES` was a hand-written tuple, `(0, 1, 3, 4, 5, 6, 7)`. The
+"exclude 2" came from Phase 4, where replicate 2 was the only oversaturated
+draw among the four that phase used. Phase 5 widened the pool to eight
+replicates and carried the same hand-written exclusion forward **without
+re-applying the rule to the new members**. Measured baselines (adapter off,
+`g_fb = 0`, so the body cannot influence the network at all):
+
+| replicate | 0 | 1 | **2** | 3 | 4 | **5** | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+| baseline `n_active` | 522 | 380 | **4,176** | 367 | 488 | **3,794** | 421 | 445 |
+
+Replicate 5 fails the pre-registered filter (`n_active > 1500`, Pugliese's
+own oversaturation criterion) by a factor of 2.5, and had been sitting in
+the training pool from the start.
+
+### Why it mattered more than it looks
+
+Generations that drew replicate 5 collapsed **regardless of candidate
+quality**: median score **−1.699** with it (3 of 22 generations) against
+**−0.122** without, and correlation(saturation fraction, median) = −0.744.
+The saturation penalty is −2.00 by design, so a pre-saturated replicate
+applies close to the full penalty to every candidate in that generation —
+pure noise injected into the comparison the search is trying to make.
+
+**The deeper error is an inconsistency between my own analysis and my own
+trainer.** The episode count was sized in DESIGN.md §5.7 against the
+stability-**filtered** pool (progress SD **0.0066**). The trainer sampled
+the **unfiltered** pool (SD **0.176**). So the run operated at **27× the
+noise the episode count was chosen for** — and 27× is the exact figure I
+had reported as the argument for filtering, two sections earlier, before
+failing to apply it in the code.
+
+Best-score trend over 24 generations was flat (slope −0.00012/gen,
+r = −0.011). That is consistent with the signal being swamped, but it is
+**not** evidence the approach fails: 24 generations is very early for
+CMA-ES on 65 parameters, and no claim is made either way.
+
+### The fix
+
+The pool is no longer written down anywhere. `training/replicate_filter.py`
+**computes** it per network from that network's own adapter-off baseline,
+and `assert_pool_eligible` is called at every point of use — including once
+per generation inside the trainer, because that is precisely where this
+went wrong.
+
+Measuring a baseline needs no physics: at zero feedback there is no path
+from body to neurons, so a bare neural run gives the same `n_active` as a
+full ball trial. Verified directly (replicate 5: 3,794 both ways), which
+makes the filter cheap enough to run unconditionally.
+
+Controls get the same treatment against **their own** baselines. If a
+shuffled or random network oversaturates on most replicates, `resolve_pool`
+refuses to return an empty pool and says so — that is a finding about the
+control, not a reason to loosen the threshold for it.
+
+### Audit: where the filter was and was not applied
+
+| site | before | now |
+|---|---|---|
+| `training/cma_trainer.py` | hand-written pool, **replicate 5 included** | computed + asserted per generation |
+| `benchmarks/measure_score_noise.py` | hand-written, **rep 5 included** — this is what produced the two SDs (0.176 unfiltered vs 0.0066 filtered) | computed via `resolve_pool` |
+| `experiments/inspect_trained_adapter.py` | `--replicate 1`, unchecked | baseline measured and asserted eligible |
+| `experiments/closed_loop_pilot.py` (Phase 4) | `--replicates 0 1 2 3`, filter applied **post hoc** as an `oversaturated` column and a reported fraction | unchanged — Phase 4's published numbers were computed that way and excluding replicate 2 is already recorded in `RESULTS.md` §2 |
+| `sim/trial_setup.py` | `PILOT_REPLICATE_INDICES = range(8)`, `MAIN_REPLICATE_INDICES = range(20)` | unchanged — these are candidate *index sets*, not pools; nothing samples from them directly |
+| `benchmarks/bench_*.py`, `reachability.py` | `replicate=1` fixed | unchanged — timing/structure measurements, and replicate 1 is eligible (380) |
+| `experiments/render_closed_loop_clips.py` | replicates 0 and 1 | unchanged — both eligible; the clips deliberately show a saturated *state*, reached by feedback gain, not by a pre-saturated draw |
+
+Phase 4's own analyses are **not** retrospectively affected: they reported
+oversaturation as an outcome per trial rather than sampling a pool to train
+on, and replicate 2's exclusion is already in the record. The 4,176 measured
+here independently corroborates that decision.
+
+### Noted, not acted on
+
+Whether a trained adapter could *survive* a pre-saturated replicate — by
+lowering `dng100_level`, say — is a legitimate robustness question. It is
+recorded as a possible later test and is **not** part of training.

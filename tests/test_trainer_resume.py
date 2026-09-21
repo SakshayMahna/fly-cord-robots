@@ -18,7 +18,11 @@ import numpy as np
 import pytest
 
 from fly_robot.adapter.parameters import N_PARAMS, default_z
-from fly_robot.training.cma_trainer import EPISODE_REPLICATES, TrainConfig, Trainer
+from fly_robot.training.cma_trainer import CANDIDATE_REPLICATES, TrainConfig, Trainer
+
+
+# Measured baselines, param seed 641, adapter off (see test_replicate_filter).
+_BASELINES = {0: 522, 1: 380, 2: 4176, 3: 367, 4: 488, 5: 3794, 6: 421, 7: 445}
 
 
 def _sphere(z):
@@ -62,7 +66,8 @@ def test_resume_reproduces_an_uninterrupted_run_exactly(tmp_path):
 def test_episode_replicates_are_derived_from_the_generation_not_drawn(tmp_path):
     """If episode assignment were sampled as the run went, resuming would
     silently change the noise structure mid-search."""
-    cfg = TrainConfig(run_name="t", episodes=2, out_dir=str(tmp_path))
+    cfg = TrainConfig(run_name="t", episodes=2, out_dir=str(tmp_path),
+                      pool=(0, 1, 3, 4, 6, 7), baselines=_BASELINES)
     a, b = Trainer(cfg), Trainer(cfg)
     for gen in (0, 1, 7, 250):
         assert a.episode_replicates(gen) == b.episode_replicates(gen)
@@ -70,18 +75,23 @@ def test_episode_replicates_are_derived_from_the_generation_not_drawn(tmp_path):
     assert len({tuple(a.episode_replicates(g)) for g in range(20)}) > 1
 
 
-def test_episode_replicates_exclude_the_oversaturated_replicate(tmp_path):
-    """Replicate 2 is excluded by the pre-registered stability filter — it
-    is oversaturated at baseline with no feedback at all."""
-    cfg = TrainConfig(run_name="t", episodes=2, out_dir=str(tmp_path))
+def test_episode_replicates_stay_inside_the_eligible_pool(tmp_path):
+    """The pool is computed from measured baselines, never hard-coded —
+    see tests/test_replicate_filter.py for the filter itself. Here we only
+    check the trainer respects whatever pool it was given."""
+    pool = (0, 1, 3, 4, 6, 7)
+    cfg = TrainConfig(run_name="t", episodes=2, out_dir=str(tmp_path),
+                      pool=pool, baselines=_BASELINES)
     t = Trainer(cfg)
     seen = {r for g in range(200) for r in t.episode_replicates(g)}
-    assert 2 not in seen
-    assert seen <= set(EPISODE_REPLICATES)
+    assert seen <= set(pool)
+    assert 2 not in seen and 5 not in seen
+    assert set(CANDIDATE_REPLICATES) - seen >= {2, 5}
 
 
 def test_checkpoint_roundtrips(tmp_path):
-    cfg = TrainConfig(run_name="rt", out_dir=str(tmp_path))
+    cfg = TrainConfig(run_name="rt", out_dir=str(tmp_path),
+                      pool=(0, 1), baselines=_BASELINES)
     t = Trainer(cfg)
     es = _advance(_fresh_es(), 1)
     t.save_checkpoint(es, generation=3, history=[{"generation": 3}],
@@ -95,7 +105,8 @@ def test_checkpoint_roundtrips(tmp_path):
 def test_resume_refuses_a_different_reward_definition(tmp_path):
     """A reward that changes mid-run mixes two objectives inside one run,
     and it would not be visible in the learning curve."""
-    cfg = TrainConfig(run_name="hash", out_dir=str(tmp_path))
+    cfg = TrainConfig(run_name="hash", out_dir=str(tmp_path),
+                      pool=(0, 1), baselines=_BASELINES)
     t = Trainer(cfg)
     t.save_checkpoint(_fresh_es(), 0, [], {"score": 0.0, "z": None})
 
@@ -107,7 +118,8 @@ def test_resume_refuses_a_different_reward_definition(tmp_path):
 def test_checkpoint_write_is_atomic(tmp_path):
     """A crash mid-write must not leave a truncated checkpoint that then
     fails to load and loses the whole run."""
-    cfg = TrainConfig(run_name="atomic", out_dir=str(tmp_path))
+    cfg = TrainConfig(run_name="atomic", out_dir=str(tmp_path),
+                      pool=(0, 1), baselines=_BASELINES)
     t = Trainer(cfg)
     t.save_checkpoint(_fresh_es(), 0, [], {"score": 0.0, "z": None})
     assert t.checkpoint_path().exists()

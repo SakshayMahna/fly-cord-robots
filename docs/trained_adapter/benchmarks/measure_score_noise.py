@@ -42,9 +42,14 @@ from fly_robot.sim.closed_loop import NEURAL_DT, run_trial
 from fly_robot.sim.trial_setup import PILOT_PARAM_SEED, build_trial_components
 
 TRIAL_S = 4.0
-# Replicate 2 is excluded by the pre-registered stability filter: it is
-# oversaturated at baseline with no feedback at all (PREREGISTRATION.md §3).
-REPLICATES = (0, 1, 3, 4, 5, 6, 7)
+# Candidates only. The pool actually used is COMPUTED by
+# `replicate_filter.resolve_pool` from each replicate's own adapter-off
+# baseline. The first version of this script hard-coded "exclude 2",
+# inherited from Phase 4, and so measured replicate 5 — whose baseline
+# n_active is 3,794 — as though it were a normal draw. That is what made
+# the across-replicate SD 0.176 instead of 0.0066, and the trainer then
+# inherited the same bad pool.
+CANDIDATE_REPLICATES = tuple(range(8))
 JOINT_NOISE_RAD = 0.02
 
 
@@ -111,12 +116,19 @@ def main():
     ap.add_argument("--out", default="media/trained_adapter/score_noise.json")
     args = ap.parse_args()
 
-    print("ACROSS-REPLICATE arm (different neuron draws, identical everything else)")
-    across = run_arm("across", [(f"rep{r}", r, 0, 0.0) for r in REPLICATES])
+    from fly_robot.training.replicate_filter import resolve_pool
+    print("resolving eligible replicates from adapter-off baselines...")
+    pool, baselines = resolve_pool(CANDIDATE_REPLICATES, PILOT_PARAM_SEED,
+                                   duration_s=TRIAL_S)
+    print(f"  eligible pool: {pool}\n")
 
-    print(f"\nWITHIN-REPLICATE arm (replicate 1, perturbed start, "
+    print("ACROSS-REPLICATE arm (different neuron draws, identical everything else)")
+    across = run_arm("across", [(f"rep{r}", r, 0, 0.0) for r in pool])
+
+    print(f"\nWITHIN-REPLICATE arm (replicate {pool[0]}, perturbed start, "
           f"noise={JOINT_NOISE_RAD} rad)")
-    within = run_arm("within", [(f"seed{s}", 1, s, JOINT_NOISE_RAD) for s in range(6)])
+    within = run_arm("within",
+                     [(f"seed{s}", pool[0], s, JOINT_NOISE_RAD) for s in range(6)])
 
     keys = ["progress_pitch", "straightness_roll", "straightness_yaw",
             "n_rhythmic", "tripod", "n_active", "joint_excursion", "energy"]
@@ -141,8 +153,9 @@ def main():
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(dict(across=sa, within=sw, rows=across + within,
-                       trial_s=TRIAL_S, replicates=list(REPLICATES),
-                       joint_noise_rad=JOINT_NOISE_RAD), f, indent=2)
+                       trial_s=TRIAL_S, 
+                       joint_noise_rad=JOINT_NOISE_RAD,
+                       eligible_pool=list(pool), baselines=baselines), f, indent=2)
     print(f"\nwrote {args.out}")
 
 

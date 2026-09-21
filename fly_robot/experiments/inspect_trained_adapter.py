@@ -147,12 +147,25 @@ def main():
     ap.add_argument("--no-video", action="store_true")
     args = ap.parse_args()
 
+    from fly_robot.training.replicate_filter import (
+        assert_pool_eligible, measure_baselines,
+    )
+
     run_dir = Path(args.out_dir) / args.run_name
     with open(run_dir / "best.json") as f:
         best = json.load(f)["best"]
     trained = from_z(np.array(best["z"]))
     print(f"top candidate: score {best['score']:+.4f} from generation "
           f"{best['generation']}")
+
+    # The replicate this is inspected on must itself pass the pre-registered
+    # stability filter; inspecting on a pre-saturated draw would describe the
+    # replicate rather than the trained adapter.
+    baselines = measure_baselines([args.replicate], PILOT_PARAM_SEED,
+                                  duration_s=args.duration, verbose=False)
+    assert_pool_eligible([args.replicate], baselines, where="inspection replicate")
+    print(f"inspection replicate {args.replicate}: baseline n_active="
+          f"{baselines[args.replicate]} (eligible)")
 
     clips = run_dir / "clips"
     clips.mkdir(parents=True, exist_ok=True)

@@ -34,10 +34,15 @@ import numpy as np
 from fly_robot.adapter import reward as reward_mod
 from fly_robot.adapter.parameters import N_PARAMS, default_z, from_z
 from fly_robot.sim.trial_setup import PILOT_PARAM_SEED
+from fly_robot.training.replicate_filter import assert_pool_eligible, resolve_pool
 
-# Replicate 2 is excluded by the pre-registered stability filter: it is
-# oversaturated at baseline with no feedback at all.
-EPISODE_REPLICATES = (0, 1, 3, 4, 5, 6, 7)
+# Candidate replicates. Which of these are actually USED is not decided
+# here — `replicate_filter.resolve_pool` measures each one's adapter-off
+# baseline for THIS network and drops any that fail the pre-registered
+# stability filter. A hard-coded pool is exactly what contaminated the
+# first pilot: it carried Phase 4's "exclude replicate 2" forward while
+# replicate 5 (baseline n_active 3,794) sat in the pool unnoticed.
+CANDIDATE_REPLICATES = tuple(range(8))
 TRIAL_S = 4.0
 
 
@@ -55,6 +60,10 @@ class TrainConfig:
     condition: str = "real"           # "real" | "C1" | "C2"
     workers: int = 6
     out_dir: str = "media/trained_adapter"
+    # Eligible replicates, COMPUTED from this network's own adapter-off
+    # baselines by replicate_filter.resolve_pool -- never written by hand.
+    pool: tuple = ()
+    baselines: dict = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -80,9 +89,10 @@ def _init_worker(lock, cfg_dict):
     from fly_robot.sim.trial_setup import build_trial_components
 
     cfg = TrainConfig(**cfg_dict)
+    first = cfg.pool[0]
     with lock:
         model, mg, sg, _wt, _info = build_trial_components(
-            replicate=EPISODE_REPLICATES[0], param_seed=cfg.param_seed,
+            replicate=first, param_seed=cfg.param_seed,
             duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed)
         for arr in jax.live_arrays():
             try:
@@ -93,8 +103,8 @@ def _init_worker(lock, cfg_dict):
 
     _W["cfg"] = cfg
     _W["lock"] = lock
-    _W["components"] = {EPISODE_REPLICATES[0]: (model, mg, sg)}
-    _W["order"] = [EPISODE_REPLICATES[0]]
+    _W["components"] = {first: (model, mg, sg)}
+    _W["order"] = [first]
     _W["w_hash"] = hashlib.sha256(model.neurons.w_eff.data.tobytes()).hexdigest()
 
 
@@ -186,8 +196,15 @@ class Trainer:
         the noise structure mid-search.
         """
         rng = np.random.default_rng((self.cfg.seed, generation))
-        return [int(r) for r in rng.choice(EPISODE_REPLICATES,
-                                           size=self.cfg.episodes, replace=False)]
+        pool = list(self.cfg.pool)
+        size = min(self.cfg.episodes, len(pool))
+        drawn = [int(r) for r in rng.choice(pool, size=size, replace=False)]
+        # Belt and braces: the pool was filtered at construction, but this
+        # is the exact point where the contaminated pilot went wrong, so it
+        # is asserted every generation rather than trusted.
+        assert_pool_eligible(drawn, self.cfg.baselines,
+                             where=f"generation {generation} episode draw")
+        return drawn
 
     # -- checkpointing -----------------------------------------------------
     def checkpoint_path(self) -> Path:
@@ -230,6 +247,28 @@ class Trainer:
         print("running sign test (blocking gate)...", flush=True)
         reward_mod.sign_test()
         print("  sign test PASSED\n", flush=True)
+
+        # Eligible replicates, measured from THIS network's own adapter-off
+        # baselines. For a control this may exclude more than for the real
+        # connectome — that is a result about the control, and it is logged
+        # rather than worked around.
+        if not self.cfg.pool:
+            print("resolving eligible replicates from adapter-off baselines "
+                  f"(filter: n_active <= 1500, condition={self.cfg.condition})...",
+                  flush=True)
+            pool, baselines = resolve_pool(
+                CANDIDATE_REPLICATES, self.cfg.param_seed,
+                shuffle_seed=self.cfg.shuffle_seed, duration_s=self.cfg.trial_s)
+            self.cfg.pool = tuple(pool)
+            self.cfg.baselines = baselines
+            print(f"  eligible pool: {list(pool)}\n", flush=True)
+        with open(self.out / "replicate_eligibility.json", "w") as f:
+            json.dump({"condition": self.cfg.condition,
+                       "param_seed": self.cfg.param_seed,
+                       "shuffle_seed": self.cfg.shuffle_seed,
+                       "threshold_n_active": 1500,
+                       "baselines": {str(k): v for k, v in self.cfg.baselines.items()},
+                       "pool": list(self.cfg.pool)}, f, indent=1)
 
         state = self.load_checkpoint() if resume else None
         if state is not None:
