@@ -42,7 +42,9 @@ from flygym.compose import KinematicPosePreset
 from flygym.compose.fly.base_fly import ActuatorType
 from flygym.anatomy import AxisOrder
 
-from fly_robot.bodies.neuromechfly import build_ball_fly, build_harnessed_fly
+from fly_robot.bodies.neuromechfly import (
+    build_ball_fly, build_free_fly, build_harnessed_fly,
+)
 from fly_robot.interface.joint_to_sensory_neuron import SensoryEncoder
 from fly_robot.interface.motor_neuron_to_joint import (
     ANTAGONIST_PAIRS, DEFAULT_GAIN_RAD, DEFAULT_RATE_SCALE_HZ,
@@ -73,6 +75,8 @@ class TrialResult:
     n_active_neurons: int
     max_firing_rate: float
     wall_clock_s: float
+    thorax_pos: np.ndarray | None = None   # (n_steps, 3) mm, free-ground rig only
+    thorax_quat: np.ndarray | None = None  # (n_steps, 4), free-ground rig only
     unstable: bool = False
     instability_reason: str = ""
     meta: dict = field(default_factory=dict)
@@ -120,7 +124,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               motor_gain_rad: float = DEFAULT_GAIN_RAD,
               motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
               video_paths: dict | None = None,
-              adapter=None) -> TrialResult:
+              adapter=None, rig: str | None = None,
+              adhesion: bool = True) -> TrialResult:
     """Run one coupled trial.
 
     `feedback_gain = 0` makes the loop open: the sensory encoder emits
@@ -151,7 +156,15 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     with video on).
     """
     rng = np.random.default_rng(seed)
-    builder = build_ball_fly if on_ball else build_harnessed_fly
+    # `rig` supersedes `on_ball`; on_ball is kept so every Phase 4 call site
+    # and gate keeps working unchanged.
+    if rig is None:
+        rig = "ball" if on_ball else "harness"
+    if rig not in ("harness", "ball", "ground"):
+        raise ValueError(f"rig must be harness/ball/ground, got {rig!r}")
+    on_ball = rig == "ball"
+    builder = {"harness": build_harnessed_fly, "ball": build_ball_fly,
+               "ground": build_free_fly}[rig]
     fly, world, _mj_model, _mj_data, cam_side, cam_opposite, cam_top = builder()
     camera_by_name = {"side": cam_side, "opposite_side": cam_opposite, "top_down": cam_top}
     physics = Simulation(world)
@@ -248,6 +261,15 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     sensory_drive = np.zeros((len(channel_keys), n_steps), dtype=np.float32)
     ball_quat = np.zeros((n_steps, 4), dtype=np.float32) if on_ball else None
     ball_angvel = np.zeros((n_steps, 3), dtype=np.float32) if on_ball else None
+    on_ground = rig == "ground"
+    thorax_pos = np.zeros((n_steps, 3), dtype=np.float32) if on_ground else None
+    thorax_quat = np.zeros((n_steps, 4), dtype=np.float32) if on_ground else None
+    if on_ground and adhesion:
+        # Tarsal adhesion held ON for every leg. FlyGym supplies the
+        # actuator; holding it at 1.0 throughout is OUR CHOICE, not a fly
+        # measurement -- real flies modulate adhesion with stance/swing.
+        # Stated here and in DESIGN.md rather than buried.
+        physics.set_leg_adhesion_states(fly.name, np.ones(6))
 
     max_rate = 0.0
     unstable, reason = False, ""
@@ -310,6 +332,10 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
             state = ball_reader(physics.mj_model, physics.mj_data)
             ball_quat[step] = state["quat"]
             ball_angvel[step] = state["angvel_rad_s"]
+        if on_ground:
+            # Body 0 is the root segment (c_thorax) -- verified by query.
+            thorax_pos[step] = physics.get_body_positions(fly.name)[0]
+            thorax_quat[step] = physics.get_body_rotations(fly.name)[0]
 
         if not np.isfinite(angles).all():
             unstable, reason = True, f"non-finite joint angle at step {step}"
@@ -329,9 +355,11 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         motor_rates=motor_rates, joint_angles=joint_angles,
         joint_velocities=joint_velocities, sensory_drive=sensory_drive,
         sensory_channels=channel_keys, ball_quat=ball_quat, ball_angvel=ball_angvel,
+        thorax_pos=thorax_pos, thorax_quat=thorax_quat,
         n_active_neurons=n_active, max_firing_rate=max_rate,
         wall_clock_s=elapsed, unstable=unstable, instability_reason=reason,
         meta={"n_steps": n_steps, "substeps_per_neural_step": substeps,
-              "on_ball": on_ball, "feedback_gain": feedback_gain, "seed": seed,
+              "on_ball": on_ball, "rig": rig, "adhesion": bool(on_ground and adhesion),
+              "feedback_gain": feedback_gain, "seed": seed,
               "encoder_mode": encoder_mode},
     )

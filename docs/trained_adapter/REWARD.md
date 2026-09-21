@@ -209,3 +209,86 @@ Open question I could not settle alone: whether **E = 6** (§5.7) or the
 lean pilot's **E = 2** should be used for the *controls*. Matching the real
 run is the clean answer, but C1/C2 are where a false negative is cheapest
 to make and most damaging to the headline claim.
+
+---
+
+# Amendment 1 — free-walking rig (2026-09-21)
+
+*Proposal, **not approved and not implemented**. Stage A training moves
+from the tethered ball to free walking on FlyGym's flat ground with tarsal
+adhesion, per the literature (NeuroMechFly v2 walks flies freely on ground
+with adhesion). The ball rig is retained for Phase 4 records and video.*
+
+## Why the ball could not stay
+
+`docs/closed_loop/PREREGISTRATION.md` §2 sets the ball's damping to 1e-6 to
+model a frictionless air bearing. Measured consequence: an impulse persists
+for the entire trial — coast-down time constant **~11,700 s against a 4 s
+trial**. Time-averaged ball velocity therefore cannot distinguish walking
+from one kick, and the first pilot's best candidate exploited exactly that.
+
+Measured on the new rig, the same manoeuvre does not pay:
+
+| | ball rig | free ground |
+|---|---|---|
+| kick, then freeze the legs | 0.898 rad/s held for the whole trial | +0.036 mm drift over 1.85 s, **opposite** to the kick's −0.075 mm |
+
+## Proposed terms
+
+Progress becomes **forward thorax displacement**, accumulated per step
+rather than read off a trial-averaged velocity, so it measures where the
+body actually got to.
+
+| # | term | definition | weight |
+|---|---|---|---:|
+| 1 | progress | forward thorax displacement / (T · v_ref) | **+1.00** |
+| 2 | straightness | \|lateral displacement\| / (T · v_ref) | **−0.20** |
+| 3 | **upright** | 1 − mean(body z-axis · world z) | **−0.50** |
+| 4 | **anti-flip** | fraction of time (body z · world z) < 0.5 | **−1.00** |
+| 5 | rhythmicity | n_rhythmic / 6 | +0.30 |
+| 6 | coordination | (tripod_index + 1) / 2 | +0.20 |
+| 7 | posture | mean\|joint − rest\| / 0.30 rad | −0.10 |
+| 8 | energy | mean(Σ Δθ²) / E_ref | −0.05 |
+| 9 | saturation | hinge at n_active 1500, cap 2 | **−2.00** |
+
+Terms 5–9 are unchanged from the approved reward, saturation included.
+Body orientation is taken from the thorax quaternion: for unit `(w,x,y,z)`
+the body z-axis in world coordinates has vertical component `1 − 2(x²+y²)`,
+which is 1 upright, 0 on its side, −1 inverted.
+
+**Why upright and anti-flip are separate.** Upright is graded and shapes
+posture continuously; anti-flip is a cliff that makes tipping over
+unprofitable outright. Weighted together, a fly that spends the trial
+flipped loses ~1.5, which cannot be recovered by the +1.00 progress term
+even at full walking speed. That is deliberate: a flipped fly sliding along
+the ground is the obvious next exploit, and it should never pay.
+
+## The blocking problem: `v_ref` is not yet measurable
+
+`v_ref` is the forward speed a real walking gait achieves **on this rig**,
+and it cannot be guessed. The ball rig's equivalent constant (−0.95 rad/s)
+turned out to be **unreproducible from committed code**, and the synthetic
+tripod gait in `harness_sine_wave_test.py` does not walk on ground either
+(−0.036 mm over 2 s — it was written as a harness-mode mechanical sanity
+check, never as a gait).
+
+**So the reward cannot be finalised until a real walking gait is measured
+on this rig.** Normalising by a guessed number would repeat precisely the
+error that produced the unreproducible −0.95.
+
+The fix is available and is the same artefact as the requested baselines
+(§ below): FlyGym **1.2.1** ships `CPGNetwork` and `RuleBasedController`.
+Porting the CPG controller gives a measured `v_ref` **and** the baseline in
+one step. Until then every weight above is proposed in ratio terms only.
+
+## Open questions
+
+1. Approve the weights, in particular upright −0.50 and anti-flip −1.00.
+2. Adhesion is currently held at **1.0 on all six legs for the whole
+   trial**. That is **our choice, not a fly measurement** — real flies
+   modulate adhesion with swing and stance. The alternative is to make it
+   stance-gated, or to hand it to the adapter as trainable parameters
+   (+6 parameters). Always-on is the simplest defensible starting point
+   but it may make slipping impossible and so flatter the gait.
+3. Should a flipped or fallen trial **terminate early**? Currently it runs
+   to completion and accrues penalty.

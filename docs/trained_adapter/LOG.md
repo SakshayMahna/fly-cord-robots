@@ -423,3 +423,117 @@ search moved five times a normal step *away* from it. The +1.1053 was the
 max of a noisy mean-of-2 estimate, and the optimiser correctly ignored it —
 but `best.json`, and therefore any naive "top candidate" report, still
 points at it.
+
+---
+
+## 2026-09-21 — the coasting exploit, and the move to free walking
+
+### The coasting exploit, recorded per instruction
+
+`docs/closed_loop/PREREGISTRATION.md` §2 sets the ball's damping to **1e-6**,
+deliberately, to model a frictionless air bearing. That is a faithful model
+of the real rig and a **broken training substrate**.
+
+Measured on the first pilot's best candidate: ball pitch −0.8978 at
+t = 0.08 s and −0.8975 at t = 4.00 s, mean |angular acceleration|
+≈ 0.0001 rad/s². Implied coast-down time constant **~11,700 s against a
+4 s trial** — the ball loses 0.03% of its speed over a whole trial. One
+joint swings 3.01 rad early, the ball spins up, and nothing more is needed:
+the reward's time-averaged velocity reads it as sustained walking at 94% of
+reference speed, while total joint travel is **3.17 rad against the
+untrained baseline's 61.94** — the "walking" fly moves 20× LESS than the
+one standing still.
+
+**No damping change is being made.** The ball keeps its pre-registered
+parameters and stays the rig of record for Phase 4 and for video, where its
+behaviour is correct and its results do not depend on ball rotation
+(PREREGISTRATION §2 says so explicitly). Training moves to ground instead.
+
+### The new rig
+
+`bodies/neuromechfly.py: build_free_fly()` — FlyGym's `FlatGroundWorld`
+("Flies are free to move", its own docstring, which adds a freejoint) plus
+`add_leg_adhesion()` on all six tarsi. Body, joints, actuators and all three
+cameras are otherwise identical to the harness and ball builders, so
+neural-side results stay comparable. `run_trial` gained `rig=` taking
+harness / ball / ground, with `on_ball` kept working so no Phase 4 call site
+or gate changes.
+
+Adhesion is held at 1.0 on all six legs throughout. **That is our choice,
+not a fly measurement** — real flies modulate adhesion with swing and
+stance — and it is flagged in the code and in `REWARD.md` Amendment 1 as an
+open question, because always-on adhesion may make slipping impossible and
+so flatter any gait.
+
+### Detector suite: one clean pass, two checks blocked by an unrelated defect
+
+| check | result |
+|---|---|
+| untrained neural metrics unchanged by the rig | **PASS** |
+| one-kick-then-freeze scores ~0 | **PASS**, after reframing |
+| synthetic tripod gait walks forward | **BLOCKED** |
+
+**Neural side is provably untouched.** At `g_fb = 0` there is no path from
+body to neurons, so ball and ground must agree exactly — and they do:
+n_active 392 both, max_fr 19.1354 both, 3/6 rhythmic both, and the
+motor-rate traces are **bit-identical**. The rig change did not leak into
+the neural path.
+
+**The coasting exploit does not transfer.** Kick for 0.15 s then freeze the
+legs: the body moves −0.075 mm during the kick and then **+0.036 mm over
+the following 1.85 s, in the opposite direction** — settling, not momentum.
+Against the ball's 0.898 rad/s held indefinitely, that is the property the
+new rig was chosen for.
+
+**But the third check cannot be run yet, and the reason matters.** The
+synthetic tripod gait in `harness_sine_wave_test.py` does not walk on ground
+either: −0.036 mm over 2 s. As first written, check 1 reported "kick = 108%
+of tripod walking", which is meaningless — both numerator and denominator
+are ~zero, so the ratio is noise over noise. It was reframed to measure
+coasting directly, which needs no walking gait.
+
+This is the **same defect** found when building the ball rig's sign test:
+that gait was written as a harness-mode mechanical sanity check and has
+never produced locomotion on any substrate. It is not a gait.
+
+**Consequence: `v_ref` for the progress term cannot be measured yet, so the
+reward cannot be finalised.** Guessing it would repeat exactly the error
+behind the unreproducible −0.95 rad/s. See `REWARD.md` Amendment 1.
+
+### Baselines and reference data — located, with licences verified
+
+Checked against the packages themselves, not documentation summaries.
+
+**FlyGym 2.1.0, the installed version, has none of it**: no `examples`
+module, no `data/` directory, no controllers, no kinematics. Confirmed by
+listing the installed tree and by `import flygym.examples` →
+`ModuleNotFoundError`. The upstream `src/flygym` tree matches.
+
+**FlyGym 1.2.1 has all of it.** Verified by downloading the wheel and
+listing its contents:
+
+| path | what |
+|---|---|
+| `flygym/examples/locomotion/cpg_controller.py` | `CPGNetwork` — the CPG baseline |
+| `flygym/examples/locomotion/rule_based_controller.py` | `RuleBasedController` — the rule-based baseline |
+| `flygym/examples/locomotion/hybrid_controller.py` | CPG + sensory feedback |
+| `flygym/examples/locomotion/controller_comparison.py` | upstream's own CPG vs rule-based vs hybrid benchmark across terrains |
+| `flygym/examples/locomotion/steps.py` | `PreprogrammedSteps` |
+| `flygym/data/behavior/210902_pr_fly1.pkl` | **real fly walking kinematics**, 42 joint-angle traces (7 DOF × 6 legs) at 2000 Hz |
+| `flygym/data/behavior/single_steps_untethered.pkl` | per-joint single-step templates (45 samples) + swing/stance timing |
+| `flygym/data/behavior/position_data.csv` | 16 MB of position data |
+
+Provenance of the kinematics, per FlyGym's own documentation: a tethered fly
+walking on an air-suspended spherical treadmill, filmed with seven cameras,
+3D keypoints via DeepFly3D, joint angles by inverse kinematics.
+
+**Licence: Apache-2.0** for the whole 1.2.1 distribution — a single
+`LICENSE` file, and **no separate licence or notice file anywhere under
+`flygym/data/`**. So the behavioural data carries the same Apache-2.0 terms
+as the code, requiring attribution and licence notice. Worth stating plainly
+that this is an inference from the absence of a separate notice, not an
+explicit data-licence statement; if the data is to appear in the video, that
+is worth confirming with the authors.
+
+The joint naming (`joint_LFCoxa`, `joint_LFFemur`, `joint_LFTibia`,
+`joint_LFTarsus1`, …) maps directly onto our 7-DOF-per-leg model.

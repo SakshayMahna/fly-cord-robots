@@ -1,0 +1,32 @@
+{
+ "tripod": {
+  "dx_mm": -0.036130208168362765,
+  "dy_mm": 0.05183921120670338,
+  "speed_mm_s": -0.018065104084181383,
+  "quat_w": 0.9996741501876799
+ },
+ "kick_then_freeze": {
+  "dx_mm": -0.03904717737299901,
+  "speed_mm_s": -0.019523588686499505,
+  "frac_of_reference": 1.080734912764507
+ },
+ "neural": {
+  "ball": {
+   "n_active": 392,
+   "max_fr": 19.135411,
+   "n_rhythmic": 3
+  },
+  "ground": {
+   "n_active": 392,
+   "max_fr": 19.135411,
+   "n_rhythmic": 3
+  },
+  "bit_identical": true
+ },
+ "verdict": {
+  "tripod_walks_forward": false,
+  "kick_scores_near_zero": false,
+  "neural_unchanged": true
+ },
+ "duration_s": 2.0
+}
