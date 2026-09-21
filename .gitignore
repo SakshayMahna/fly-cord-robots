@@ -44,6 +44,10 @@ media/**/*.json
 # Inventory and provenance: docs/trained_adapter/artifacts/MANIFEST.md
 !media/trained_adapter/**
 !media/closed_loop/clips/**
+# Baseline walking clips: the first thing in this project that actually
+# walks (+14.4 mm/s, upright 1.000), plus the face-plant clips from our own
+# rig as contrast. Video material and evidence for the rig diagnosis.
+!media/baselines/**
 !media/closed_loop/*.json
 !media/closed_loop/*/*.json
 

@@ -634,3 +634,108 @@ The rig is not exonerated by the connectome-side check passing: ball and
 ground give bit-identical neural output at `g_fb = 0`, but that only proves
 the rig change did not leak into the neural path, not that the body physics
 are right.
+
+---
+
+## 2026-09-21 — the CPG gate PASSES, and the cause was `axis_order`
+
+### First: I missed the demo package, and it cost the whole detour
+
+`flygym_demo` ships **inside flygym 2.1.0** and contains native 2.x CPG,
+rule-based, hybrid and turning controllers plus the step data. It appeared
+in my own `site-packages` listing earlier in this session and I did not
+follow it up. Everything in the FlyGym 1.2.1 porting exercise — the wheel
+download, the DOF-name mapping, the "mirroring correction" — was avoidable.
+
+Source, verified by inspection:
+`flygym_demo.complex_terrain.{common, cpg_controller, preprogrammed}`,
+data at `flygym_demo/complex_terrain/assets/single_steps_untethered.pkl`,
+package flygym **2.1.0**, Apache-2.0.
+
+### Tutorial 4a, standalone, with none of our code — it walks
+
+`fly_robot/baselines/tutorial_4a_reference.py` imports nothing from
+`fly_robot`.
+
+| seed | speed | dy | upright end / min |
+|---|---:|---:|---|
+| 0 | +13.611 mm/s | +7.93 | 0.997 / 0.977 |
+| 1 | +13.967 mm/s | −4.52 | 0.992 / 0.966 |
+| 2 | +14.160 mm/s | +1.53 | 1.000 / 0.971 |
+
+Mean **+13.91 mm/s, sd 0.23**, upright ≥ 0.966 throughout — a realistic
+*Drosophila* walking speed, and visually a fly walking level on its legs
+(`media/baselines/tutorial_4a_frames.png`). So the environment is sound and
+**our rig was at fault**, as the gate was meant to determine.
+
+### The ablation: one setting, and it is not the one expected
+
+Each of our settings applied individually to the working tutorial rig:
+
+| change from tutorial | speed | upright_min | |
+|---|---:|---:|---|
+| *(none — tutorial)* | 13.611 | 0.977 | |
+| joint_preset → ALL_BIOLOGICAL | 13.580 | 0.984 | no effect |
+| **axis_order → ROLL_PITCH_YAW** | **0.927** | **−0.964** | **BREAKS — flips over** |
+| joint_stiffness → 10.0 | 8.741 | 0.989 | 36% slower, still walks |
+| joint_damping → 0.5 | 9.292 | 0.988 | still walks |
+| tarsus_override → off | 11.203 | 0.991 | still walks |
+| actuator_gain → 50 | 13.768 | 0.972 | no effect |
+| forcerange → ±30 | 13.804 | 0.973 | no effect |
+| spawn_z → 0.7 | 13.772 | 0.972 | no effect |
+| **all ours** (= `build_free_fly`) | 0.813 | −0.997 | inverted |
+
+**`axis_order` is the single cause.** `AxisOrder` sets the order the three
+rotational DOFs compose at each joint; the reference kinematics and the
+demo controller are defined in **YAW_PITCH_ROLL**, our model composes in
+**ROLL_PITCH_YAW**, and feeding one convention's angles into the other
+produces garbage limb geometry. The fly ends up inverted
+(upright −0.997).
+
+**The hypothesis about sagging non-leg joints was wrong.** Switching to
+`ALL_BIOLOGICAL` — articulated but unactuated wings, abdomen and head —
+costs nothing at all: 13.580 vs 13.611 mm/s, upright *better* at 0.984.
+Worth stating plainly, since it was the leading suspect.
+
+**And my "mirroring correction" was compensating for the wrong thing.**
+The right-leg roll/yaw discrepancy I measured and "fixed" in the 1.2.1 port
+is a symptom of the axis-order mismatch, not a genuine left/right
+convention difference. It improved matters (−0.78 → +2.95 mm/s) by
+partially cancelling a different error, which is exactly how a wrong fix
+looks when it helps. The 1.2.1 port is superseded and should not be used.
+
+### Fixing only the axis order rescues our rig
+
+All of our settings, with `axis_order` alone switched to YAW_PITCH_ROLL:
+
+| seed | speed | upright_min |
+|---|---:|---:|
+| 0 | +9.453 mm/s | 0.994 |
+| 1 | +9.396 mm/s | 0.994 |
+| 2 | +9.396 mm/s | 0.995 |
+
+Consistent, upright, forward. The remaining 31% deficit against the
+tutorial's 13.9 mm/s is the joint stiffness (10 vs 0.05) and damping
+(0.5 vs 0.06), each costing ~35% on its own.
+
+### What this does and does not touch
+
+It does **not** overturn Phase 4. The harness and ball rigs hold the thorax
+fixed, so the body cannot flip; the motor and sensory interfaces both read
+and write the same named DOFs in the same convention, so they are
+self-consistent; and at `g_fb = 0` the neural side provably cannot depend
+on body geometry at all (ball and ground give bit-identical motor traces).
+
+It does mean the *geometric* meaning of our joint angles differs from the
+reference kinematics'. Switching the project to YAW_PITCH_ROLL is a real
+decision with consequences — the frozen motor interface's config hash
+covers DOF names, not axis order, but Phase 3's rendered leg motion and the
+sensory encoder's angle→current mapping were both computed under
+ROLL_PITCH_YAW. Not changed unilaterally.
+
+### `v_ref` is now measurable
+
+Two candidates, depending on which rig Stage A trains on: **13.9 mm/s**
+(tutorial settings) or **9.4 mm/s** (our settings with the axis order
+fixed). This is the constant that blocked the reward; it is now a
+measurement rather than a guess.
