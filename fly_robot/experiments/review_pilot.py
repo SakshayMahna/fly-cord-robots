@@ -137,8 +137,20 @@ def main():
         b = np.mean([r[k] for r in history[-MA_WINDOW:]])
         print(f"{k.replace('term_',''):<16}{a:>+11.4f}{b:>+11.4f}{b-a:>+11.4f}")
 
+    reached = int(gens.max()) >= REVIEW_GENERATION
     verdict = evaluate_rule(history)
+    verdict["review_generation_reached"] = reached
+    verdict["latest_generation"] = int(gens.max())
+
     print("\n=== early-stop rule (committed before the data) ===")
+    if not reached:
+        # Without this guard `at(120)` silently returns the latest available
+        # generation, so an early run would print a confident verdict about a
+        # generation that does not exist yet.
+        print(f"  *** PROVISIONAL — only {int(gens.max())} of "
+              f"{REVIEW_GENERATION} generations exist. The numbers below use "
+              f"the latest available generation in place of {REVIEW_GENERATION} "
+              f"and are NOT the review. ***")
     print(f"  A. runmax(MA10 best): gen60 {verdict['runmax_ma10_at_60']:+.4f} -> "
           f"gen120 {verdict['runmax_ma10_at_120']:+.4f}   "
           f"-> no improvement: {verdict['criterion_A_no_improvement']}")
@@ -146,11 +158,14 @@ def main():
           f"{verdict['delta_saturation_term']:+.4f} "
           f"({verdict['saturation_share_of_median_gain']:.0%})   "
           f"-> mostly saturation: {verdict['criterion_B_gains_are_saturation']}")
-    print(f"\n  VERDICT: {'STOP the pilot' if verdict['STOP'] else 'CONTINUE to 250'}")
-
-    out = Path(args.out_dir) / args.run_name / "review_gen120.json"
-    out.write_text(json.dumps(verdict, indent=1))
-    print(f"\nwrote {out}")
+    if reached:
+        print(f"\n  VERDICT: {'STOP the pilot' if verdict['STOP'] else 'CONTINUE to 250'}")
+        out = Path(args.out_dir) / args.run_name / "review_gen120.json"
+        out.write_text(json.dumps(verdict, indent=1))
+        print(f"\nwrote {out}")
+    else:
+        print(f"\n  NO VERDICT — review point not reached "
+              f"({int(gens.max())}/{REVIEW_GENERATION}). Nothing written.")
 
 
 if __name__ == "__main__":
