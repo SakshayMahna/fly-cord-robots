@@ -537,3 +537,100 @@ is worth confirming with the authors.
 
 The joint naming (`joint_LFCoxa`, `joint_LFFemur`, `joint_LFTibia`,
 `joint_LFTarsus1`, …) maps directly onto our 7-DOF-per-leg model.
+
+---
+
+## 2026-09-21 — CPG baseline ported; **the gate FAILS** and training is blocked
+
+Per the instruction: the CPG baseline must walk forward consistently before
+any training, and if it does not, stop and diagnose the rig. **It does not.
+Stopping here.**
+
+### What was ported
+
+From FlyGym 1.2.1's wheel (2.1.0 has none of it):
+`fly_robot/baselines/preprogrammed_steps.py` and `cpg.py` — `CPGNetwork`
+with upstream's own parameters verbatim (6 oscillators, 12 Hz, tripod phase
+biases, coupling 10, convergence 20) and `PreprogrammedSteps` reading the
+real-fly step kinematics. Ours is only the DOF-name mapping and the rig.
+
+**Adhesion now follows upstream exactly**, as instructed: OFF during swing,
+ON otherwise —
+`not (swing_start < phase % 2pi < swing_end)`, where the swing window comes
+from the data's own `swing_stance_time`. Measured duty cycle 0.62–0.69 per
+leg. The always-on policy is gone.
+
+### A real bug found: right-leg roll/yaw were mirrored
+
+The naive name mapping was wrong. FlyGym 1.x's recorded kinematics use the
+**opposite sign convention for right-leg roll and yaw** from FlyGym 2.x's
+model. Mirroring flips rotations about the fore-aft and vertical axes and
+leaves sagittal ones alone — exactly the measured pattern:
+
+```
+Coxa_roll, data minus model:  LF +0.62  LM +0.12  LH -0.04 | RF -1.32  RM -3.44  RH -4.85
+```
+
+Negating roll and yaw on the right legs drops mean |difference| across all
+38 comparable DOFs from **0.591 to 0.315 rad**, the maximum from 4.845 to
+1.030, and DOFs off by more than a radian from **6 to 2**
+(RH Coxa_roll: data −2.402 → +2.402, model +2.443).
+
+Effect on behaviour: **−0.78 mm/s backwards → +2.95 mm/s forwards.** Without
+it the baseline would have been silently broken rather than obviously so.
+
+### But the fly does not walk — it face-plants
+
+Rendered and inspected (`media/baselines/cpg_side_frames.png`): the fly
+pitches **nose-down with the abdomen raised**, head near the ground, and
+slides forward. The +2.95 mm/s is toppling, not stepping.
+
+| configuration | speed | dy | upright (min / end) | thorax z |
+|---|---:|---:|---|---:|
+| FlyGym 2.x defaults | +2.95 mm/s | +0.64 | 0.233 / 0.536 | 0.53 |
+| 2.x stiffness + 1.x torque | +2.59 mm/s | −0.67 | 0.298 / 0.546 | 0.53 |
+| full 1.x (stiffness, damping, torque, gain) | −0.16 mm/s | +6.05 | **−0.159** / 0.273 | 0.08 |
+
+Upright is the body z-axis' vertical component: 1 is level, 0 is on its
+side, negative is inverted. A standing fly on this rig reads **0.998** at
+the model's neutral pose. None of these is walking; the third flips over.
+
+### Ruled out, with measurements
+
+- **Spawn height.** Swept 0.3–1.6 mm; the fly converges to the same tilted
+  pose from every height below 1.3 and falls over above it. Not the cause.
+- **Joint stiffness/damping.** FlyGym 2.x applies stiffness 10 / damping 0.5
+  to *every* joint; FlyGym 1.x uses 0.05 / 0.06 for actuated leg joints —
+  200× and 8× apart, which looked decisive. Setting upstream's values made
+  it **worse** (the fly flips). Not the cause on its own.
+- **Actuator torque.** 2.x limits force to ±30, 1.x to ±65. Raising it
+  changed speed by ~12% and upright by 0.065 — marginal, not the cause.
+- **Friction.** Identical: (1.0, 0.005, 0.0001) on both tarsi and ground,
+  matching upstream exactly. Mass 1.024 mg, gravity −9810 mm/s².
+
+### Still untested — the honest list
+
+1. **`init_pose="stretch"`.** Upstream spawns the *model* in a stretched
+   pose; we spawn at NEUTRAL and command the data's pose as targets. The
+   body may begin in a configuration the legs cannot recover from.
+2. **Contact solref/solimp.** Upstream sets `contact_solref=(2e-4, 1e3)`
+   and a specific 5-element solimp. Ours uses FlyGym 2.x `ContactParams()`
+   defaults, which were **not** compared.
+3. **The two DOFs still >1 rad from the model's neutral** after the
+   mirroring fix, and `Coxa_yaw`, whose sign convention was inferred from
+   the same mirroring argument rather than verified independently — our
+   model's NEUTRAL leaves yaw undefined for most legs.
+4. **Model differences.** 1.x used the `seqik` XML variant; 2.x composes a
+   different model. Segment masses and inertias were not compared.
+
+### Consequence
+
+`v_ref` is still unmeasured, so **the reward cannot be finalised and
+training cannot start** — which is the correct outcome of a blocking gate,
+not a setback to work around. The weights in `REWARD.md` Amendment 1 remain
+ratios.
+
+The rig is not exonerated by the connectome-side check passing: ball and
+ground give bit-identical neural output at `g_fb = 0`, but that only proves
+the rig change did not leak into the neural path, not that the body physics
+are right.

@@ -123,7 +123,11 @@ DEFAULT_ADHESION_GAIN = 40.0
 
 
 def build_free_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN,
-                   adhesion_gain: float = DEFAULT_ADHESION_GAIN):
+                   adhesion_gain: float = DEFAULT_ADHESION_GAIN,
+                   spawn_pos_mm=None,
+                   joint_stiffness: float | None = None,
+                   joint_damping: float | None = None,
+                   forcerange: tuple | None = None):
     """A fly free to walk on flat ground, with tarsal adhesion enabled.
 
     The Stage A training rig, replacing the tethered ball. The ball is kept
@@ -148,11 +152,26 @@ def build_free_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN,
         joint_preset=JointPreset.ALL_BIOLOGICAL, axis_order=AxisOrder.ROLL_PITCH_YAW
     )
     neutral_pose = KinematicPosePreset.NEUTRAL
-    fly.add_joints(skeleton, neutral_pose=neutral_pose)
+    # FlyGym 2.x applies stiffness=10 / damping=0.5 to EVERY joint. FlyGym
+    # 1.x -- whose CPG baseline and reference kinematics we port -- uses
+    # 0.05 / 0.06 for actuated leg joints. Those passive springs are 200x
+    # stiffer than the controller was designed against and fight the
+    # position actuators directly. Left at the 2.x default here so nothing
+    # existing changes; the baseline passes upstream's values explicitly.
+    joint_kwargs = {}
+    if joint_stiffness is not None:
+        joint_kwargs["stiffness"] = joint_stiffness
+    if joint_damping is not None:
+        joint_kwargs["damping"] = joint_damping
+    fly.add_joints(skeleton, neutral_pose=neutral_pose, **joint_kwargs)
     actuated_dofs = skeleton.get_actuated_dofs_from_preset(
         ActuatedDOFPreset.LEGS_ACTIVE_ONLY)
+    # FlyGym 2.x limits actuator force to +-30; FlyGym 1.x, which the
+    # ported CPG was tuned against, allows +-65. At +-30 the legs are
+    # torque-limited and cannot hold the body up under the reference gait.
+    act_kwargs = {} if forcerange is None else {"forcerange": tuple(forcerange)}
     fly.add_actuators(actuated_dofs, actuator_type="position",
-                      neutral_input=neutral_pose, kp=gain)
+                      neutral_input=neutral_pose, kp=gain, **act_kwargs)
     fly.add_leg_adhesion(gain=adhesion_gain)
     fly.add_joint_sites(JointPreset.LEGS_ONLY.to_joint_list())
     fly.colorize()
@@ -170,7 +189,10 @@ def build_free_fly(name: str = "nmf", gain: float = DEFAULT_ACTUATOR_GAIN,
 
     world = FlatGroundWorld()
     spawn_rot = Rotation3D(format="quat", values=[1, 0, 0, 0])
-    world.add_fly(fly, list(SPAWN_POS_MM), spawn_rot)
+    # Spawn height is pose-dependent: the model's NEUTRAL pose rests at the
+    # default, but a different standing pose (e.g. the reference-kinematics
+    # neutral) needs its own height or the fly starts on tiptoe and topples.
+    world.add_fly(fly, list(spawn_pos_mm or SPAWN_POS_MM), spawn_rot)
     mj_model, mj_data = world.compile()
     return fly, world, mj_model, mj_data, camera, opposite_camera, top_down_camera
 
