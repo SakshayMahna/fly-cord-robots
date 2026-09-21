@@ -212,3 +212,162 @@ def rate_matched_noise_channels(recorded_drive: np.ndarray, seed: int = 0) -> np
     rng = np.random.default_rng(seed)
     drive = np.atleast_2d(np.asarray(recorded_drive, dtype=float))
     return np.stack([phase_randomised_surrogate(ch, rng) for ch in drive])
+
+
+def matched_random_network(w, seed: int = 0,
+                           protected_rows: np.ndarray | None = None,
+                           protected_cols: np.ndarray | None = None):
+    """C2: a random recurrent network matched to the real one.
+
+    Where C1 keeps every neuron's in- and out-degree and only randomises
+    *who* it connects to, C2 discards the degree sequence too. It keeps
+    only the global statistics, so a result that survives C1 but not C2
+    tells you the degree structure was doing the work, and vice versa.
+
+    Matched exactly, and asserted in the report:
+
+      * **size** — same n, same row indices, so the interface still finds
+        its neurons where it expects them;
+      * **sparsity** — the same number of edges, to the edge;
+      * **sign ratio** — the same count of excitatory and inhibitory edges
+        (53.62% / 46.38% in the real matrix);
+      * **Dale's law** — each presynaptic neuron keeps its own sign class,
+        so no neuron gains the ability to both excite and inhibit. The real
+        connectome obeys this exactly (0 of 22,769 presynaptic neurons
+        carry both signs), and a control that violated it would differ from
+        the real network by being biologically impossible, not by being
+        random;
+      * **weight multiset** — the same magnitudes, permuted within sign
+        class, so the control cannot be weaker merely by having smaller
+        weights;
+      * **the interface** — edges touching the sensory rows, the command
+        rows and the motor columns are held out untouched, exactly as C1
+        holds them, so both controls are driven and read through the same
+        wiring as the real network.
+
+    Randomised: the topology. Degrees are free to differ; that is the
+    point of this control.
+
+    **Orientation.** Like `degree_preserving_shuffle`, this operates on the
+    RAW connectivity as `trial_setup` holds it: `w[pre, post]`, so a ROW is
+    a presynaptic neuron and `protected_rows` holds out an interface
+    neuron's OUTPUTS while `protected_cols` holds out its INPUTS. Getting
+    this backwards computes Dale's law across the wrong axis and silently
+    produces a control that is not sign-matched -- which is exactly what
+    happened on first use, caught only because the report says
+    `dale_preserved` out loud instead of assuming it.
+
+    The real matrix is never modified in place.
+    """
+    rng = np.random.default_rng(seed)
+    w = sp.csr_matrix(w)
+    n = w.shape[0]
+    rows, cols, data = _edge_list(w)
+
+    protected = np.zeros(len(rows), dtype=bool)
+    if protected_rows is not None and len(protected_rows):
+        protected |= _sorted_contains(np.sort(np.asarray(protected_rows)), rows)
+    if protected_cols is not None and len(protected_cols):
+        protected |= _sorted_contains(np.sort(np.asarray(protected_cols)), cols)
+
+    # Sign class of every presynaptic neuron (= ROW here, see Orientation).
+    # A neuron with no outgoing edges has no class and is never drawn from.
+    presyn_sign = np.zeros(n, dtype=np.int8)
+    np.maximum.at(presyn_sign, rows[data > 0], 1)
+    np.minimum.at(presyn_sign, rows[data < 0], -1)
+
+    keep_r, keep_c, keep_d = rows[protected], cols[protected], data[protected]
+    taken = set((int(a) * n + int(b)) for a, b in zip(keep_r, keep_c))
+
+    # Randomised edges must never TOUCH the interface, in either direction.
+    # Holding the protected edges fixed is not enough on its own: if a
+    # random edge could land in a protected row, an interface neuron would
+    # gain input it does not have in the real network, and the three
+    # conditions would no longer be driven through identical wiring. C1
+    # cannot do this -- it only ever permutes targets among eligible edges
+    # -- so C2 must be constrained to match. (Caught by
+    # tests/test_connectome_controls.py, not by inspection.)
+    pre_ok = np.ones(n, dtype=bool)    # rows = presynaptic
+    post_ok = np.ones(n, dtype=bool)   # cols = postsynaptic
+    if protected_rows is not None and len(protected_rows):
+        pre_ok[np.asarray(protected_rows)] = False
+    if protected_cols is not None and len(protected_cols):
+        post_ok[np.asarray(protected_cols)] = False
+    post_pool = np.flatnonzero(post_ok)
+
+    new_r, new_c, new_d = [keep_r], [keep_c], [keep_d]
+    for sign, pool in ((1, np.flatnonzero((presyn_sign == 1) & pre_ok)),
+                       (-1, np.flatnonzero((presyn_sign == -1) & pre_ok))):
+        want = int(((data[~protected] > 0) if sign > 0
+                    else (data[~protected] < 0)).sum())
+        if want == 0:
+            continue
+        chosen = []
+        while len(chosen) < want:
+            k = int((want - len(chosen)) * 1.2) + 64
+            pre = pool[rng.integers(0, len(pool), size=k)]
+            post = post_pool[rng.integers(0, len(post_pool), size=k)]
+            for a, b in zip(pre, post):
+                if a == b:
+                    continue            # no self-loops created
+                key = int(a) * n + int(b)
+                if key in taken:
+                    continue            # no duplicate edges
+                taken.add(key)
+                chosen.append((a, b))
+                if len(chosen) == want:
+                    break
+        chosen = np.array(chosen)
+        # Same magnitudes as the real network's edges of this sign,
+        # permuted -- so the control differs in wiring, not in strength.
+        src = data[~protected][(data[~protected] > 0) if sign > 0
+                               else (data[~protected] < 0)]
+        new_r.append(chosen[:, 0])
+        new_c.append(chosen[:, 1])
+        new_d.append(rng.permutation(src))
+
+    R = np.concatenate(new_r)
+    C = np.concatenate(new_c)
+    D = np.concatenate(new_d)
+    random_w = sp.csr_matrix((D, (R, C)), shape=w.shape)
+    assert random_w.nnz == len(D), (
+        f"{len(D) - random_w.nnz} edges collapsed — duplicates were created and "
+        "summed. Sparsity matching is broken; do not use this matrix.")
+
+    # Dale's law over ROWS, matching the [pre, post] orientation.
+    rand_r = sp.csr_matrix(random_w)
+    both = 0
+    for i in range(n):
+        d = rand_r.data[rand_r.indptr[i]:rand_r.indptr[i + 1]]
+        if len(d) and (d > 0).any() and (d < 0).any():
+            both += 1
+
+    out_before = np.asarray((w != 0).sum(axis=1)).ravel()
+    out_after = np.asarray((random_w != 0).sum(axis=1)).ravel()
+    report = {
+        "n_neurons": int(n),
+        "n_edges_before": int(w.nnz),
+        "n_edges_after": int(random_w.nnz),
+        "sparsity_preserved": bool(w.nnz == random_w.nnz),
+        "n_positive_before": int((w.data > 0).sum()),
+        "n_positive_after": int((random_w.data > 0).sum()),
+        "n_negative_before": int((w.data < 0).sum()),
+        "n_negative_after": int((random_w.data < 0).sum()),
+        "sign_ratio_preserved": bool(
+            (w.data > 0).sum() == (random_w.data > 0).sum()
+            and (w.data < 0).sum() == (random_w.data < 0).sum()),
+        "weight_multiset_preserved": bool(
+            np.array_equal(np.sort(random_w.data), np.sort(w.data))),
+        "dale_violations": int(both),
+        "dale_preserved": bool(both == 0),
+        "n_edges_protected": int(protected.sum()),
+        "interface_presyn_rows_held_out": int((~pre_ok).sum()),
+        "interface_postsyn_cols_held_out": int((~post_ok).sum()),
+        "n_self_loops_after": int((random_w.diagonal() != 0).sum()),
+        # Degrees are deliberately NOT preserved -- reported so the
+        # difference from C1 is visible rather than assumed.
+        "out_degree_preserved": bool(np.array_equal(out_before, out_after)),
+        "mean_abs_out_degree_change": float(np.abs(out_before - out_after).mean()),
+        "frac_edges_rewired": float((~protected).mean()),
+    }
+    return random_w, report

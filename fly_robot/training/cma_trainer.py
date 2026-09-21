@@ -57,6 +57,7 @@ class TrainConfig:
     param_seed: int = PILOT_PARAM_SEED
     trial_s: float = TRIAL_S
     shuffle_seed: int | None = None   # C1 control: degree-preserving shuffle
+    random_seed_net: int | None = None  # C2 control: matched random network
     condition: str = "real"           # "real" | "C1" | "C2"
     workers: int = 6
     out_dir: str = "media/trained_adapter"
@@ -93,7 +94,8 @@ def _init_worker(lock, cfg_dict):
     with lock:
         model, mg, sg, _wt, _info = build_trial_components(
             replicate=first, param_seed=cfg.param_seed,
-            duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed)
+            duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed,
+            random_seed=cfg.random_seed_net)
         for arr in jax.live_arrays():
             try:
                 arr.delete()
@@ -133,7 +135,8 @@ def _components_for(replicate: int):
     with _W["lock"]:
         model, mg, sg, _wt, _info = build_trial_components(
             replicate=replicate, param_seed=cfg.param_seed,
-            duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed)
+            duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed,
+            random_seed=cfg.random_seed_net)
         for arr in jax.live_arrays():
             try:
                 arr.delete()
@@ -258,7 +261,8 @@ class Trainer:
                   flush=True)
             pool, baselines = resolve_pool(
                 CANDIDATE_REPLICATES, self.cfg.param_seed,
-                shuffle_seed=self.cfg.shuffle_seed, duration_s=self.cfg.trial_s)
+                shuffle_seed=self.cfg.shuffle_seed, duration_s=self.cfg.trial_s,
+                random_seed=self.cfg.random_seed_net)
             self.cfg.pool = tuple(pool)
             self.cfg.baselines = baselines
             print(f"  eligible pool: {list(pool)}\n", flush=True)

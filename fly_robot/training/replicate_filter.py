@@ -54,7 +54,8 @@ def _cache_path(param_seed: int, shuffle_seed: int | None, duration_s: float) ->
 
 def baseline_n_active(replicate: int, param_seed: int,
                       shuffle_seed: int | None = None,
-                      duration_s: float = 4.0) -> int:
+                      duration_s: float = 4.0,
+                      random_seed: int | None = None) -> int:
     """`n_active` for this replicate with the adapter off and no feedback.
 
     Neural-only: at zero feedback the body cannot influence the network, so
@@ -65,7 +66,7 @@ def baseline_n_active(replicate: int, param_seed: int,
 
     model, _mg, _sg, _wt, _info = build_trial_components(
         replicate=replicate, param_seed=param_seed, duration_s=duration_s,
-        shuffle_seed=shuffle_seed)
+        shuffle_seed=shuffle_seed, random_seed=random_seed)
     model.reset()
     for _ in range(int(round(duration_s / 0.001))):
         model.step(0.001)
@@ -74,13 +75,15 @@ def baseline_n_active(replicate: int, param_seed: int,
 
 def measure_baselines(candidates, param_seed: int, shuffle_seed: int | None = None,
                       duration_s: float = 4.0, use_cache: bool = True,
-                      verbose: bool = True) -> dict:
+                      verbose: bool = True, random_seed: int | None = None) -> dict:
     """{replicate: baseline n_active} for `candidates`, cached on disk.
 
     The cache is keyed by (param_seed, shuffle_seed, duration) so a control
     network never reads the real network's baselines.
     """
-    path = _cache_path(param_seed, shuffle_seed, duration_s)
+    path = _cache_path(param_seed, shuffle_seed if shuffle_seed is not None
+                       else (f"rand{random_seed}" if random_seed is not None else None),
+                       duration_s)
     cached = {}
     if use_cache and path.exists():
         cached = {int(k): int(v) for k, v in json.loads(path.read_text()).items()}
@@ -90,7 +93,7 @@ def measure_baselines(candidates, param_seed: int, shuffle_seed: int | None = No
         if rep in cached:
             out[rep] = cached[rep]
             continue
-        n = baseline_n_active(rep, param_seed, shuffle_seed, duration_s)
+        n = baseline_n_active(rep, param_seed, shuffle_seed, duration_s, random_seed)
         out[rep] = n
         cached[rep] = n
         if verbose:
@@ -140,7 +143,8 @@ def assert_pool_eligible(pool, baselines: dict,
 
 
 def resolve_pool(candidates, param_seed: int, shuffle_seed: int | None = None,
-                 duration_s: float = 4.0, verbose: bool = True) -> tuple:
+                 duration_s: float = 4.0, verbose: bool = True,
+                 random_seed: int | None = None) -> tuple:
     """Measure, filter, and assert in one call. Returns (pool, baselines).
 
     Refuses to return an empty pool: a network on which every replicate
@@ -148,7 +152,8 @@ def resolve_pool(candidates, param_seed: int, shuffle_seed: int | None = None,
     — and must be reported, not worked around.
     """
     baselines = measure_baselines(candidates, param_seed, shuffle_seed,
-                                  duration_s, verbose=verbose)
+                                  duration_s, verbose=verbose,
+                                  random_seed=random_seed)
     pool = eligible_replicates(baselines)
     excluded = {r: n for r, n in baselines.items() if n > STABILITY_MAX_N_ACTIVE}
     if verbose and excluded:

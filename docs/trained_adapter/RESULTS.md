@@ -54,3 +54,48 @@ than the adhesion gate itself, and it will be reported either way.
 The untrained connectome moves its legs energetically — 160 rad of total
 joint travel over 4 s — and travels 0.011 mm. It stays upright and does not
 flip. That is the honest starting point training has to improve on.
+
+## Both wiring controls oversaturate before training can start
+
+C2 (matched random network) is built and passes every matching test. On
+the real connectome it preserves size, sparsity to the edge, sign ratio
+exactly (735,914 / 636,490), Dale's law (0 violations), the weight
+multiset, and the interface — while rewiring 76.6% of edges and changing
+out-degree by 31.1 on average. It is a correctly matched control.
+
+It cannot be trained. Neither can C1.
+
+**Baseline `n_active` under DNg100 drive, adapter off** (stability
+threshold 1,500, Pugliese's own oversaturation criterion):
+
+| replicate | real | C1 shuffled | C2 random |
+|---:|---:|---:|---:|
+| 0 | 513 | 6,726 | 13,532 |
+| 1 | 392 | 6,638 | 13,590 |
+| 2 | 4,733 | 6,713 | 13,479 |
+| 3 | 360 | 6,766 | 13,659 |
+| 4 | 505 | 6,908 | 13,751 |
+| 5 | 4,481 | 6,808 | 13,679 |
+| 6 | 417 | 6,766 | 13,714 |
+| 7 | 438 | 6,794 | 13,557 |
+| **median** | **471** | **6,766** | **13,624** |
+| **eligible replicates** | **6/8** | **0/8** | **0/8** |
+
+**The finding, stated carefully.** Randomising the wiring while holding
+size, sparsity, sign ratio, Dale's law and the weight distribution fixed
+makes the network explode: 14× the real network's activity for C1 and 29×
+for C2, against a drive the real connectome handles stably. The ordering
+real ≪ C1 ≪ C2 is itself informative — preserving each neuron's degree
+sequence recovers some stability, but nowhere near enough. Whatever keeps
+this network bounded is in the specific topology, not in its summary
+statistics.
+
+That is a real result about the connectome and it was not designed for;
+it fell out of applying the pre-registered filter to the controls with
+their own baselines, as the rule requires.
+
+**But it blocks the controls as training conditions**, and a headline
+claim with no trainable control is much weaker. `resolve_pool` refuses to
+return a pool rather than quietly training on saturated networks — which
+is the behaviour it was built for, but it means Stage A cannot proceed as
+planned without a decision. Options are set out in `RUN_PLAN.md`.

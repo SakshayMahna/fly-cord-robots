@@ -15,7 +15,9 @@ import scipy.sparse as sp
 from fly_robot.interface.joint_to_sensory_neuron import build_sensory_groups
 from fly_robot.interface.motor_neuron_to_joint import build_motor_neuron_groups
 from fly_robot.neural import pugliese_paths  # noqa: F401 — sys.path side effect
-from fly_robot.neural.connectome_controls import degree_preserving_shuffle
+from fly_robot.neural.connectome_controls import (
+    degree_preserving_shuffle, matched_random_network,
+)
 from fly_robot.neural.steppable_rate_model import SteppableRateModel, build_neuron_set
 
 import jax
@@ -41,14 +43,24 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
                             duration_s: float = 4.0,
                             shuffle_seed: int | None = None,
                             shuffle_protected: bool = True,
+                            random_seed: int | None = None,
                             normalise_sensory_sides: bool = True,
                             circuit_csv: str = "data/circuit_map/all_legs_circuit.csv"):
     """Returns `(neural_model, motor_groups, sensory_groups, wtable, info)`.
 
-    `shuffle_seed=None` uses the real connectome. Any other value applies
-    the C1/C1b degree-preserving shuffle — a labelled control; the real
-    matrix is never modified in place.
+    `shuffle_seed=None` and `random_seed=None` use the real connectome.
+
+    `shuffle_seed` applies the C1/C1b degree-preserving shuffle;
+    `random_seed` applies the C2 matched random network. Both are labelled
+    controls and both protect the same interface edges, so all three
+    conditions are driven and read through identical wiring. The real
+    matrix is never modified in place. Passing both is refused rather than
+    silently composed.
     """
+    if shuffle_seed is not None and random_seed is not None:
+        raise ValueError(
+            "shuffle_seed (C1) and random_seed (C2) are different controls; "
+            "composing them would be neither.")
     config = create_fresh_config_with_paths(
         experiment="FullVNC_DNg100_Stim", paths_template="fly_robot",
         run_id=f"closed_loop_s{param_seed}_r{replicate}",
@@ -67,7 +79,7 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
 
     weights = sp.csr_matrix(np.asarray(neuron_params.W))
     shuffle_report = None
-    if shuffle_seed is not None:
+    if shuffle_seed is not None or random_seed is not None:
         protected_rows = protected_cols = None
         if shuffle_protected:
             sensory = np.array(wtable.index[wtable["class"].isin(
@@ -75,9 +87,11 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
             motor = np.array(wtable.index[wtable["class"] == "motor neuron"])
             protected_rows = np.concatenate([sensory, np.array(DNG100_ROWS)])
             protected_cols = motor
-        weights, shuffle_report = degree_preserving_shuffle(
-            weights, seed=shuffle_seed, protected_rows=protected_rows,
-            protected_cols=protected_cols)
+        control = (degree_preserving_shuffle if shuffle_seed is not None
+                   else matched_random_network)
+        weights, shuffle_report = control(
+            weights, seed=shuffle_seed if shuffle_seed is not None else random_seed,
+            protected_rows=protected_rows, protected_cols=protected_cols)
 
     neurons = build_neuron_set(
         weights, one.tau, one.a, one.threshold, one.fr_cap,
@@ -98,6 +112,9 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
             "stim_current": stim_current, "duration_s": duration_s,
             "pulse_start": sim_params.pulse_start, "pulse_end": sim_params.pulse_end,
             "shuffled": shuffle_seed is not None,
+            "random_network": random_seed is not None,
+            "condition": ("C1" if shuffle_seed is not None
+                          else "C2" if random_seed is not None else "real"),
             "shuffle_protected": shuffle_protected if shuffle_seed is not None else None,
             "shuffle_report": shuffle_report}
     return model, motor_groups, sensory_groups, wtable, info
