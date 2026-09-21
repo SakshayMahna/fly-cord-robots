@@ -42,6 +42,32 @@ What is DIFFERENT, and therefore has to be validated (see
      `extra_input = 0` the model is open-loop and must reproduce their
      result — that is exactly the g_fb = 0 test.
 
+What is NOT a difference: the active-column matvec
+----------------------------------------------------
+`W @ R` is evaluated over only the **nonzero entries of R**. This is not
+an approximation, a reduced model, or a topology change — a neuron whose
+rate is exactly 0 contributes exactly `w * 0.0 = 0.0` to every
+postsynaptic sum, and dropping terms that are exactly zero cannot change
+a floating-point result. The summation ORDER is preserved too: scipy's
+CSR matvec accumulates each row in increasing column order, and a CSC
+matvec accumulates each row in increasing column order as well, so the
+surviving addends arrive in the same sequence. Verified empirically
+bit-identical, not merely argued — see `tests/test_steppable_model.py`.
+
+It matters because the network is *dynamically* sparse in a way the
+matrix is not: in a stable trial only ~471 of 23,532 neurons are ever
+nonzero (measured), touching 2.4% of W's 1,372,404 stored entries, while
+scipy's CSR matvec touches all of them regardless. Measured end-to-end
+through `run_trial`: 33.1 s -> 9.75 s per 4 s trial, outputs identical to
+the last bit.
+
+The win shrinks as the network saturates and **inverts** once gathering
+columns costs more than it saves (measured: 0.74x, i.e. slower, with all
+23,532 active). Hence `ACTIVE_COLUMN_NNZ_FRACTION` — above that share of
+W's nonzeros the dense path is used instead, so the model is never slower
+than before. Both paths are the same arithmetic; the guard only picks
+which one runs.
+
 Nothing here reads or writes the connectome; it only integrates it.
 """
 
@@ -51,6 +77,14 @@ from dataclasses import dataclass
 
 import numpy as np
 import scipy.sparse as sp
+
+
+# Above this share of W's stored entries falling in active columns, the
+# column-gather costs more than it saves and the dense path is used.
+# MEASURED, not chosen: the crossover sits near 50% of nnz (speedup 1.03x
+# at 4,629 active neurons, 0.74x at 23,532), so 0.35 leaves margin and
+# switches over before the fast path can ever be the slower one.
+ACTIVE_COLUMN_NNZ_FRACTION = 0.35
 
 
 @dataclass(frozen=True)
@@ -117,28 +151,67 @@ class SteppableRateModel:
 
     def __init__(self, neurons: NeuronSet, baseline_input: np.ndarray,
                  pulse_start: float = 0.02, pulse_end: float = 1.999,
-                 substeps: int = 1):
+                 substeps: int = 1, active_column_matvec: bool = True):
         """`substeps` splits each `step(dt)` into `substeps` RK4 stages of
         dt/substeps. The sensory `extra_input` is held constant across
         the whole `dt` regardless (zero-order hold) — substeps only
         refine the integration, not the input.
+
+        `active_column_matvec` selects the optimised matvec described in
+        the module docstring. It is a pure speed switch: both settings
+        compute the same numbers to the last bit, and the tests assert
+        that rather than assuming it. Set False to force the original
+        dense-vector path (used by the equivalence test, and available if
+        the optimisation is ever suspected).
         """
         self.neurons = neurons
         self.baseline_input = np.asarray(baseline_input, dtype=np.float64)
         self.pulse_start = float(pulse_start)
         self.pulse_end = float(pulse_end)
         self.substeps = int(substeps)
+        self.active_column_matvec = bool(active_column_matvec)
+        # CSC view of the SAME matrix — a representation change, no copy of
+        # any weight is altered. Built once; the transpose-free column
+        # slicing below needs column-major storage.
+        self._w_csc = sp.csc_matrix(neurons.w_eff) if self.active_column_matvec else None
+        self._out_degree = (np.diff(self._w_csc.indptr)
+                            if self.active_column_matvec else None)
+        self._nnz_budget = (ACTIVE_COLUMN_NNZ_FRACTION * neurons.w_eff.nnz
+                            if self.active_column_matvec else 0.0)
+        # Diagnostics: how often the guard sent us down the dense path.
+        self.n_matvec_fast = 0
+        self.n_matvec_dense = 0
         self.reset()
+
+    def _synaptic_input(self, r: np.ndarray) -> np.ndarray:
+        """`W_eff @ r`, skipping columns whose rate is exactly zero.
+
+        Identical arithmetic to `self.neurons.w_eff @ r` — see the module
+        docstring for why dropping exactly-zero terms is exact and why the
+        summation order is preserved.
+        """
+        if not self.active_column_matvec:
+            self.n_matvec_dense += 1
+            return self.neurons.w_eff @ r
+        active = np.flatnonzero(r)
+        if self._out_degree[active].sum() >= self._nnz_budget:
+            # Saturated: gathering columns would cost more than it saves.
+            self.n_matvec_dense += 1
+            return self.neurons.w_eff @ r
+        self.n_matvec_fast += 1
+        return self._w_csc[:, active] @ r[active]
 
     def reset(self) -> None:
         """R0 = 0 and t = 0, matching their `run_single_simulation`."""
         self.t = 0.0
         self.rates = np.zeros(self.neurons.n_neurons, dtype=np.float64)
+        self.n_matvec_fast = 0
+        self.n_matvec_dense = 0
 
     def _derivative(self, t: float, r: np.ndarray, extra_input: np.ndarray | None) -> np.ndarray:
         n = self.neurons
         pulse_active = (t >= self.pulse_start) & (t <= self.pulse_end)
-        total = n.w_eff @ r
+        total = self._synaptic_input(r)
         if pulse_active:
             total = total + self.baseline_input
         if extra_input is not None:

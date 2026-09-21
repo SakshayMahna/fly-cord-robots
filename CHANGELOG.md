@@ -7,27 +7,30 @@ linked file for the full reasoning, quotes, and numbers. This is the
 source material for the video script, so the linked files are written to
 explain *why*, not just *what*.
 
-- **[2026-09-20 — Phase 5 design + compute gate](phase5/DESIGN.md)** —
-  Proposal only; nothing built. Specifies the 65-parameter trainable
-  adapter (sensory encoder / command drive / motor decoder, all explicitly
-  ours), the reward, the curriculum, and the controls, then measures the
-  compute gate instead of estimating it
-  ([benchmarks](phase5/benchmarks/)). Main findings: the **connectome, not
-  the body, is 88.7% of a trial's cost** — so accelerating MuJoCo targets
-  9% of the problem; only 471 of 23,532 neurons are ever nonzero in a
-  stable trial, and skipping the provably-zero columns gives a
-  **bit-identical 3.40× end-to-end** speedup (33.1 s → 9.75 s per trial),
-  which inverts to 0.74× under saturation and so needs a density guard;
-  CPU parallelism saturates at ~6 workers (~3.8×); and there is **no
-  useful lossless subnetwork crop** (only 3.6% of neurons are provably
-  inert — the network reaches 13,541 within two hops). Argues, with the
-  measurements, that this workload wants **many CPU cores rather than a
-  GPU** — the loop is sequential in time, batching the population would
-  require batching physics, FlyGym 2.1.0 has no MJX support at all, and 69
-  of the body's 70 geoms are meshes. The Colab GPU number the brief asked
-  for was **not measured** (no GPU on this machine) and deliberately not
-  invented. Default training budget exceeds the brief's 10-hour gate, so
-  the work stops there for a decision.
+- **[2026-09-20 to 2026-09-21 — trained adapter: design, compute gate, and
+  a lossless 3.4×](docs/trained_adapter/)** — Design and measurement only;
+  **the trainer is deliberately not built** (`DESIGN.md` for the current
+  state, `LOG.md` for the chronology, `benchmarks/` for every number).
+  Specifies the 65-parameter trainable adapter (sensory encoder / command
+  drive / motor decoder, all explicitly ours), reward, curriculum and
+  controls, then measured the compute gate rather than estimating it. The
+  headline inverted the assumption the work was planned on: **the
+  connectome is 88.7% of a trial's cost and the body is 9.0%**, so
+  accelerating MuJoCo targets a tenth of the problem. Noticing that the
+  *rate vector* is sparse where only the *matrix* had been exploited gave a
+  **bit-identical 3.40× end-to-end** speedup (33.1 s → 9.75 s per trial) —
+  which **inverts to 0.74×, i.e. slower, under saturation**, so it ships
+  behind a density guard with two regression tests aimed squarely at the
+  fallback. Also measured: **no useful lossless crop exists** (only 3.6% of
+  neurons are provably inert; the network reaches 13,541 within two hops),
+  CPU parallelism saturates around 6 workers, and per-worker memory drops
+  **3.29 GB → 0.55 GB** with `jax.clear_caches()` — the number that decides
+  VM sizing. Concluded, with the measurements behind it, that the workload
+  wants **many CPU cores rather than a GPU**; the Colab GPU figure the
+  brief asked for was **not measured** (no GPU here) and deliberately not
+  invented. Recovered Phase 4's frozen-interface config hash
+  (`04be9dec…`), whose generating code was never committed, so it is now
+  checkable rather than merely quoted.
 - **[2026-09-19 to 2026-09-20 — closed-loop work](docs/closed_loop/)** —
   A continuous pre-registered arc, kept in its own subfolder rather than
   daily logs (`AUDIT.md`, `SENSORY_MAP.md`, `PREREGISTRATION.md` + two

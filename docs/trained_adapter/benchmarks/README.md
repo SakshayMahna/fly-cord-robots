@@ -7,7 +7,7 @@ of them changes the model, and none is part of a trainer.
 Run from the repo root with the venv, e.g.:
 
 ```bash
-MUJOCO_GL=cgl PYTHONPATH=$PWD .venv/bin/python phase5/benchmarks/bench_components.py
+MUJOCO_GL=cgl PYTHONPATH=$PWD .venv/bin/python docs/trained_adapter/benchmarks/bench_components.py
 ```
 
 | script | answers | key result (M3 Pro, 11 cores) |
@@ -18,6 +18,12 @@ MUJOCO_GL=cgl PYTHONPATH=$PWD .venv/bin/python phase5/benchmarks/bench_component
 | `bench_faststep.py` | full-step speedup, and the saturated worst case | 6.3× stable; 0.74× (slower) at full density → needs a density guard |
 | `bench_parallel2.py` | how many CPU cores are worth using? | saturates at ~6 workers, 3.82× |
 | `bench_endtoend.py` | does it hold through the real `run_trial`? | 33.1 s → 9.75 s (3.40×), outputs bit-identical |
+| `bench_population_throughput.py` | trials/hour with N workers, and RAM per worker | 1,331 trials/hr at 10 workers; 0.57 GB steady/worker, 7.4 GB transient build peak |
+
+`bench_population_throughput.py` is the one to re-run on a rented VM before
+committing to a long training run — §5.6's 16- and 32-core figures are
+extrapolated from an 11-core heterogeneous laptop and carry roughly a
+factor-of-two error bar. It takes about ten minutes.
 
 `bench_parallel2.py` writes a cached copy of `W_eff` and the settled rate
 vector into the scratchpad on first run; delete those to regenerate.
