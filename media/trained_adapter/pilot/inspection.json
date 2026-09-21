@@ -1,0 +1,101 @@
+{
+ "untrained (defaults)": {
+  "forward_speed_frac_of_walking": -0.010478692619424117,
+  "pitch_rad_s": 0.009954757988452911,
+  "roll_rad_s": 0.00981817115098238,
+  "yaw_rad_s": 0.018432531505823135,
+  "joint_motion_total": 0.015878280624747276,
+  "static_offset_rad": 2.446042060852051,
+  "n_rhythmic": 3,
+  "dominant_hz": 10.571428571428571,
+  "tripod_index": -0.40632075698234976,
+  "n_active": 377,
+  "top_leg": "T3-RHS",
+  "top_leg_share": 0.642058201862992,
+  "rotation_concentration": 0.30340155959129333,
+  "leg_share": {
+   "T1-LHS": 0.024,
+   "T1-RHS": 0.023,
+   "T2-LHS": 0.042,
+   "T2-RHS": 0.253,
+   "T3-LHS": 0.017,
+   "T3-RHS": 0.642
+  },
+  "flags": [
+   [
+    "single_leg_dominance",
+    "T3-RHS accounts for 64% of all joint motion"
+   ],
+   [
+    "posture_exploit",
+    "a joint sits 2.45 rad off neutral on average \u2014 a held pose, not a gait"
+   ]
+  ]
+ },
+ "all-time best candidate": {
+  "forward_speed_frac_of_walking": 0.9448486252834923,
+  "pitch_rad_s": -0.8976061940193176,
+  "roll_rad_s": 1.0102322312022238e-09,
+  "yaw_rad_s": 4.934168629233682e-09,
+  "joint_motion_total": 0.0007505249814130366,
+  "static_offset_rad": 2.443387269973755,
+  "n_rhythmic": 1,
+  "dominant_hz": 9.142857142857142,
+  "tripod_index": NaN,
+  "n_active": 189,
+  "top_leg": "T3-RHS",
+  "top_leg_share": 0.9999998467693006,
+  "rotation_concentration": 0.100012868642807,
+  "leg_share": {
+   "T1-LHS": 0.0,
+   "T1-RHS": 0.0,
+   "T2-LHS": 0.0,
+   "T2-RHS": 0.0,
+   "T3-LHS": 0.0,
+   "T3-RHS": 1.0
+  },
+  "flags": [
+   [
+    "single_leg_dominance",
+    "T3-RHS accounts for 100% of all joint motion"
+   ],
+   [
+    "posture_exploit",
+    "a joint sits 2.44 rad off neutral on average \u2014 a held pose, not a gait"
+   ]
+  ]
+ },
+ "CMA-ES distribution mean": {
+  "forward_speed_frac_of_walking": -4.792038070215648e-06,
+  "pitch_rad_s": 4.552436166704865e-06,
+  "roll_rad_s": -1.6518688426003791e-06,
+  "yaw_rad_s": 4.4196843873578473e-07,
+  "joint_motion_total": 0.0004151665198151022,
+  "static_offset_rad": 2.443387269973755,
+  "n_rhythmic": 4,
+  "dominant_hz": 11.714285714285714,
+  "tripod_index": 0.31184898324370947,
+  "n_active": 253,
+  "top_leg": "T3-LHS",
+  "top_leg_share": 0.5411066962857742,
+  "rotation_concentration": 0.21644127368927002,
+  "leg_share": {
+   "T1-LHS": 0.401,
+   "T1-RHS": 0.0,
+   "T2-LHS": 0.042,
+   "T2-RHS": 0.012,
+   "T3-LHS": 0.541,
+   "T3-RHS": 0.004
+  },
+  "flags": [
+   [
+    "single_leg_dominance",
+    "T3-LHS accounts for 54% of all joint motion"
+   ],
+   [
+    "posture_exploit",
+    "a joint sits 2.44 rad off neutral on average \u2014 a held pose, not a gait"
+   ]
+  ]
+ }
+}

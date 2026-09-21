@@ -1,0 +1,13 @@
+{
+ "n_generations": 121,
+ "runmax_ma10_at_60": 0.411140760831032,
+ "runmax_ma10_at_120": 0.411140760831032,
+ "criterion_A_no_improvement": true,
+ "delta_median": 0.23261198532800192,
+ "delta_saturation_term": 0.26612916666666664,
+ "saturation_share_of_median_gain": 1.1440905174830212,
+ "criterion_B_gains_are_saturation": true,
+ "STOP": true,
+ "review_generation_reached": true,
+ "latest_generation": 120
+}

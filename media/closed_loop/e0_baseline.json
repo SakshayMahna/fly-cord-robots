@@ -1,0 +1,27 @@
+{
+  "n_replicates_total": 128,
+  "n_replicates_stable": 118,
+  "calibrated_chance": 0.076,
+  "tripod_index_median": -0.28020852306255434,
+  "tripod_index_frac_positive": 0.211864406779661,
+  "by_class": {
+    "ipsilateral": {
+      "n_pairs": 6,
+      "n_valid_trials": 227,
+      "frac_significant": 0.5462555066079295,
+      "median_plv": 0.9058920678205938
+    },
+    "contralateral": {
+      "n_pairs": 3,
+      "n_valid_trials": 95,
+      "frac_significant": 0.16842105263157894,
+      "median_plv": 0.12976402448173965
+    },
+    "diagonal": {
+      "n_pairs": 6,
+      "n_valid_trials": 234,
+      "frac_significant": 0.1752136752136752,
+      "median_plv": 0.11523148475392529
+    }
+  }
+}

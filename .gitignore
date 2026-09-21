@@ -33,6 +33,20 @@ media/**/*.gif
 media/**/*.json
 !media/.gitkeep
 
+# --- Preserved experiment records: DELIBERATELY tracked despite the rules
+# above. The default is right for regenerable renders, but these are not
+# cheaply regenerable:
+#   * the Phase 5 pilot is ~5 hours of compute (121 generations);
+#   * the contaminated first pilot CANNOT be reproduced at all, because the
+#     code that produced it has since been fixed;
+#   * the Phase 4 clips are the video deliverable and depend on specific
+#     pilot replicate states.
+# Inventory and provenance: docs/trained_adapter/artifacts/MANIFEST.md
+!media/trained_adapter/**
+!media/closed_loop/clips/**
+!media/closed_loop/*.json
+!media/closed_loop/*/*.json
+
 # MuJoCo / logs (root-anchored: does not affect docs/logs/, which is tracked)
 *.mjb
 /logs/

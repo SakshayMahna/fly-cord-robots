@@ -1,0 +1,15 @@
+{
+  "n_trials": 68,
+  "elapsed_min": 30.0,
+  "mean_trial_s": 25.0,
+  "projected_full_matrix_hours": 6.5,
+  "any_unstable": false,
+  "frac_oversaturated": 0.412,
+  "param_seed": 641,
+  "replicates": [
+    0,
+    1,
+    2,
+    3
+  ]
+}
