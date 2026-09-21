@@ -96,3 +96,84 @@ Applied in order to each network after matching:
   A control that then matches the real connectome's trained performance
   would be a serious negative result for the headline claim, and would be
   reported plainly, in those words.
+
+---
+
+# Amendment 1 — monotonicity claim corrected (2026-09-21)
+
+**Written while C1's search was running, before C2's began.**
+
+The procedure above justifies bisection by asserting that baseline
+`n_active` is "monotone non-decreasing in drive — verified before this was
+written, for all three networks". **That claim is broader than what was
+actually tested and is wrong as stated.**
+
+What was tested: drives {0, 25, 50, 100, 200, 380} on **replicate 1 only**.
+Within that range it is monotone for all three networks.
+
+What the search then measured, above that range:
+
+| network | drive → median `n_active` |
+|---|---|
+| real | 406 → 582, but **437 → 3,991** |
+| real | **500 → 4,015**, but **1000 → 2,886** |
+| C1 | 310.55 → 248, but **312.50 → 3,496** |
+
+So activity is **monotone below the bifurcation and not above it**, and the
+transition is a near-discontinuity rather than a steep slope. That is the
+same regime structure Phase 4 established — a cliff with no graded middle —
+showing up in a different measurement.
+
+**Does this invalidate the search?** No, and the reason is specific rather
+than reassuring: the implementation keeps the best-error candidate seen at
+any iteration rather than trusting the bracket, and it reports
+`converged` from that error against the tolerance. A network whose target
+lies below its cliff converges correctly (the real network did, to 0.5%).
+A network whose target lies *inside* its discontinuity exhausts the bracket
+and is reported as unconverged — which is the honest answer, not a search
+failure to be worked around.
+
+The corrected claim, for the record: **bisection is valid on the
+sub-bifurcation branch, which is where any usable operating point lies.**
+
+---
+
+# Amendment 2 — secondary fallback for unmatched controls (2026-09-21)
+
+**Written before C2's search began, and before C1's verdict was known.**
+
+A control that cannot be activity-matched would otherwise be reported and
+never trained, leaving the headline claim with fewer trained controls than
+planned. That is a real cost, so a secondary comparison is added.
+
+**It does not replace the primary result.** "Cannot be activity-matched"
+remains the primary finding for any control that fails reachability, and is
+reported first and as such.
+
+## The fallback
+
+For any control failing reachability, also train it at its **highest stable
+sub-cliff drive**, defined as the largest drive satisfying **both**:
+
+1. median adapter-off baseline `n_active` ≤ **1,500** (the unchanged
+   pre-registered stability threshold), and
+2. median AR(1)-gated `n_rhythmic` ≥ **2 of 6** across eligible replicates
+   — the same rhythmicity criterion, unchanged.
+
+**Search:** bisection on drive over `[0, D]`, where `D` is the lower edge of
+the bracket the primary search exhausted, using the same seeds (replicates
+0–7, parameter seed 641), the same 4.0 s duration, the same 1.0-drive-unit
+minimum bracket and the same 30-iteration cap. The objective is the largest
+drive meeting both conditions, not a target value, so tolerance does not
+apply; the search returns the largest passing drive found.
+
+**Labelling, mandatory and verbatim wherever it appears:**
+**"not activity-matched; secondary comparison"**. Any figure, table or
+video caption showing this control carries that label. It is not to be
+described as a matched control, because it is not one — it runs at lower
+total activity than the real network, and a weaker result from it could be
+the activity difference rather than the wiring.
+
+**If no drive satisfies both conditions**, the control has no stable
+rhythmic regime at any drive. Report that; do not train it. That is a
+stronger statement about the wiring than the matching failure alone.
