@@ -22,6 +22,27 @@ comparison (14.025 and 7.396 mm/s).
 and the same reward as the treatment.** A control given a weaker test is
 not a control.
 
+## Launch order — committed 2026-09-21
+
+1. **real connectome**
+2. **C1** (degree- and sign-preserving shuffle)
+3. **C2** (matched random network)
+
+**C1 and C2 run at identical budget regardless of what the real run
+does.** No early abandonment of controls, for any reason — not a
+disappointing treatment result, not a promising one, not compute pressure.
+
+The reason is not tidiness. A control run only when the treatment looks
+good, or dropped when it looks bad, is not a control; it is a way of
+confirming whatever the first run suggested. The order above exists so
+that the decision to run all three is made now, before any of their
+results exist, rather than in the middle of reading the first one.
+
+Each control that passes the pre-registered activity-matching gates
+(`PREREGISTRATION.md`) is trained. Each that fails is **reported as its
+result** — that is also not abandonment; it is the gate doing its job, and
+the failure is itself informative about the wiring.
+
 ## Budget
 
 | setting | value | why |
