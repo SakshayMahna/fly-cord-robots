@@ -197,6 +197,12 @@ and `g_fb = 0` gates:
 
 ## 3. Reward
 
+> **Superseded by [`REWARD.md`](REWARD.md) (2026-09-21).** That document is
+> the proposal of record, with measured scales, weights, a gaming analysis,
+> and the sign hazard in §2 of it. What follows is the original sketch, kept
+> because the reasoning about the load-sensing gap is still current.
+
+
 Measured on the tethered-ball rig, over 3.5 s after a fixed 0.5 s transient
 discard (identical to Phase 4's convention).
 
@@ -376,8 +382,38 @@ scored on one neuron-parameter draw is being scored on luck.
 | reduced-λ | 16 | 3 | 300 | 14,400 | not approved |
 | **lean** | 16 | 2 | 250 | **8,000** | **approved for Stage A1** |
 
-**Decided 2026-09-21: Stage A1 runs the lean row.** The default row is not
-to be run without explicit approval.
+**Decided 2026-09-21: Stage A1 runs the lean row — as a PILOT ONLY.** The
+default row is not to be run without explicit approval.
+
+> ### The lean row is a pipeline shakedown, not an experiment
+>
+> **A success at lean budget is informative. A failure is not reportable as
+> a negative result, and must not be written as one** — not in
+> `RESULTS.md`, not in the video script, not as "the adapter could not
+> learn this."
+>
+> The reason is the asymmetry: if a lean-budget run produces coordinated
+> stepping, coordinated stepping happened, and a noisy search finding it
+> anyway only makes the result stronger. If it does not, two explanations
+> are left standing and 2 episodes/candidate cannot separate them —
+> *the adapter cannot do this* versus *the search could not see the
+> signal through its own noise*. Phase 4 measured exactly how large that
+> noise can be: replicate 1 stayed stable across the entire gain sweep
+> while replicate 0 bifurcated, on identical settings.
+>
+> Reporting a lean-budget failure as evidence about the connectome would
+> be the same error this project has twice caught elsewhere — treating an
+> underpowered or stale measurement as an answer.
+>
+> **What the pilot is actually for:** shaking out bugs, confirming the
+> no-bypass gates hold under training, checking checkpoint/resume,
+> confirming the reward is not trivially exploitable, and measuring the
+> real per-candidate score noise (§5.7) so the powered run can be sized.
+
+**Before any negative claim, the protocol in §5.7 is mandatory**: measure
+the score noise, compute the episode count that can resolve the effect
+size we care about, and re-run at that count. A negative result is only
+reportable from the powered run.
 
 Stage A1 needs the real run **plus C1 and C2 at equal budget** (C3 is much
 cheaper — no connectome), so A1 is **~24,000 trials** in total. Wall-clock
@@ -515,6 +551,153 @@ VM** — the 16/32-core numbers above are extrapolated from a heterogeneous
 
 ---
 
+### 5.7 Score noise and the episode count — measured 2026-09-21
+
+**Mandatory before any negative claim**, per your decision. Measured with
+`benchmarks/measure_score_noise.py` at the frozen Phase 4 defaults (the
+untrained starting configuration), `g_fb = 0`, on the ball, 4 s, across the
+7 pilot replicates the stability filter allows.
+
+The adapter does not exist yet, so what is measured is the **observables the
+reward is built from**, which is also what §3's scaling needs.
+
+#### The dominant noise source is one saturated replicate
+
+| | progress (pitch, rad/s) | n_rhythmic | n_active |
+|---|---|---|---|
+| rep 0, 1, 3, 4, 6, 7 | +0.016 … −0.001 | 3–5 of 6 | 367–522 |
+| **rep 5** | **+0.471** | 3 of 6 | **3,794** |
+
+| pool | mean pitch | **SD** |
+|---|---:|---:|
+| all 7 replicates | +0.0714 | **0.1761** |
+| stability-filtered (`n_active ≤ 1500`) | +0.0049 | **0.0066** |
+
+**The pre-registered stability filter is worth 27× in noise.** A single
+saturated replicate contributes ~97% of the variance in the progress term.
+This is not a nuisance to be averaged away — it is the strongest practical
+argument for the saturation penalty in `REWARD.md`, independent of the
+scientific one.
+
+It also says something the reward must account for directly: **a seizing
+network spins the ball hard.** rep 5 produces 30× the ball rotation of any
+healthy replicate. Reward progress carelessly and the search will find
+seizure as a way to earn it.
+
+#### Episodes needed, per term
+
+Using SE = σ/√E and requiring an improvement Δ ≥ 2·SE, on the
+stability-filtered pool:
+
+| term | mean | SD | improvement to resolve | Δ (SD) | **E ≥** |
+|---|---:|---:|---|---:|---:|
+| progress (pitch) | 0.0049 | 0.0066 | 2% of walking (0.019) | 2.9 | **1** |
+| straightness (yaw) | 0.085 | 0.019 | halve it | 2.3 | **1** |
+| posture (excursion) | 0.0018 | 0.0003 | +50% | 5.5 | **1** |
+| n_rhythmic | 4.00 | 0.89 | +1 leg | 1.1 | **4** |
+| **tripod index** | −0.403 | 0.238 | +0.2 | 0.8 | **6** |
+
+**The binding term is the tripod index, at E ≥ 6 — not progress, which is
+cheap at E ≥ 1.** Coordination is the noisy quantity here, which is
+unsurprising given it is the thing the project is actually asking about.
+
+**Powered-run recommendation: E = 6**, which resolves a +0.2 tripod change
+and a +1-leg rhythmicity change simultaneously. At the lean row's other
+settings that is 16 × 6 × 250 = 24,000 trials per run (~57 core-hours ×3).
+
+#### Two honest limits on this calculation
+
+1. **It sizes terminal-effect detection, not search resolution.** "Can we
+   tell a trained adapter from an untrained one" is what E ≥ 6 answers. "Can
+   CMA-ES rank two candidates that differ slightly, generation after
+   generation" is a different and generally harder question, and it depends
+   on the *within-generation* score spread, which does not exist until a
+   search has been run. **That is a specific thing the lean pilot must
+   report**, and the powered run's E should be revised against it.
+2. **The within-replicate arm measured almost nothing, partly by
+   construction.** Perturbing the initial joint state by 0.02 rad changed
+   pitch only in the 4th decimal and left `n_active` identical to the unit
+   — because at `g_fb = 0` there is no path from body to neurons at all, so
+   the neural trajectory *cannot* depend on initial pose. This says episodes
+   should sample the **replicate** rather than the initial condition, but it
+   will need re-measuring once the adapter runs a nonzero feedback gain,
+   where the body genuinely can influence the network.
+
+---
+
+## 5b. Trainer design
+
+*Proposal. Not built — the build gate is reward approval (`REWARD.md`).*
+
+### Algorithm
+
+**CMA-ES** (`cma`, or `evosax` if a JAX path is ever wanted), not OpenAI-ES.
+At 65 parameters CMA-ES's covariance adaptation is affordable (65×65) and it
+handles ill-conditioned, differently-scaled parameters — which this adapter
+certainly has, since a sensory gain and a joint offset are not in comparable
+units. OpenAI-ES would need a larger population to do the same job.
+
+No gradients anywhere. The connectome is never differentiated through, and
+`W_eff` is hashed at load and at teardown of every trial (§2.5) to prove it.
+
+**Parameter conditioning.** Every one of the 65 parameters is searched in a
+normalised space (roughly zero-mean, unit-scale) and mapped to its physical
+range on use, so CMA-ES's single initial step size `sigma0` is meaningful
+across all of them. Bounded parameters (saturation caps, threshold
+fractions, time constants) map through a squashing function rather than
+being clipped, because clipping creates flat regions the covariance cannot
+read.
+
+### Parallel evaluation
+
+A generation is P candidates × E episodes = P·E independent trials, which is
+embarrassingly parallel and is exactly what §5.6 measured. Shape, per your
+decision:
+
+- **Serialised pool startup.** Workers build one at a time behind a lock.
+  Concurrent builds on 32 workers would want ~235 GB (§5.6) and will OOM.
+  Each worker calls `jax.clear_caches()` after building, taking it from
+  ~3.3 GB to ~0.55 GB.
+- **Persistent workers.** The ~10 s build is paid once per pool, not per
+  generation.
+- **Synchronous generations.** The CMA-ES update needs every fitness, so a
+  generation costs its slowest trial — which is why §5.6 reports max-gated
+  throughput rather than the mean.
+
+### Checkpointing and resume
+
+**Every generation**, to persistent storage, per your decision. A
+checkpoint holds: the full CMA-ES state (mean, covariance, step size,
+internal counters), the generation index, the RNG state, the episode
+replicate assignment, the best-so-far parameters and score, and the config
+hash of the reward and adapter definitions.
+
+Two properties worth stating because they are easy to get wrong:
+
+- **Resume must be exact, not approximate.** Reloading and continuing has
+  to produce the same sequence a run without interruption would have. That
+  is testable — checkpoint at generation *k*, resume, and assert the next
+  generation's sampled population matches an uninterrupted run bit-for-bit.
+  This is the same class of gate as Phase 4's `g_fb = 0` test and should be
+  written the same way.
+- **A checkpoint carries the reward's config hash.** If the reward
+  definition changes, resuming into it silently mixes two objectives across
+  one run. The loader refuses a hash mismatch rather than warning.
+
+Episode replicate assignment is drawn from the generation index, so a
+resumed run scores candidates on the same draws the original would have —
+otherwise resume quietly changes the noise structure mid-search.
+
+### What gets logged per generation
+
+Best / median / worst score, each reward term separately (so it is visible
+which term is actually being optimised), the fraction of trials that hit the
+saturation penalty, the fraction that fell back to the dense matvec, wall
+time, and the current `sigma`. Per-term logging is what catches a reward
+being gamed; a single scalar hides it.
+
+---
+
 ## 6. Cost-reduction options — status
 
 1. ~~**Land the lossless 3.4× step**~~ — **done** (§5.2). Bit-identical,
@@ -553,10 +736,12 @@ and any *larger* crop would be a topology change.
   behaviour bit-identically, and a re-run of the Phase 4 bifurcation to
   report the effect. **Not started.**
 - **§6 items 4 and 5** (shorter training trials; RK4 → RK2).
-- **The default budget row** (§5.4). Stage A1 is approved at lean only.
+- **The default budget row** (§5.4). Stage A1 is approved at lean, as a
+  pilot only.
 - **The trainer itself.** This is the stop line and it has not been
   crossed: there is no ES loop, no reward implementation, no adapter
-  parameter vector, and no C2/C3 control in the codebase.
+  parameter vector, and no C2/C3 control in the codebase. **The build gate
+  is reward approval** — see [`REWARD.md`](REWARD.md).
 
 ## 8. What has and has not been built
 
@@ -576,13 +761,11 @@ curriculum, C2, C3, and any Stage A/B run.
 
 ## 9. Open questions for you
 
-1. Is the lean-budget caveat in §5.4 acceptable — specifically that a
-   *negative* A1 result at 2 episodes/candidate will be weak evidence?
-2. VM shape: §5.6 recommends **16–32 vCPU, ≥ 32 GB**, ~$3–8 per Stage A1 at
-   indicative pricing that still needs verifying. Confirm before any spend,
-   and expect the first ten minutes of the rental to go on a calibration
-   run rather than training.
-3. The reward weights (§3) are a design choice that must be fixed *before*
-   the first real run and recorded, per the no-per-condition-tuning rule.
-   Do you want to see them proposed as a separate short decision, or should
-   I fix them when the trainer is approved?
+**The live one is [`REWARD.md`](REWARD.md) §7** — the seven weights, the
+saturation cap, and whether the controls run at E = 6 or the pilot's E = 2.
+Nothing gets built until those are settled.
+
+Settled since the first draft: folder name (§0.2), compute route (§0.3),
+the speedup (§5.2), the motor decoder (§2.3), the budget (§5.4), A3's
+turning manipulation (§2.2), and the VM shape (§5.6, confirmed 16–32 vCPU
+with serialised startup and per-generation checkpointing).

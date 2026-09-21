@@ -19,6 +19,7 @@ MUJOCO_GL=cgl PYTHONPATH=$PWD .venv/bin/python docs/trained_adapter/benchmarks/b
 | `bench_parallel2.py` | how many CPU cores are worth using? | saturates at ~6 workers, 3.82× |
 | `bench_endtoend.py` | does it hold through the real `run_trial`? | 33.1 s → 9.75 s (3.40×), outputs bit-identical |
 | `bench_population_throughput.py` | trials/hour with N workers, and RAM per worker | 1,331 trials/hr at 10 workers; 0.57 GB steady/worker, 7.4 GB transient build peak |
+| `measure_score_noise.py` | how noisy is a candidate's score? | one saturated replicate contributes ~97% of progress variance; stability filter is worth 27×; binding episode count is E ≥ 6, set by the tripod index |
 
 `bench_population_throughput.py` is the one to re-run on a rented VM before
 committing to a long training run — §5.6's 16- and 32-core figures are

@@ -30,7 +30,18 @@ explain *why*, not just *what*.
   brief asked for was **not measured** (no GPU here) and deliberately not
   invented. Recovered Phase 4's frozen-interface config hash
   (`04be9dec…`), whose generating code was never committed, so it is now
-  checkable rather than merely quoted.
+  checkable rather than merely quoted. Then measured the **score noise**
+  before proposing a reward, and it reframed the design: one saturated
+  replicate contributes ~97% of the variance in the progress term (the
+  pre-registered stability filter is worth **27×**), and that replicate
+  spins the ball at **30× any healthy one** — a seizing network is
+  *instrumentally attractive* to an optimiser, which makes the saturation
+  penalty the largest-weighted reward term rather than a precaution. The
+  binding episode count is set by **coordination, not progress** (tripod
+  index needs E ≥ 6; progress needs E ≥ 1). Also caught a sign hazard:
+  forward walking is **negative** pitch, so a flipped sign would train a
+  backwards-walking fly while the score read as success throughout.
+  `REWARD.md` is the approval gate; the trainer is still not built.
 - **[2026-09-19 to 2026-09-20 — closed-loop work](docs/closed_loop/)** —
   A continuous pre-registered arc, kept in its own subfolder rather than
   daily logs (`AUDIT.md`, `SENSORY_MAP.md`, `PREREGISTRATION.md` + two

@@ -141,3 +141,52 @@ is serialised. Thirty-two workers each rebuilding from the dense matrix
 concurrently would want ~235 GB and would OOM. That is the most likely way
 to waste a rented VM, so it is written into the design rather than left to
 be discovered.
+
+**Score noise measured, and it reframed the reward.** Ran the untrained
+frozen defaults across the 7 pilot replicates to get the spread of every
+observable the reward will be built from — needed both for scaling the
+reward terms and for sizing the episode count.
+
+The dominant result was not the spread itself but **where it comes from**.
+One replicate (5) is saturated at `n_active = 3,794`, and it alone
+contributes ~97% of the variance in the progress term: SD across all seven
+replicates is 0.176, against **0.0066** once the pre-registered stability
+filter (`n_active ≤ 1500`) is applied. **The filter is worth 27× in noise.**
+
+And the mechanism matters more than the number: rep 5 produces **ball pitch
++0.471 rad/s, 30× any healthy replicate.** A seizing network thrashes and
+spins the ball. So saturation is not merely scientifically wrong here — it
+is *instrumentally attractive* to an optimiser looking for ball rotation.
+That converted the saturation penalty from a precaution into the
+largest-weighted term in `REWARD.md`, sized (−2.00, hinged at 1,500) to beat
+the progress available that way by a measured ~6×.
+
+**Episode count: the binding term is coordination, not progress.** Using
+SE = σ/√E with Δ ≥ 2·SE on the filtered pool, progress needs only E ≥ 1 to
+resolve 2% of walking, while the tripod index needs **E ≥ 6** to resolve a
++0.2 change and rhythmicity E ≥ 4 for one leg. Coordination is the noisy
+quantity — which is unsurprising, since it is the thing the project is
+actually asking about. Powered-run recommendation is therefore E = 6, with
+the explicit caveat that this sizes *terminal-effect detection*, not
+CMA-ES's ability to rank nearby candidates generation over generation; that
+needs the within-generation spread, which does not exist until a search has
+run, and is a specific deliverable of the lean pilot.
+
+**A caveat recorded rather than glossed:** the within-replicate arm found
+almost no variance (pitch varying in the 4th decimal, `n_active` identical
+to the unit across 6 perturbed starts). That is substantially **by
+construction** — the measurement ran at `g_fb = 0`, where there is no path
+from body to neurons at all, so the neural trajectory *cannot* depend on
+initial pose. It supports sampling the replicate rather than the initial
+condition, but must be re-measured once the adapter runs a nonzero feedback
+gain.
+
+**Caught a sign hazard that would have been very hard to see later.**
+`PREREGISTRATION.md` §2 records forward walking as **−0.95 rad/s** on the
+pitch axis. So the reward's progress term has to be `−pitch`. With the sign
+flipped, the trainer would learn to walk backwards and the scalar score
+would read as success throughout. `REWARD.md` §2 makes this the first thing
+in the document and requires a sign test — assert the synthetic tripod gait
+scores positive and its time-reversal negative — rather than a comment.
+Worth noting the untrained connectome sits at **+0.005 rad/s**, i.e.
+essentially stationary and marginally *backward*.
