@@ -279,3 +279,44 @@ here independently corroborates that decision.
 Whether a trained adapter could *survive* a pre-saturated replicate — by
 lowering `dng100_level`, say — is a legitimate robustness question. It is
 recorded as a possible later test and is **not** part of training.
+
+---
+
+## 2026-09-21 (later still) — generation-120 review point, rule committed in advance
+
+Agreed at generation ~58, **before the generation-120 data existed**, and
+written as executable code (`fly_robot/experiments/review_pilot.py`) rather
+than prose so that applying it is a computation, not a judgement made while
+looking at the answer. Same discipline as `docs/closed_loop/`
+PREREGISTRATION §B2, which is the only reason Phase 4's result is
+reportable.
+
+**Stop the pilot at generation 120 if BOTH:**
+
+  **A.** `runmax(MA10(best))[120] <= runmax(MA10(best))[60]` — a
+  10-generation trailing mean, then its running maximum. Raw `best` is not
+  used because it is the max over 16 candidates of a mean of only **2**
+  episodes, so it is upward-biased by construction and drifts upward on
+  noise alone. The gen-15 spike to +1.105, never reproduced in the 43
+  generations since, is the worked example of why.
+
+  **B.** `delta(mean weighted saturation term) / delta(median) > 0.5`
+  between the first and last 10 generations — i.e. the median's improvement
+  is still mostly the population learning not to seize, rather than
+  learning to walk.
+
+Otherwise continue to 250.
+
+**Stated limitation of criterion B, recorded now rather than discovered
+during the review:** the trainer logs per-term values as MEANS over the
+population while `median` is a median of candidate scores, so comparing
+them is an approximation. The clean comparison — median score with and
+without the saturation term — needs **per-candidate** term logging, which
+this run does not have.
+
+That gap is worth naming plainly: per-term logging was introduced
+specifically to catch reward hacking, and as built it averages over the
+whole population, which hides the single candidate one would actually want
+to inspect. It could not explain the gen-15 spike for exactly that reason.
+Fixing it requires a restart, so it is deferred to the powered run rather
+than applied mid-pilot.
