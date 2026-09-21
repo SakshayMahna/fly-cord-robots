@@ -48,8 +48,9 @@ def _groups_and_dofs():
 
 # --- parameters -----------------------------------------------------------
 
-def test_parameter_count_is_65():
-    assert N_PARAMS == 65, "DESIGN.md §2 specifies 65 trainable parameters"
+def test_parameter_count_is_68():
+    """65 interface parameters plus 3 per-segment adhesion thresholds."""
+    assert N_PARAMS == 68, "DESIGN.md §2 + §10 specify 68 trainable parameters"
 
 
 def test_z_zero_decodes_to_the_documented_defaults():
@@ -149,6 +150,47 @@ def test_no_bypass_targets_depend_only_on_rates():
     other = adapter_joint_targets(rng.uniform(0, 10, n_rows), groups, dof_index,
                                   neutral, params)
     assert not np.allclose(first, other), "targets ignore the connectome's rates"
+
+
+def test_adhesion_depends_only_on_connectome_output():
+    """NO-BYPASS for the adhesion gate. Adhesion must be a pure function of
+    motor-neuron rates and the trainable threshold. If a sensor reading or
+    body state could reach it, adhesion would be a control channel that
+    skips the connectome entirely."""
+    from fly_robot.adapter.apply import adhesion_from_motor_output
+
+    groups, _dofs, n_rows = _groups_and_dofs()
+    params = default_params()
+    rng = np.random.default_rng(11)
+
+    rates = rng.uniform(0, 10, n_rows)
+    first = adhesion_from_motor_output(rates, groups, params)
+    for _ in range(5):          # same rates -> identical adhesion, always
+        np.testing.assert_array_equal(
+            adhesion_from_motor_output(rates, groups, params), first)
+
+    assert first.shape == (6,)
+    assert set(np.unique(first)) <= {0.0, 1.0}, "adhesion must be on or off"
+
+    # It must actually respond to the connectome, not be a constant.
+    seen = {tuple(adhesion_from_motor_output(rng.uniform(0, 10, n_rows),
+                                             groups, params))
+            for _ in range(40)}
+    assert len(seen) > 1, "adhesion ignores the connectome's motor rates"
+
+
+def test_adhesion_threshold_changes_the_gate():
+    """A threshold that did nothing would make the parameter a decoy."""
+    from fly_robot.adapter.apply import adhesion_from_motor_output
+
+    groups, _dofs, n_rows = _groups_and_dofs()
+    rng = np.random.default_rng(3)
+    rates = rng.uniform(0, 10, n_rows)
+    low = from_z(np.full(N_PARAMS, -8.0))
+    high = from_z(np.full(N_PARAMS, 8.0))
+    assert not np.array_equal(
+        adhesion_from_motor_output(rates, groups, low, ),
+        adhesion_from_motor_output(rates, groups, high))
 
 
 def test_sensory_encoder_only_ever_injects_non_negative_current():

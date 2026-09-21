@@ -174,6 +174,55 @@ class AdapterSensoryEncoder(SensoryEncoder):
         return current
 
 
+# Adhesion gating: which motor pools say "stance".
+#
+# OUR ADDITION, but the signal is not invented. Pugliese's own motor-module
+# annotation names two of the pools **"coxa stance"** and **"coxa swing"**,
+# and both are present in all six legs (stance 6/7/6, swing 7/3/3 for
+# T1/T2/T3 per side). They are an antagonist pair already used by the frozen
+# motor interface to drive thorax-coxa pitch, so the difference between
+# their mean rates is a signed, well-posed phase signal with a meaningful
+# zero: positive means the stance pool is out-firing the swing pool.
+#
+# Adhesion is ON in stance and OFF in swing, matching what both baselines
+# do -- they take the same swing/stance distinction from the reference
+# kinematics' own `swing_stance_time`. Each controller gates adhesion with
+# its own phase signal; see DESIGN.md for why that is the fair comparison.
+#
+# Considered and not chosen as the primary signal: the **"substrate grip"**
+# module (47 neurons, 6-9 per leg), which is semantically the closest thing
+# to adhesion in the whole annotation. It is not an antagonist pair, so it
+# has no natural zero crossing and would need an absolute-rate threshold
+# whose scale depends on the replicate's overall activity level. Recorded in
+# DESIGN.md as a labelled alternative worth testing later, not silently
+# dropped.
+STANCE_MODULE = "coxa stance"
+SWING_MODULE = "coxa swing"
+
+# FlyGym's own adhesion actuator order, from `fly.get_legs_order()`.
+FLYGYM_LEG_ORDER = ("lf", "lm", "lh", "rf", "rm", "rh")
+_PREFIX_TO_LEG = {v: k for k, v in LEG_NAME_TO_FLYGYM_PREFIX.items()}
+
+
+def adhesion_from_motor_output(rates, groups, params: AdapterParams):
+    """Per-leg adhesion (6,) in FlyGym's leg order, from connectome output.
+
+    Depends ONLY on motor-neuron firing rates and the trainable threshold.
+    No sensor reading and no body state reaches it, so it cannot become a
+    bypass around the connectome -- asserted in tests/test_adapter.py.
+    """
+    out = np.zeros(len(FLYGYM_LEG_ORDER))
+    for i, prefix in enumerate(FLYGYM_LEG_ORDER):
+        segment, side = _PREFIX_TO_LEG[prefix]
+        s = _SEG_INDEX[segment]
+        stance_idx = groups.indices_by_group.get((segment, side, STANCE_MODULE), [])
+        swing_idx = groups.indices_by_group.get((segment, side, SWING_MODULE), [])
+        stance = float(np.mean(rates[stance_idx])) if stance_idx else 0.0
+        swing = float(np.mean(rates[swing_idx])) if swing_idx else 0.0
+        out[i] = 1.0 if (stance - swing) > float(params.adhesion_threshold[s]) else 0.0
+    return out
+
+
 def command_current(params: AdapterParams, n_neurons: int, t: float,
                     pulse_start: float, pulse_end: float) -> np.ndarray:
     """Descending drive into command neurons that really exist in the net.

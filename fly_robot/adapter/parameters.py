@@ -1,4 +1,4 @@
-"""The trainable adapter — 65 parameters, and nothing else.
+"""The trainable adapter — 68 parameters, and nothing else.
 
 **EVERYTHING IN THIS MODULE IS OUR OWN ADDITION**, per the project's
 honesty rule. The connectome supplies neurons, weights, signs and
@@ -25,7 +25,7 @@ legs" unfalsifiable.
 
 Search space
 ------------
-CMA-ES searches an unbounded, roughly unit-scale vector `z` in R^65. Each
+CMA-ES searches an unbounded, roughly unit-scale vector `z` in R^68. Each
 entry maps to its physical range through a logistic squash, so:
 
   * bounds are respected without clipping (clipping creates flat regions
@@ -77,6 +77,11 @@ PARAM_SPEC: tuple[tuple[str, tuple[int, ...], float, float, float], ...] = (
     ("motor_scale",     (3, 3), 0.50, 20.0, 3.00),   # DEFAULT_RATE_SCALE_HZ
     ("motor_offset",    (3, 3), -0.30, 0.30, 0.0),
     ("motor_tau",       (3,),  0.0005, 0.05, 0.001),  # ~= no filtering at neural dt
+    # --- adhesion gating, per segment --------------------------------------
+    # Stance/swing threshold on (coxa-stance rate - coxa-swing rate), in Hz.
+    # Default 0 means "adhere whenever the stance pool out-fires the swing
+    # pool", which needs no tuning to be meaningful.
+    ("adhesion_threshold", (3,), -3.0, 3.0, 0.0),
 )
 
 N_PARAMS = sum(int(np.prod(shape)) if shape else 1 for _n, shape, *_ in PARAM_SPEC)

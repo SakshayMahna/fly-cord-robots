@@ -85,6 +85,7 @@ class TrialResult:
     thorax_quat: np.ndarray | None = None  # (n_steps, 4), free-ground rig only
     terminated_at_step: int | None = None  # set when the fly flipped over
     n_steps_planned: int = 0
+    adhesion: np.ndarray | None = None     # (n_steps, 6) per-leg adhesion state
     unstable: bool = False
     instability_reason: str = ""
     meta: dict = field(default_factory=dict)
@@ -223,7 +224,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     adapter_alpha = saved_baseline = None
     if adapter is not None:
         from fly_robot.adapter.apply import (
-            adapter_joint_targets, command_current, motor_filter_alpha,
+            adapter_joint_targets, adhesion_from_motor_output, command_current,
+            motor_filter_alpha,
         )
         saved_baseline = neural_model.baseline_input
         neural_model.baseline_input = np.zeros_like(saved_baseline)
@@ -273,12 +275,12 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     on_ground = rig == "ground"
     thorax_pos = np.zeros((n_steps, 3), dtype=np.float32) if on_ground else None
     thorax_quat = np.zeros((n_steps, 4), dtype=np.float32) if on_ground else None
-    if on_ground and adhesion:
-        # Tarsal adhesion held ON for every leg. FlyGym supplies the
-        # actuator; holding it at 1.0 throughout is OUR CHOICE, not a fly
-        # measurement -- real flies modulate adhesion with stance/swing.
-        # Stated here and in DESIGN.md rather than buried.
+    if on_ground and adhesion and adapter is None:
+        # No adapter: hold adhesion on, which is only used by rig checks.
+        # With an adapter it is gated per step from the connectome's own
+        # stance/swing pools -- see adapter/apply.py.
         physics.set_leg_adhesion_states(fly.name, np.ones(6))
+    adhesion_log = np.zeros((n_steps, 6), dtype=np.float32) if on_ground else None
 
     max_rate = 0.0
     terminated_at_step = None
@@ -333,6 +335,10 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
                 rates, motor_groups, dof_index_by_name, neutral_angles,
                 motor_gain_rad, motor_rate_scale_hz)
         physics.set_actuator_inputs(fly.name, ActuatorType.POSITION, targets)
+        if on_ground and adhesion and adapter is not None:
+            leg_adhesion = adhesion_from_motor_output(rates, motor_groups, adapter)
+            adhesion_log[step] = leg_adhesion
+            physics.set_leg_adhesion_states(fly.name, leg_adhesion)
         for _ in range(substeps):
             physics.step()
             if render_targets is not None:
@@ -377,6 +383,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         sensory_channels=channel_keys, ball_quat=ball_quat, ball_angvel=ball_angvel,
         thorax_pos=thorax_pos, thorax_quat=thorax_quat,
         terminated_at_step=terminated_at_step, n_steps_planned=n_steps,
+        adhesion=adhesion_log,
         n_active_neurons=n_active, max_firing_rate=max_rate,
         wall_clock_s=elapsed, unstable=unstable, instability_reason=reason,
         meta={"n_steps": n_steps, "substeps_per_neural_step": substeps,

@@ -769,3 +769,95 @@ Settled since the first draft: folder name (§0.2), compute route (§0.3),
 the speedup (§5.2), the motor decoder (§2.3), the budget (§5.4), A3's
 turning manipulation (§2.2), and the VM shape (§5.6, confirmed 16–32 vCPU
 with serialised startup and per-generation checkpointing).
+
+---
+
+## 10. Adhesion, and why each controller gating its own phase is the fair comparison
+
+*Added 2026-09-21.*
+
+Tarsal adhesion must be ON in stance and OFF in swing — a fly that grips
+while swinging cannot step. FlyGym's own convention, which both baselines
+use, is `not (swing_start < phase < swing_end)` with the swing window taken
+from the reference kinematics' `swing_stance_time`.
+
+**Each controller derives that phase from its own output, and that is the
+point, not a concession:**
+
+| controller | phase signal |
+|---|---|
+| CPG | its own oscillator phase |
+| rule-based | its own coordination rules |
+| connectome | its own decoded motor output |
+
+Giving all three a *shared* externally-supplied phase would be the unfair
+version: it would hand the connectome a stepping rhythm it did not produce,
+and the experiment is precisely about whether the connectome produces one.
+Equally, giving the connectome always-on adhesion while the baselines get
+properly gated adhesion would penalise it for something the interface, not
+the wiring, failed to supply.
+
+So each controller gates adhesion from its own signal, and the **threshold**
+is a trainable adapter parameter for the connectome — it gets to choose its
+duty cycle, just as the baselines' duty cycle follows from their own data.
+
+**The adhesion gate is OUR ADDITION.** The connectome supplies motor-neuron
+rates; deciding that a particular pool comparison means "stance" is a
+modelling choice and is labelled as one everywhere it appears.
+
+### Status: the proposed signal does not survive validation
+
+The mechanism approved was `coxa stance` minus `coxa swing` — well
+justified, since Pugliese's own motor-module annotation names those two
+pools and both exist in all six legs (stance 6/7/6, swing 7/3/3 per side
+for T1/T2/T3). Implemented in `adapter/apply.py`.
+
+**Measured on the untrained connectome, it is degenerate:** three legs stuck
+always-off across every replicate, one leg always-on at duty 0.96, and 0–1
+transitions per leg over 2 s where a stepping signal should show ~44.
+
+The cause is not a threshold that needs tuning. **Those motor pools are
+almost entirely silent.** Across 6 legs × 6 replicates:
+
+| motor module | mean rate | fraction of leg-pools active |
+|---|---:|---:|
+| tibia extend | 0.198 | 0.25 |
+| femur/tr extend | 0.196 | 0.17 |
+| coxa stance | 0.191 | **0.19** |
+| femur/tr flex | 0.068 | 0.36 |
+| coxa swing | 0.025 | **0.19** |
+| tibia flex | 0.001 | 0.03 |
+| **substrate grip** | 0.000 | **0.00** |
+| **tarsus control** | 0.000 | **0.00** |
+
+The stance/swing pools fire in roughly one leg-pool in five. No threshold
+can extract a phase from a signal that is identically zero.
+
+This also kills the alternative flagged alongside it: **`substrate grip`,
+the module semantically closest to adhesion, never fires at all** — 0.00
+across every leg and replicate. Worth recording as a finding about the
+model's motor output in its own right, and it sharpens Phase 3's known
+limitation that 3 of 9 modules are unmapped: two of them are not merely
+unmapped, they are silent.
+
+### Alternative, measured but NOT adopted without approval
+
+The **per-leg summed motor rate** — the same signal Phase 4's AR(1) rhythm
+gate already found genuinely rhythmic in 3–5 of 6 legs — gated against its
+own running mean (50 ms):
+
+| | per-leg duty | transitions per 2 s |
+|---|---|---|
+| stance/swing pools (approved) | 0.00, 0.00, 0.23, 0.00, 0.00, 0.96 | 0–1 |
+| summed motor rate (alternative) | 0.33, 0.23, 0.18, 0.35, 0.18, 0.46 | 24–53 |
+
+~44 transitions over 2 s is what an ~11 Hz rhythm should give, and it
+matches. No leg is stuck on or off across replicates. Duty sits at 0.29
+against the baselines' 0.62–0.69, which a trainable threshold offset can
+shift.
+
+It is a **different mechanism** from the approved one, so it is not
+substituted silently. The cost of adopting it, stated plainly: "above its
+own running mean" is a weaker claim about stance than "the pool the
+annotation calls stance is firing" — it uses the connectome's rhythm but
+not its anatomy.
