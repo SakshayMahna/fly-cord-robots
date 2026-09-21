@@ -92,18 +92,35 @@ def _init_worker(lock, cfg_dict):
         jax.clear_caches()
 
     _W["cfg"] = cfg
+    _W["lock"] = lock
     _W["components"] = {EPISODE_REPLICATES[0]: (model, mg, sg)}
+    _W["order"] = [EPISODE_REPLICATES[0]]
     _W["w_hash"] = hashlib.sha256(model.neurons.w_eff.data.tobytes()).hexdigest()
 
 
 def _components_for(replicate: int):
-    """Per-replicate components, built on demand and cached in the worker."""
+    """Per-replicate components, built on demand and cached in the worker.
+
+    Two constraints, both learned the hard way (DESIGN.md §5.6):
+
+      * **Builds must hold the lock.** Building materialises the dense
+        weight matrix transiently at ~7.4 GB. Six workers building at once
+        would want ~44 GB on a 19 GB machine. An earlier version of this
+        function built unguarded and drove the machine into swap within two
+        minutes of launch.
+      * **The cache must be bounded.** A generation touches only
+        `cfg.episodes` replicates, but over a run it would otherwise
+        accumulate all seven, at ~0.55 GB each, in every worker.
+    """
     import jax
 
     from fly_robot.sim.trial_setup import build_trial_components
 
-    if replicate not in _W["components"]:
-        cfg = _W["cfg"]
+    if replicate in _W["components"]:
+        return _W["components"][replicate]
+
+    cfg = _W["cfg"]
+    with _W["lock"]:
         model, mg, sg, _wt, _info = build_trial_components(
             replicate=replicate, param_seed=cfg.param_seed,
             duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed)
@@ -113,7 +130,11 @@ def _components_for(replicate: int):
             except Exception:
                 pass
         jax.clear_caches()
-        _W["components"][replicate] = (model, mg, sg)
+
+    _W["components"][replicate] = (model, mg, sg)
+    _W["order"].append(replicate)
+    while len(_W["order"]) > max(2, cfg.episodes):
+        _W["components"].pop(_W["order"].pop(0), None)
     return _W["components"][replicate]
 
 

@@ -6,3 +6,5 @@ running sign test (blocking gate)...
   sign test [backward]: pitch=+0.95 rad/s -> progress=-1.000
   sign test PASSED
 
+gen    0  best=+0.2296 med=+0.0350  sigma=0.479  sat=0.31  174s
+gen    1  best=+0.2396 med=+0.1260  sigma=0.462  sat=0.06  124s
