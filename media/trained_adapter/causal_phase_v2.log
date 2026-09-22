@@ -1,0 +1,94 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/sakshaymahna/Documents/fly-cord-robots/fly_robot/experiments/validate_causal_phase.py", line 174, in <module>
+    main()
+  File "/Users/sakshaymahna/Documents/fly-cord-robots/fly_robot/experiments/validate_causal_phase.py", line 165, in main
+    json.dump({"window_s": WINDOW_S, "stride_steps": STRIDE_STEPS,
+                           ^^^^^^^^
+NameError: name 'WINDOW_S' is not defined
+resonator: center=11.7 Hz  tau=100 ms  max lag searched=+/-400 ms
+
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+replicate 0: n_rhythmic=6/6
+   ('T1', 'LHS'): circular corr=+0.967 at lag=-66 ms
+   ('T1', 'RHS'): circular corr=+0.993 at lag=-76 ms
+   ('T2', 'LHS'): circular corr=+0.960 at lag=-63 ms
+   ('T2', 'RHS'): circular corr=+0.988 at lag=-160 ms
+   ('T3', 'LHS'): circular corr=+0.836 at lag=-58 ms
+   ('T3', 'RHS'): circular corr=+0.947 at lag=+112 ms
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+replicate 1: n_rhythmic=3/6
+   ('T1', 'LHS'): not rhythmic, skipped
+   ('T1', 'RHS'): circular corr=+0.995 at lag=-161 ms
+   ('T2', 'LHS'): not rhythmic, skipped
+   ('T2', 'RHS'): circular corr=+0.995 at lag=-65 ms
+   ('T3', 'LHS'): not rhythmic, skipped
+   ('T3', 'RHS'): circular corr=+0.902 at lag=-53 ms
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+replicate 3: terminated at step 481 (< transient + 200 steps) -- skipped
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+replicate 4: n_rhythmic=4/6
+   ('T1', 'LHS'): circular corr=+0.967 at lag=-70 ms
+   ('T1', 'RHS'): not rhythmic, skipped
+   ('T2', 'LHS'): not rhythmic, skipped
+   ('T2', 'RHS'): circular corr=+0.990 at lag=-76 ms
+   ('T3', 'LHS'): circular corr=+0.194 at lag=-9 ms
+   ('T3', 'RHS'): circular corr=+0.970 at lag=-66 ms
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+replicate 6: n_rhythmic=4/6
+   ('T1', 'LHS'): circular corr=+0.978 at lag=+363 ms
+   ('T1', 'RHS'): not rhythmic, skipped
+   ('T2', 'LHS'): circular corr=+0.694 at lag=-42 ms
+   ('T2', 'RHS'): circular corr=+0.995 at lag=+243 ms
+   ('T3', 'LHS'): not rhythmic, skipped
+   ('T3', 'RHS'): circular corr=+0.969 at lag=-168 ms
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+replicate 7: terminated at step 416 (< transient + 200 steps) -- skipped
+
+=== per-leg summary (pooled across replicates) ===
+  T1-LHS: mean corr=+0.970 (min +0.967, n=3)  mean lag=+75.7 ms
+  T1-RHS: mean corr=+0.994 (min +0.993, n=2)  mean lag=-118.5 ms
+  T2-LHS: mean corr=+0.827 (min +0.694, n=2)  mean lag=-52.5 ms
+  T2-RHS: mean corr=+0.992 (min +0.988, n=4)  mean lag=-14.5 ms
+  T3-LHS: mean corr=+0.515 (min +0.194, n=2)  mean lag=-33.5 ms
+  T3-RHS: mean corr=+0.947 (min +0.902, n=4)  mean lag=-43.8 ms
+
+overall: mean corr=+0.902  min corr=+0.194  n=17
+VERDICT (mean>0.8 and min>0.5): NOT YET GOOD ENOUGH

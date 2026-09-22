@@ -1,79 +1,81 @@
 """Causal, online per-leg phase estimate for the Rung 2 conductor.
 
-Proposal only (`docs/trained_adapter/RUNG2_DESIGN.md`) — validated in
-`fly_robot/experiments/validate_causal_phase.py` against the offline
-method before it is trusted by anything, per your instruction.
+**Second attempt.** The first (trailing-window `filtfilt` + Hilbert,
+recomputed from a fresh block every 10 ms) failed validation: mean
+circular correlation 0.301 against the offline whole-trace method,
+minimum -0.251 (anti-correlated), lag incoherent and sign-flipping across
+legs. Diagnosed as likely `filtfilt`'s edge handling landing on the exact
+sample being read ("now"), compounded by block-boundary discontinuities
+every time the window was recomputed from scratch. See
+`docs/trained_adapter/RUNG2_DESIGN.md` §8 for the full first-attempt
+record — kept there rather than deleted.
 
-**Method: trailing-window bandpass + Hilbert, not a novel quadrature
-filter.** The existing offline method (`analysis/interleg_coordination.py:
-leg_rhythm`) bandpass-filters and Hilbert-transforms the *whole*
-post-transient trace, which needs the future and cannot run online. This
-uses the identical bandpass + Hilbert transform on a trailing window of
-the last `WINDOW_S` seconds only, recomputed every `STRIDE_STEPS` steps —
-strictly causal (the window never includes the current or a future
-sample), and directly comparable to the offline method since it is the
-same transform, not a different approximation. That comparability is the
-point: it makes the validation in item 3 a fair like-for-like check, not
-an apples-to-oranges one.
+**This implementation: a single-pole complex resonator**, the standard
+causal construction for narrowband phase tracking of a roughly-known
+oscillation frequency (used in phase-locked-loop demodulation). No
+window, no block recomputation, no `filtfilt` — pure streaming IIR state
+updated every step:
 
-Cost: `WINDOW_S / (STRIDE_STEPS * dt)` bandpass+Hilbert calls per second
-of trial, each over a short window rather than a whole trial — measured in
-`validate_causal_phase.py`.
+    z[n] = r * exp(j*w0) * z[n-1] + (1-r) * x[n]
+    phase[n] = angle(z[n])
+
+where `w0 = 2*pi*f0*dt` (center frequency) and `r = exp(-dt/tau)` (pole
+radius, from a settling time constant `tau`). This is mathematically a
+real signal frequency-shifted down by `f0`, low-pass filtered, then
+shifted back — a complex bandpass concentrated near `f0`. Because the
+SAME filter (same `r`, same `f0`) runs on every leg, a fixed group delay
+is common to all six, which is exactly what this project's coupling needs
+(only relative phase between legs matters for the Kuramoto-style
+correction, `RUNG2_DESIGN.md` §3) — unlike the offline method's
+deliberate zero-phase `filtfilt`, whose own docstring explains it
+specifically to avoid rotating relative phase for a WHOLE-signal, non-
+causal analysis; that reasoning does not carry over to an online filter,
+which necessarily has some delay.
+
+Validated in `validate_causal_phase.py` against the offline method before
+anything downstream uses it.
 """
 
 from __future__ import annotations
 
-from collections import deque
-
 import numpy as np
-from scipy.signal import hilbert
 
-from fly_robot.analysis.interleg_coordination import _bandpass
+# Measured dominant rhythm frequency, mean of six legs' `dominant_hz` on
+# one clean untrained replicate at the matched drive (AUDIT.md's ~11 Hz
+# prediction, confirmed directly: 11.4-12.0 Hz range).
+CENTER_HZ = 11.7
 
-# Measured dominant rhythm frequency is ~11 Hz (AUDIT.md §4); a window
-# needs several cycles for the bandpass filter's edge effects to settle
-# before the phase at its rightmost (most recent) sample is trustworthy.
-# 300 ms is ~3.3 cycles at 11 Hz -- short enough to be genuinely online,
-# long enough to filter meaningfully. Not yet validated; that is exactly
-# what validate_causal_phase.py checks, including whether this specific
-# choice is adequate.
-WINDOW_S = 0.300
-# Recomputing every step is unnecessary (phase changes slowly relative to
-# neural dt) and costly at 4000 steps/trial; every 10 ms (10 neural steps
-# at dt=0.001) resolves the ~11 Hz rhythm's phase to within ~4% of a cycle.
-STRIDE_STEPS = 10
+# Settling time constant. Swept {50, 100, 150, 300} ms on one replicate:
+# correlation rises and lag grows together as tau increases; 100 ms gave
+# correlations 0.836-0.993 across all six legs with lag -60 to -160 ms,
+# a good balance validated more fully in validate_causal_phase.py rather
+# than picked by this single-replicate sweep alone.
+TAU_S = 0.100
 
 
 class CausalPhaseEstimator:
-    """Per-leg trailing-window phase, recomputed every `stride` steps.
+    """Per-leg complex-resonator phase, one IIR pole per leg, updated
+    every neural step (no windowing, no stride, no block recomputation).
 
     Call `update(leg_signals)` once per neural step with the current
-    per-leg readout (e.g. summed CPG-triad or motor rate, shape (6,)).
-    `phase` holds the most recent estimate (radians, updated only on
-    stride steps; held constant between updates -- a zero-order hold,
-    the same convention this project already uses for sensory drive).
+    per-leg readout (shape (6,)); `phase` holds the running estimate.
     """
 
-    def __init__(self, dt: float, window_s: float = WINDOW_S,
-                 stride_steps: int = STRIDE_STEPS, n_legs: int = 6):
+    def __init__(self, dt: float, center_hz: float = CENTER_HZ,
+                 tau_s: float = TAU_S, n_legs: int = 6):
         self.dt = dt
-        self.stride = stride_steps
-        self.maxlen = int(round(window_s / dt))
-        self.buffers = [deque(maxlen=self.maxlen) for _ in range(n_legs)]
+        w0 = 2 * np.pi * center_hz * dt
+        self.r = float(np.exp(-dt / tau_s))
+        self.pole = self.r * np.exp(1j * w0)
+        self.z = np.zeros(n_legs, dtype=complex)
         self.phase = np.zeros(n_legs)
-        self._step = 0
 
     def update(self, leg_signals: np.ndarray) -> np.ndarray:
-        for i, v in enumerate(leg_signals):
-            self.buffers[i].append(float(v))
-        self._step += 1
-        if self._step % self.stride != 0 or len(self.buffers[0]) < self.maxlen:
-            return self.phase
-        fs = 1.0 / self.dt
-        for i, buf in enumerate(self.buffers):
-            x = np.asarray(buf, dtype=np.float64)
-            x = x - x.mean()
-            xb = _bandpass(x[None, :], fs)
-            # Rightmost sample = most recent = "now", the only causal choice.
-            self.phase[i] = float(np.angle(hilbert(xb, axis=1))[0, -1])
+        x = np.asarray(leg_signals, dtype=np.float64)
+        self.z = self.pole * self.z + (1.0 - self.r) * x
+        self.phase = np.angle(self.z)
         return self.phase
+
+    def reset(self):
+        self.z[:] = 0.0
+        self.phase[:] = 0.0

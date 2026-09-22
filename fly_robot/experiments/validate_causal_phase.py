@@ -27,7 +27,7 @@ import json
 
 import numpy as np
 
-from fly_robot.adapter.causal_phase import STRIDE_STEPS, WINDOW_S, CausalPhaseEstimator
+from fly_robot.adapter.causal_phase import CENTER_HZ, TAU_S, CausalPhaseEstimator
 from fly_robot.adapter.parameters import default_params
 from fly_robot.analysis.interleg_coordination import LEGS, TRANSIENT_S, leg_rhythm
 from fly_robot.sim.closed_loop import NEURAL_DT, run_trial
@@ -89,18 +89,16 @@ def main():
     args = ap.parse_args()
 
     keep = int(TRANSIENT_S / NEURAL_DT)
-    stride_s = STRIDE_STEPS * NEURAL_DT
-    # A bandpass filter's own group delay is typically comparable to its
-    # window length, not to the oscillation period -- the first attempt
-    # searched +/-60 ms (half a cycle at 11 Hz) and pinned at that boundary
-    # on most legs, meaning the true optimum was outside the search range.
-    # Search out to the full window length either way instead of guessing
-    # a tighter bound a second time.
-    max_lag_samples = int(round(WINDOW_S / stride_s))
+    # Resonator with tau=100ms had lag as large as ~250ms on one leg in
+    # the single-replicate pilot check; search well past that (+/-400ms)
+    # so a real optimum is never cut off by the search range itself, the
+    # exact failure that hid the first attempt's true behaviour.
+    max_lag_ms = 400
+    stride_s = NEURAL_DT   # the causal estimate is read every raw step now
+    max_lag_samples = int(round(max_lag_ms / 1000 / stride_s))
 
-    print(f"window={WINDOW_S*1000:.0f}ms  stride={STRIDE_STEPS} steps "
-          f"({stride_s*1000:.0f}ms)  max lag searched=+/-{max_lag_samples} strides "
-          f"(+/-{max_lag_samples*stride_s*1000:.0f}ms)\n")
+    print(f"resonator: center={CENTER_HZ} Hz  tau={TAU_S*1000:.0f} ms  "
+          f"max lag searched=+/-{max_lag_ms} ms\n")
 
     per_leg_corr = {leg: [] for leg in LEGS}
     per_leg_lag_ms = {leg: [] for leg in LEGS}

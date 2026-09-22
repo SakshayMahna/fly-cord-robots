@@ -1,0 +1,17 @@
+=== real / rung1 ===
+reward config hash: 88f681a4ab03d6d88fe4180b7ee03d07be3e165801c2439afb5c44bef9a93647
+running sign test (blocking gate)...
+  sign test [kinematic]: ball centre [ 0.16  0.   -1.64], w_y=-1 drags top surface v_x=-3.00 (backward)
+  sign test [forward]: pitch=-0.95 rad/s -> progress=+1.000
+  sign test [backward]: pitch=+0.95 rad/s -> progress=-1.000
+  sign test PASSED
+
+resolving eligible replicates from adapter-off baselines (filter: n_active <= 1500, condition=real)...
+  filter excluded 2 of 8: rep 2 (n_active=4176), rep 5 (n_active=3794)
+  eligible pool: [0, 1, 3, 4, 6, 7]
+
+gen    0  best=+0.2459 med=-0.2070  sigma=0.476  sat=0.24  560s
+gen    1  best=+0.1802 med=-0.4806  sigma=0.459  sat=0.33  303s
+gen    2  best=+0.2928 med=+0.1227  sigma=0.448  sat=0.04  173s
+gen    3  best=+0.2283 med=+0.0002  sigma=0.438  sat=0.24  257s
+gen    4  best=+0.2273 med=+0.0878  sigma=0.427  sat=0.17  214s

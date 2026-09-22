@@ -326,3 +326,80 @@ independently re-derived here for the CPG-triad target specifically.
 2× margin given this was measured on 4 pilot replicates, not the full
 eligible pool, and using an open-loop reference signal rather than a real
 closed-loop one.
+
+---
+
+## 10. Causal estimator, second attempt — much better, not fully passing
+
+*2026-09-22.*
+
+Replaced the sliding-window `filtfilt`+Hilbert approach entirely with a
+**single-pole complex resonator** — the standard causal construction for
+narrowband phase tracking (used in PLL demodulation): `z[n] = r·e^{jw0}
+z[n-1] + (1-r)x[n]`, `phase[n] = angle(z[n])`. No window, no block
+recomputation, pure streaming IIR state. Center frequency 11.7 Hz
+(measured mean dominant rhythm), time constant τ = 100 ms (swept
+{50,100,150,300} ms on one replicate first; 100 ms gave the best balance
+of correlation vs lag before committing to a full run).
+
+**Result, full validation** (same protocol as the first attempt: real
+network at matched drive, pilot replicates, 17 rhythmic-leg instances):
+
+| | first attempt (filtfilt+window) | second attempt (resonator) |
+|---|---:|---:|
+| mean circular correlation | +0.301 | **+0.902** |
+| minimum circular correlation | −0.251 | **+0.194** |
+| lag | incoherent, sign-flipping | mostly consistent sign, −14 to −119 ms on 5/6 legs |
+
+Per-leg: five of six legs are solid (0.827–0.994 mean correlation).
+**One leg, T3-LHS, is weak** (0.194–0.836 across its two rhythmic
+instances, mean 0.515) and pulls the minimum below the 0.5 bar I set
+before running this. One replicate (6) also shows anomalously large,
+inconsistent lags on two legs (+363 ms, +243 ms) unlike the rest.
+
+**Verdict by my own pre-stated bar (mean > 0.8 and min > 0.5): fails on
+the minimum, by one leg.** This is a large, real improvement — not
+reported as passing when it technically misses the line I set myself.
+Options: (a) diagnose T3-LHS specifically (it may simply have a weaker,
+less clean rhythm in general, independent of the estimator — worth
+checking against its own signal amplitude/peak-strength before assuming
+the filter is at fault there specifically); (b) relax the bar given 5/6
+legs comfortably clear it; (c) keep working on it. Not decided here —
+flagging for your call rather than picking one.
+
+## 11. Positive-effect test — cap=2.5 has a real, substantial effect
+
+Extended `sweep_coupling_bound.py` to compute `tripod_index` (via
+`coordination()`) at every (K, replicate), not just `n_rhythmic`, using
+the same open-loop reference-phase injection as the safety sweep — so
+this reuses the already-safety-cleared trials rather than a new
+mechanism.
+
+| K | mean tripod_index | mean Δ vs K=0 |
+|---:|---:|---:|
+| 0 | −0.493 | — |
+| 1 | −0.462 | +0.032 |
+| 2 | −0.460 | +0.033 |
+| 4 | −0.404 | +0.090 |
+| 8 | −0.291 | +0.203 |
+| 16 | −0.316 | +0.177 |
+| 32 | −0.208 | +0.285 |
+| **64** | **−0.178** | **+0.315** |
+
+**Monotonic (with one small dip at K=16) and substantial**: tripod_index
+moves from −0.493 toward −0.178 as K rises to 64 — about a third of the
+way from "systematically anti-tripod" toward "unrelated to the pattern,"
+never yet crossing into positive (pro-tripod) territory in this open-loop
+test. Your concern that cap=2.5 might be too weak to matter, given CPG
+threshold (~35.6) vs sensory threshold (~3.1), was worth checking and
+turned out **not** to hold — the effect is real and clearly detectable at
+this cap, across all four replicates tested, without any need to measure
+a CPG-specific cap.
+
+**What this test does and does not show.** It is open-loop (a fixed,
+precomputed reference phase replayed regardless of the trial's actual
+state), so it cannot show the coupling would work in **closed loop**
+where the read side matters — that is exactly what the (still-failing)
+causal estimator gates. It shows the **write side** — current of this
+shape and magnitude, into this target — is both safe (§9) and effective
+(this section) in principle.

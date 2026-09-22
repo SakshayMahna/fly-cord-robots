@@ -152,22 +152,31 @@ def main():
 
     results = []
     print(f"{'K':>6}{'rep':>5}{'n_active':>10}{'max_fr':>9}{'unstable':>10}"
-          f"{'n_rhythmic':>12}{'saturated':>11}")
+          f"{'n_rhythmic':>12}{'tripod_idx':>12}{'saturated':>11}")
     for K in args.Ks:
         for rep in SWEEP_REPLICATES:
             rates_trace, n_active, max_fr, unstable = run_with_injection(
                 rep, K, phase_ref, active_legs, cpg_rows)
             motor_summed = leg_motor_summed(rates_trace, mg)
-            rhythm = leg_rhythm(motor_summed, NEURAL_DT)
+            # coordination() computes rhythm AND tripod_index in one pass;
+            # replaces the earlier leg_rhythm()-only call so the positive
+            # test (does K actually move interleg phase?) is answered
+            # alongside the safety numbers already gathered, from the same
+            # trials rather than a second run.
+            rhythm, coord = coordination(motor_summed, NEURAL_DT)
             n_rhythmic = int(rhythm.rhythmic.sum())
+            tripod_idx = float(coord.tripod_index) if coord.has_rhythm else None
             saturated = n_active > STABILITY_MAX_N_ACTIVE
             results.append({"K": K, "replicate": rep, "n_active": n_active,
                            "max_fr": max_fr, "unstable": unstable,
-                           "n_rhythmic": n_rhythmic, "saturated": saturated})
+                           "n_rhythmic": n_rhythmic, "tripod_index": tripod_idx,
+                           "saturated": saturated})
+            tstr = f"{tripod_idx:+.3f}" if tripod_idx is not None else "  n/a"
             print(f"{K:>6.1f}{rep:>5}{n_active:>10}{max_fr:>9.1f}"
-                  f"{str(unstable):>10}{n_rhythmic:>12}{str(saturated):>11}", flush=True)
+                  f"{str(unstable):>10}{n_rhythmic:>12}{tstr:>12}"
+                  f"{str(saturated):>11}", flush=True)
 
-    print("\n=== per-K summary ===")
+    print("\n=== per-K summary (safety) ===")
     safe_bound = None
     for K in args.Ks:
         rows = [r for r in results if r["K"] == K]
@@ -187,13 +196,50 @@ def main():
         print("Safe at the LARGEST K tested -- the sweep did not find the "
               "ceiling; extend --Ks upward before committing this as the bound.")
 
+    # --- POSITIVE TEST: does K actually move interleg phase at all? ------
+    # Safety alone is not enough -- your point exactly: the 2.5 current
+    # cap was calibrated for SENSORY neurons (threshold ~3.1), while CPG
+    # neurons sit at threshold median ~35.6. "No saturation" could equally
+    # mean "harmless because too weak to do anything." This is the direct
+    # check: compare each K's tripod_index distribution against K=0's, on
+    # the SAME replicates, so any shift is attributable to the coupling
+    # rather than replicate-to-replicate variation.
+    print("\n=== per-K summary (effect on tripod_index) ===")
+    baseline_tripod = {r["replicate"]: r["tripod_index"]
+                       for r in results if r["K"] == 0.0 and r["tripod_index"] is not None}
+    print(f"  K=0.0 baseline tripod_index per replicate: "
+          f"{ {k: round(v,3) for k,v in baseline_tripod.items()} }")
+    any_effect = False
+    for K in args.Ks:
+        rows = [r for r in results if r["K"] == K and r["tripod_index"] is not None]
+        if not rows:
+            print(f"  K={K:5.1f}: no rhythmic trials to measure tripod_index on")
+            continue
+        deltas = [r["tripod_index"] - baseline_tripod[r["replicate"]]
+                 for r in rows if r["replicate"] in baseline_tripod]
+        mean_tripod = float(np.mean([r["tripod_index"] for r in rows]))
+        mean_delta = float(np.mean(deltas)) if deltas else float("nan")
+        print(f"  K={K:5.1f}: mean tripod_index={mean_tripod:+.4f}  "
+              f"mean delta vs K=0={mean_delta:+.4f}  (n={len(rows)})")
+        if K > 0 and deltas and abs(mean_delta) > 0.02:
+            any_effect = True
+
+    print(f"\nMEASURABLE EFFECT on tripod_index within K<=64 "
+          f"(|mean delta| > 0.02 at any tested K): {any_effect}")
+    if not any_effect:
+        print("The proposed cap (2.5, Phase 4's SENSORY_CURRENT_CAP) shows "
+              "NO measurable coordination effect at any tested K up to the "
+              "proposed bound. Per your instruction: measure a CPG-specific "
+              "current cap next -- largest current that shifts phase without "
+              "saturation or rhythm loss. Not yet done in this run.")
+
     import os
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as f:
         json.dump({"reference_replicate": REFERENCE_REPLICATE,
                    "sweep_replicates": list(SWEEP_REPLICATES),
                    "Ks": args.Ks, "results": results,
-                   "safe_bound": safe_bound}, f, indent=1)
+                   "safe_bound": safe_bound, "measurable_effect": any_effect}, f, indent=1)
     print(f"wrote {args.out}")
 
 
