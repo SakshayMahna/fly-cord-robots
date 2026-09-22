@@ -1,2 +1,1930 @@
 === C1: FAILS reachability — cannot be activity-matched ===
   searching [0, 311.52] for the highest stable, rhythmic drive
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  1: drive=  155.76  median n_active=     2.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  2: drive=   77.88  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  3: drive=   38.94  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  4: drive=   19.47  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  5: drive=    9.74  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  6: drive=    4.87  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  7: drive=    2.43  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  8: drive=    1.22  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  9: drive=    0.61  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+  VERDICT: no stable rhythmic regime at any drive — do not train
+
+=== C2: FAILS reachability — cannot be activity-matched ===
+  searching [0, 213.38] for the highest stable, rhythmic drive
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  1: drive=  106.69  median n_active=     1.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  2: drive=   53.34  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  3: drive=   26.67  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  4: drive=   13.34  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  5: drive=    6.67  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  6: drive=    3.33  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  7: drive=    1.67  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r2
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r5
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+    iter  8: drive=    0.83  median n_active=     0.0  median n_rhythmic=0.0  passes=False
+  VERDICT: no stable rhythmic regime at any drive — do not train
+
+wrote media/trained_adapter/drive_fallback.json

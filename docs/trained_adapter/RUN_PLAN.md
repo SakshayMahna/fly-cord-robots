@@ -1,47 +1,50 @@
 # Stage A1 run plan — for approval before launch
 
-*2026-09-21. Nothing launched. Every number below is measured on this
-project's own code unless marked as an extrapolation.*
+*2026-09-21, revised 2026-09-22. Nothing launched. Every number below is
+measured on this project's own code unless marked as an extrapolation.*
+
+> **Revised after activity matching.** The plan below originally trained
+> three conditions (real, C1, C2) at identical budget. Both C1 and C2
+> failed the full pre-registered matching sequence — primary matching,
+> then the Amendment 2 fallback — and neither has a stable rhythmic regime
+> at *any* drive (`RESULTS.md`). Per the pre-registered decision rule, they
+> are **not trained**, at any drive, under any label. This is the
+> designed outcome of gates committed before the data existed, not a
+> decision made after seeing it. **Only the real connectome trains.**
 
 ## What runs
 
-Three training runs, **identical in every respect except the connectome**:
+**One training run: the real MANC connectome**, at its activity-matched
+drive of 382.81 (`PREREGISTRATION.md`, `RESULTS.md`).
 
-| run | network | purpose |
+| run | network | status |
 |---|---|---|
-| `real` | the MANC connectome | the treatment |
-| `C1` | degree- and sign-preserving shuffle, interface edges protected | is it the wiring? |
-| `C2` | random recurrent network, matched size and sparsity | **needs building** |
+| `real` | the MANC connectome | **trains**, from matched drive 382.81 |
+| `C1` | degree- and sign-preserving shuffle | **does not train** — no stable rhythmic regime at any drive |
+| `C2` | random recurrent network, matched size/sparsity/signs | **does not train** — no stable rhythmic regime at any drive |
 
-Plus **C3**, a sine/CPG floor controller on the same body and reward —
-much cheaper, no connectome. The FlyGym CPG and rule-based controllers are
-already ported and measured, and serve as the published-baseline
-comparison (14.025 and 7.396 mm/s).
+C1 and C2's absence from training **is** their result, not a gap in the
+plan — see `RESULTS.md` for the full matching and fallback data. Neither
+is a weaker test that was skipped; both went through the complete
+sequence and failed the first, most permissive gate in it.
 
-**Controls get the same budget, the same episodes, the same generations
-and the same reward as the treatment.** A control given a weaker test is
-not a control.
+**C3**, the FlyGym CPG and rule-based controllers, is unaffected — it uses
+no connectome and is already measured (14.025 and 7.396 mm/s), serving as
+the published-baseline comparison for the video regardless of the trained
+run's outcome.
 
-## Launch order — committed 2026-09-21
+## Launch order — committed 2026-09-21, controls resolved 2026-09-22
 
-1. **real connectome**
-2. **C1** (degree- and sign-preserving shuffle)
-3. **C2** (matched random network)
+The original order was real, then C1, then C2, at identical budget
+regardless of outcome — precisely so the decision to run all three was
+made before any of their results existed, not while reading the first
+one. That commitment is what makes it legitimate that C1 and C2 are now
+excluded: the exclusion was decided by a rule fixed in advance
+(`PREREGISTRATION.md`), applied identically to both, and reached without
+either control's activity-matching data existing yet when the rule was
+written.
 
-**C1 and C2 run at identical budget regardless of what the real run
-does.** No early abandonment of controls, for any reason — not a
-disappointing treatment result, not a promising one, not compute pressure.
-
-The reason is not tidiness. A control run only when the treatment looks
-good, or dropped when it looks bad, is not a control; it is a way of
-confirming whatever the first run suggested. The order above exists so
-that the decision to run all three is made now, before any of their
-results exist, rather than in the middle of reading the first one.
-
-Each control that passes the pre-registered activity-matching gates
-(`PREREGISTRATION.md`) is trained. Each that fails is **reported as its
-result** — that is also not abandonment; it is the gate doing its job, and
-the failure is itself informative about the wiring.
+**What actually runs now: the real connectome only.**
 
 ## Budget
 
@@ -51,27 +54,31 @@ the failure is itself informative about the wiring.
 | episodes E | **6** | binding term is the tripod index (DESIGN.md §5.7); progress alone needs only 1 |
 | generations | 250 | |
 | trial length | 4 s | pre-registered |
-| **trials per run** | **24,000** | 16 × 6 × 250 |
-| **total** | **72,000** | three runs; C3 adds ~2% |
+| **trials** | **24,000** | 16 × 6 × 250, one run (real connectome only) |
 
 ## Wall time and cost
 
 Per-trial cost is measured: **~8.5 s** single-core after the lossless
-active-column speedup, so 24,000 trials is **~57 core-hours per run** and
-**~170 core-hours for all three**.
+active-column speedup, so 24,000 trials is **~57 core-hours**.
 
 | cores | η = 0.35 (measured on this Mac) | η = 0.6 (homogeneous server) |
 |---:|---|---|
-| 16 | ~30 h wall, ~486 core-h billed | ~18 h, ~283 core-h |
-| 32 | ~15 h wall, ~486 core-h billed | ~9 h, ~283 core-h |
+| 16 | ~10 h wall, ~163 core-h billed | ~6 h, ~95 core-h |
+| 32 | ~5 h wall, ~163 core-h billed | ~3 h, ~95 core-h |
 
-**Cost: roughly $9–25 for the whole of Stage A1** at an indicative
-$0.03–0.05 per vCPU-hour. That figure is from memory and **must be checked
-against current pricing before committing spend** — but the decision here
-is wall time, not money. Even a 4× pricing error leaves this inexpensive.
+**Verified pricing (`artifacts/vm_pricing_2026-09-22.md`): DigitalOcean
+32 vCPU / 64 GB CPU-Optimized, $1.00/hr**, confirmed against
+digitalocean.com directly. At that rate:
 
-Billed core-hours are 170/η regardless of instance size, so a larger
-instance buys wall time at roughly constant cost.
+| efficiency | wall time (32 cores) | cost |
+|---|---:|---:|
+| η = 0.35 (this Mac's measured rate) | ~5 h | **~$5** |
+| η = 0.6 (homogeneous server, extrapolated) | ~3 h | **~$3** |
+
+Billed core-hours are ~95–163/η regardless of instance size, so a larger
+instance buys wall time at roughly constant cost. This is 2.5× smaller
+than the three-run budget the plan originally priced, purely because two
+of the three planned runs are not happening.
 
 **Recommended: 32 vCPU, ≥ 32 GB RAM.** RAM is set by the measured 0.57 GB
 steady-state per worker (32 workers ≈ 18 GB + OS), **not** by the 7.4 GB
@@ -120,12 +127,18 @@ gets reported as a result until it has been watched.
 
 ## Blocking items before launch
 
-1. **C2 does not exist.** A random recurrent network with matched size and
-   sparsity still needs building and testing. C1's shuffle already exists.
-2. **VM not rented.** Needs your approval, then a calibration run.
-3. **Lean-pilot caveat still stands.** The first pilot was stopped at
+1. **VM not rented.** Recommendation: DigitalOcean 32 vCPU / 64 GB,
+   $1.00/hr, verified directly against digitalocean.com
+   (`artifacts/vm_pricing_2026-09-22.md`). Needs your approval, then a
+   calibration run.
+2. **Lean-pilot caveat still stands.** The first pilot was stopped at
    generation 120 by its own pre-committed rule. This run is the powered
    one; a negative result from it *is* reportable, unlike the pilot's.
+3. **No trainable control remains.** A negative result for the real
+   connectome cannot be checked against a trained C1 or C2, because
+   neither can be trained at all — that absence is itself the controls'
+   result (`RESULTS.md`) and is reported alongside the real run's, not
+   silently missing.
 
 ## Honest expectations
 

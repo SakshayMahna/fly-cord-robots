@@ -99,3 +99,105 @@ claim with no trainable control is much weaker. `resolve_pool` refuses to
 return a pool rather than quietly training on saturated networks — which
 is the behaviour it was built for, but it means Stage A cannot proceed as
 planned without a decision. Options are set out in `RUN_PLAN.md`.
+
+## Activity matching (pre-registered) — neither control can be trained
+
+Full procedure: `PREREGISTRATION.md`. Target = median adapter-off baseline
+`n_active` of the **real** network at its native DNg100 drive of 380,
+across replicates 0–7, parameter seed 641, 4.0 s trials.
+
+**Native per-replicate `n_active` (real network, drive 380):**
+
+| replicate | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| n_active | 522 | 380 | 4,176 | 367 | 488 | 3,794 | 421 | 445 |
+
+**Target (median) = 466.5.**
+
+### Primary matching — bisection on drive
+
+| network | matched drive | achieved median | converged | verdict |
+|---|---:|---:|---|---|
+| **real** | 382.81 | 469.0 | **yes** (8 iters) | **PASSES** |
+| C1 (shuffled) | 311.52 | 255.5 | no (12 iters, exhausted bracket) | **cannot be activity-matched** |
+| C2 (random) | 213.38 | 16.0 | no (12 iters, exhausted bracket) | **cannot be activity-matched** |
+
+The real network's matched drive (382.81) sits almost exactly on its native
+drive (380) — the intended no-op check on the procedure passes.
+
+**Real network at its matched drive**, eligible replicates and rhythm:
+
+| replicate | 0 | 1 | 3 | 4 | 6 | 7 |
+|---|---:|---:|---:|---:|---:|---:|
+| n_active | 515 | 399 | 367 | 460 | 426 | 478 |
+| n_rhythmic (of 6) | 6 | 3 | 4 | 3 | 4 | 6 |
+
+6/8 replicates eligible (2, 5 excluded by the unchanged stability filter,
+consistent with their native-drive values), **median n_rhythmic = 4.0**.
+**Real network trains from drive 382.81.**
+
+**Both controls fail because their target lies inside a near-discontinuity,
+not because the search failed to converge on a real intermediate value:**
+
+| network | just below the jump | just above |
+|---|---|---|
+| C1 | drive 311.52 → 255.5 active | drive 312.01 → 3,495 active |
+| C2 | drive 213.38 → 16 active | drive 214.84 → 6,822 active |
+
+A ~0.5-drive-unit change multiplies activity by **13–430×**. The real
+network's own cliff sits well *above* its matched drive (437 vs. 382.81),
+giving it a genuine intermediate regime; neither control has one at any
+drive near its target.
+
+### Secondary fallback (pre-registered, Amendment 2) — also fails
+
+Highest drive with median `n_active ≤ 1500` **and** median
+AR(1)-gated `n_rhythmic ≥ 2` of 6, searched over `[0, matched_drive]`:
+
+**C1** (bracket [0, 311.52], 9 iterations to exhaust to <1.0 width):
+
+| drive | 155.76 | 77.88 | 38.94 | 19.47 | 9.74 | 4.87 | 2.43 | 1.22 | 0.61 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| median n_active | 2.0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**C2** (bracket [0, 213.38], 8 iterations):
+
+| drive | 106.69 | 53.34 | 26.67 | 13.34 | 6.67 | 3.33 | 1.67 | 0.83 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| median n_active | 1.0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**Every drive tested for both controls, down to near zero, gives
+essentially no activity at all** — not "some activity without rhythm," but
+no activity to be rhythmic. Neither network has an intermediate regime
+between silent and exploded.
+
+**Verdicts, both networks: "no stable rhythmic regime at any drive."
+Neither is trained, at any drive, under any label.**
+
+### What this means for Stage A1
+
+The pre-registered design planned three trained conditions (real, C1, C2)
+at identical budget. **That plan cannot be executed as specified**: the
+gates that were committed *before* this data existed — unchanged
+throughout, applied identically to all three networks — permit training
+only the real connectome.
+
+This is not early abandonment of the controls. Both went through the full
+sequence in `PREREGISTRATION.md` (primary matching → stability →
+rhythmicity, then the Amendment 2 fallback) and failed at the first,
+most permissive gate in that sequence. Reporting "cannot be trained" is the
+designed outcome of a rule set before either control's data existed, not a
+judgement call made after seeing it.
+
+**The finding is itself the headline result of the controls arm**:
+preserving size, sparsity, sign ratio, Dale's law and the weight
+distribution — while destroying the specific wiring — is sufficient to
+eliminate the graded intermediate activity regime the real connectome has.
+Real ≪ C1 ≪ C2 in native-drive activity (`RESULTS.md`, above); at matched
+target activity, only the real network has *any* drive that reaches it
+without either falling silent or exploding. Whatever keeps this network in
+a usable dynamic range is a property of the specific topology, not
+recoverable from degree sequence, sign balance, or edge weights alone.
+
+**Revised plan: one trained run (real connectome, drive 382.81), not
+three.** `RUN_PLAN.md` updated accordingly.
