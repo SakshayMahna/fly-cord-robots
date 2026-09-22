@@ -1,0 +1,3 @@
+cores=11  RAM=19.3 GB  trial=4.0s  trials/worker=3
+
+procs     wall  median trial  trials/hr  scaling    eff  peak RSS/w  steady/w

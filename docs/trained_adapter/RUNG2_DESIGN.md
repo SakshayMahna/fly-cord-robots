@@ -201,3 +201,128 @@ seeds. Only the adapter parameter count changes (71 → 74) and the neural
 input gains one more additive term, in the same place `command_current`
 already adds one (an additive term in `total`, before the tanh
 nonlinearity — `steppable_rate_model.py`'s `_derivative`).
+
+---
+
+## 8. Causal phase estimator — validation FAILS, blocking regardless of option
+
+*2026-09-22. Measured against your instruction to validate before the
+conductor uses it.*
+
+`fly_robot/adapter/causal_phase.py` implements the estimator proposed in
+§2: trailing-window (300 ms) bandpass + Hilbert, recomputed every 10 ms,
+using the same transform as the established offline method
+(`analysis/interleg_coordination.py`) so the comparison is like-for-like.
+
+**Result** (`validate_causal_phase.py`, real network at matched drive
+382.8125, pilot replicates {0,1,3,4,6,7}, 17 rhythmic-leg instances):
+
+| | value |
+|---|---:|
+| mean circular correlation | **+0.301** |
+| minimum circular correlation | **−0.251** (anti-correlated) |
+| lag range at "best fit" | −300 ms to +300 ms, incoherent across legs |
+
+**Verdict: NOT YET GOOD ENOUGH.** Two legs' best-fit lag pinned at the
+search boundary even after the range was widened from ±60 ms to ±300 ms,
+meaning the correlation doesn't have a clean peak at any reasonable delay
+— the two phase series are not simply a delayed copy of each other, they
+diverge.
+
+**Diagnosed, not just observed.** Two quick variants were tried on the
+cleanest replicate (0, 6/6 rhythmic, dominant frequency 11.4–12.0 Hz,
+matching `AUDIT.md`'s ~11 Hz prediction almost exactly, so band-centering
+is not the problem):
+
+| variant | correlation |
+|---|---:|
+| 300 ms window, 2–20 Hz (as built) | +0.732 (this leg's best) |
+| 1.0 s window, 2–20 Hz | +0.099 — worse |
+| 300 ms window, 8–14 Hz narrow | −0.331 — worse |
+| 1.0 s window, 8–14 Hz narrow | −0.024 — worse |
+
+Neither a longer window nor a narrower band helped — both made it worse.
+**Suspected cause: `scipy.signal.filtfilt` (zero-phase, forward-backward)
+inside a sliding window.** It needs symmetric padding at both edges of the
+window, and the edge that matters — the right edge, "now," the exact
+sample the estimate is read from — is where a forward-backward filter's
+own boundary handling is least reliable. Re-computing it on a fresh,
+disjoint window every stride, rather than running a genuinely one-sided
+continuously-updated filter, is likely compounding this with real block
+discontinuities. **Not confirmed** — this is a diagnosis from the pattern
+of the failure, not a proven root cause.
+
+### This blocks Rung 2 regardless of Option A vs Option C
+
+Both placements need a phase estimate to compute anything — Option A
+needs it to know what current to inject, Option C needs it to know how to
+shift joint-target timing. **The estimator failure is common to both**;
+only the bound-sweep/seizure-risk question in §9 is specific to Option A.
+Fixing this is on the critical path for Rung 2 no matter which write-side
+option is ultimately used.
+
+**Proposed fix, not yet built:** replace the sliding-`filtfilt` approach
+with a genuinely causal filter — a one-sided IIR bandpass
+(`scipy.signal.lfilter`/`sosfilt`, not `sosfiltfilt`) combined with a
+causal analytic-signal approximation (a fixed all-pass Hilbert-approximator
+filter, or a resonator/PLL-style running quadrature pair), rather than
+re-filtering a sliding block from scratch every stride. This needs its own
+build-and-revalidate cycle before Rung 2 can proceed; not started.
+
+## 9. Coupling-strength bound sweep — write-side safety only
+
+Because the estimator above is not trustworthy, the bound sweep
+(`sweep_coupling_bound.py`) does **not** use it. It replays a **precomputed,
+offline-derived reference phase trace, open loop** — fixed ahead of time
+from one real untrained trial (replicate 0), not recomputed from the
+trial being tested — to shape the injected current. This isolates one
+question cleanly: is a current of this shape and magnitude, injected into
+the CPG triad, safe? It says nothing about whether such a correction would
+be *accurate* if computed live (the estimator's job, which failed above).
+
+See the log for results, once the sweep completes.
+
+### Sweep results
+
+`media/trained_adapter/coupling_bound_sweep.json`. K ∈ {0, 1, 2, 4, 8, 16,
+32, 64, 128}, pilot replicates {0, 1, 4, 6}, cap fixed at Phase 4's own
+`SENSORY_CURRENT_CAP = 2.5` (reused, not re-derived — see caveat below).
+
+**No saturation, no instability, at any K tested.** `n_active` stays
+within roughly 2–9% of the K=0 baseline at every K (e.g. replicate 0:
+515 → 515–537, never approaching the 1,500 stability threshold).
+`n_rhythmic` drifts mildly downward at higher K — replicate 0 goes 6→5
+from K=8 onward, replicate 1 touches its floor of exactly 2 (the
+pre-registered minimum, not below it) only at K=128. Neither the
+saturation nor the rhythmicity gate was violated anywhere in the tested
+range.
+
+**A methodological correction, made before reporting this as clean.** My
+first read of this table was that K ≥ 8 all tested the same thing, since
+`inj = clip(K·error, ±2.5)` should saturate to the cap almost every step
+once K is large. Checked directly: **false** — the per-replicate sequences
+are not identical across K (e.g. rep 0: 515, 515, 527, 528, 522, 537, 536,
+522, 532 — real, if noisy, variation, not a step function). `sin(phase
+error)` crosses zero every half-cycle regardless of K, so injected current
+is not pinned at the cap continuously even at K=128. The sweep is
+genuinely informative about K, not accidentally a repeated cap-only test.
+
+**What this bound does and does not establish.** It is a real safety
+result for correction current **up to magnitude 2.5** (the injected
+current's actual ceiling, set by the cap, not by K) — K itself was pushed
+to 128 without finding a ceiling in K. It says nothing about whether a
+*larger* cap would also be safe; that is a different, untested axis, and
+2.5 is carried over from Phase 4's sensory-current work rather than
+independently re-derived here for the CPG-triad target specifically.
+
+### Proposed bound, for approval
+
+| parameter | proposed trainable range | basis |
+|---|---|---|
+| `coupling_strength` (K) | 0 to **64** | half the tested-safe ceiling (128), for margin against pilot-only sampling |
+| current cap | fixed at **2.5** | Phase 4's `SENSORY_CURRENT_CAP`, reused not re-derived; not itself trainable in this proposal |
+
+**Not committing K's upper bound at the full tested 128** — 64 leaves a
+2× margin given this was measured on 4 pilot replicates, not the full
+eligible pool, and using an open-loop reference signal rather than a real
+closed-loop one.
