@@ -123,5 +123,30 @@
   "term_posture": -0.0008371884449284533,
   "term_energy": -0.02519531606915512,
   "term_saturation": -0.5689166666666666
+ },
+ {
+  "generation": 5,
+  "best": 0.2145923079837414,
+  "median": 0.02198876974983285,
+  "worst": -3.370710870933688,
+  "sigma": 0.41859779057975466,
+  "wall_s": 190.3,
+  "frac_saturated": 0.08333333333333333,
+  "frac_unstable": 0.0,
+  "replicates": [
+   7,
+   0,
+   3,
+   6,
+   4,
+   1
+  ],
+  "term_progress": -0.026181056713973156,
+  "term_straightness": -0.024335760040327874,
+  "term_rhythmicity": 0.1015625,
+  "term_coordination": 0.029749447116324528,
+  "term_posture": -0.0006733489975453544,
+  "term_energy": -0.029323992752249593,
+  "term_saturation": -0.2975
  }
 ]
