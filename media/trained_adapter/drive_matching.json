@@ -1,0 +1,70 @@
+{
+ "target": 466.5,
+ "native_real": {
+  "0": 522,
+  "1": 380,
+  "2": 4176,
+  "3": 367,
+  "4": 488,
+  "5": 3794,
+  "6": 421,
+  "7": 445
+ },
+ "networks": {
+  "real": {
+   "matched_drive": 382.8125,
+   "achieved_median": 469.0,
+   "converged": true,
+   "iterations": 8,
+   "kwargs": {},
+   "per_replicate_n_active": {
+    "0": 515,
+    "1": 399,
+    "2": 4178,
+    "3": 367,
+    "4": 460,
+    "5": 3801,
+    "6": 426,
+    "7": 478
+   },
+   "eligible": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7
+   ],
+   "n_rhythmic": {
+    "0": 6,
+    "1": 3,
+    "3": 4,
+    "4": 3,
+    "6": 4,
+    "7": 6
+   },
+   "median_n_rhythmic": 4.0,
+   "verdict": "PASSES \u2014 train from this matched drive"
+  },
+  "C1": {
+   "matched_drive": 311.5234375,
+   "achieved_median": 255.5,
+   "converged": false,
+   "iterations": 12,
+   "kwargs": {
+    "shuffle_seed": 20260921
+   },
+   "verdict": "FAILS reachability \u2014 cannot be activity-matched"
+  },
+  "C2": {
+   "matched_drive": 213.37890625,
+   "achieved_median": 16.0,
+   "converged": false,
+   "iterations": 12,
+   "kwargs": {
+    "random_seed": 20260921
+   },
+   "verdict": "FAILS reachability \u2014 cannot be activity-matched"
+  }
+ }
+}
