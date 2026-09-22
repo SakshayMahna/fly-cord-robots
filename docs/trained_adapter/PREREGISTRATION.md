@@ -177,3 +177,78 @@ the activity difference rather than the wiring.
 **If no drive satisfies both conditions**, the control has no stable
 rhythmic regime at any drive. Report that; do not train it. That is a
 stronger statement about the wiring than the matching failure alone.
+
+---
+
+# Amendment 3 — the help ladder (2026-09-22)
+
+**Written before any training has launched, before Rung 2 is built, and
+before Rung 2's coupling bounds are measured.**
+
+## The ladder
+
+- **Rung 1** — the current 71-parameter adapter, no coordination help.
+  Unchanged; already fully specified and gated (`RESULTS.md`, gate suite).
+- **Rung 2** — Rung 1 plus a trainable interleg conductor (3 parameters:
+  coupling strength, preferred phase offset, time constant), reading only
+  connectome motor output and, per the design in `RUNG2_DESIGN.md`,
+  writing a bounded corrective current into the per-leg CPG triad. Coupling
+  strength starts at 0, so Rung 2 contains Rung 1 as a special case.
+- **Rung 3** — backup only. **Not designed, not built, not scheduled.**
+  Any decision to build it is separate from this document.
+
+## Committed now
+
+**Budget, seeds, pool — identical across rungs.** Both rungs run at
+population λ = 16, episodes E = 6, generations = 250, the same CMA-ES
+seed, and the same eligible replicate pool from the real network's
+activity matching (`RESULTS.md`: replicates {0, 1, 3, 4, 6, 7}, matched
+drive 382.81). Rung 2 is not given a larger budget to compensate for its
+harder problem, and not a smaller one because it "should" need less.
+
+**Success metrics, identical for both rungs, reported whether they favour
+the rung or not:**
+
+| metric | how it is computed |
+|---|---|
+| forward speed | fraction of `v_ref` (14.025 mm/s, the measured CPG baseline) |
+| tripod index | AR(1)-gated, `analysis/interleg_coordination.py`, unchanged |
+| rhythmic legs | n_rhythmic / 6, same gate |
+| straightness | lateral displacement / (T · v_ref), reward term 2 |
+| upright | reward term 3 |
+| **inspection video verdict** | did a human (or the documented detector
+  suite) confirm this is walking, not an exploit — mandatory, not optional |
+
+**Comparison basis.** No connectome control is trainable — C1 and C2 both
+failed the complete pre-registered matching sequence (primary + Amendment
+2 fallback; `RESULTS.md`). There is no trained-C1 or trained-C2 number to
+compare either rung against. **Both rungs are compared against the C3
+baselines only** — the FlyGym CPG (14.025 ± 0.250 mm/s) and rule-based
+(7.396 ± 0.392 mm/s) controllers, already measured on the identical body
+and terrain. This is a real limitation on what either rung's result can
+claim, and it is stated here rather than discovered when writing RESULTS
+later: a rung that outperforms the untrained connectome says the adapter
+learned something; a rung that approaches the CPG/rule-based baselines
+says it learned to walk about as well as a hand-designed controller;
+neither says anything about whether the *wiring* specifically was
+necessary, because no wiring control could be trained to compare against.
+
+**Reporting order.** Rung 1's result is reported **regardless of Rung 2's
+outcome** — a good Rung 2 result does not retroactively make Rung 1's
+result less worth reporting, and a bad one does not make it more so.
+
+**Stop rule.** If Rung 2 also fails to produce forward walking (per the
+same inspection-video-verdict standard used to catch the first pilot's
+kick-and-coast exploit), that is reported as Rung 2's result. **Rung 3 is
+a separate decision, made after seeing that result, not a fallback that
+runs automatically.**
+
+## Not yet committed, and why
+
+`RUNG2_DESIGN.md` proposes Option A (current into the CPG triad) but its
+`coupling_strength` upper bound and current cap are **not set** — they
+need a measure-first sweep on the untrained connectome, the same
+discipline every other bound in this project has had (e.g.
+`SENSORY_CURRENT_CAP`). That measurement, and the decision it produces,
+will be its own dated addition to this document before Rung 2 is built —
+not folded into this amendment before it exists.

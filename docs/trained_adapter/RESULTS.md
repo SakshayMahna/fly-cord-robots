@@ -201,3 +201,20 @@ recoverable from degree sequence, sign balance, or edge weights alone.
 
 **Revised plan: one trained run (real connectome, drive 382.81), not
 three.** `RUN_PLAN.md` updated accordingly.
+
+## Comparison basis for every trained rung — stated once, applies throughout
+
+**No connectome control is trainable** (above: both C1 and C2 failed the
+complete pre-registered matching sequence, primary and fallback). There is
+no trained-C1 or trained-C2 number for Rung 1 or Rung 2 to be compared
+against. **The learning comparison for both rungs is against the C3
+baselines only** — the FlyGym CPG (14.025 ± 0.250 mm/s) and rule-based
+(7.396 ± 0.392 mm/s) controllers, measured on the identical body and
+terrain (`baselines/run_baselines.py`).
+
+This limits what any trained result can claim: it can show the adapter (or
+the adapter plus a conductor) learned to move the body, and how that
+compares to a hand-designed controller on the same body — it cannot show
+that the specific wiring was *necessary* for that, since no wiring control
+could be trained to test against. Recorded here so it is read alongside
+the numbers, not discovered as a footnote later.
