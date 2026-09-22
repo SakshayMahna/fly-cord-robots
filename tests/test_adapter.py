@@ -73,7 +73,31 @@ def test_defaults_match_the_frozen_phase4_constants():
     assert np.allclose(p.chord_cap, 2.5)        # SENSORY_CURRENT_CAP
     assert np.allclose(p.hp_threshold, 0.75)    # HAIR_PLATE_THRESHOLD_FRAC
     assert np.allclose(p.chord_sigma, 0.10)     # FRACTIONATION_SIGMA
-    assert p.dng100_level == pytest.approx(380.0)   # Pugliese's verified value
+
+
+def test_dng100_default_matches_the_recorded_activity_match():
+    """The default must be the REAL network's pre-registered
+    activity-matched drive, not Pugliese's raw 380 -- the pre-registration
+    (PREREGISTRATION.md) commits to training "relative to that start."
+
+    Reads the recorded matching result directly rather than hardcoding its
+    number a second time, so the two cannot drift apart silently: if
+    match_drive.py is ever re-run and the result changes, this test fails
+    instead of quietly training from a stale drive.
+    """
+    import json
+    from pathlib import Path
+
+    path = Path("media/trained_adapter/drive_matching.json")
+    if not path.exists():
+        pytest.skip(f"{path} not present in this checkout")
+    recorded = json.loads(path.read_text())["networks"]["real"]["matched_drive"]
+
+    p = default_params()
+    assert p.dng100_level == pytest.approx(recorded), (
+        f"adapter default ({p.dng100_level}) does not match the recorded "
+        f"activity-matched drive ({recorded}) -- Rung 1 would launch from "
+        "the wrong starting point")
 
 
 def test_parameters_stay_inside_their_bounds_under_extreme_z():

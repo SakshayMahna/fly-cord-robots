@@ -68,7 +68,13 @@ PARAM_SPEC: tuple[tuple[str, tuple[int, ...], float, float, float], ...] = (
     # --- global sensory ----------------------------------------------------
     ("lr_sensory_ratio", (),  0.5,   2.0,   1.0),
     # --- command drive -----------------------------------------------------
-    ("dng100_level",    (),   0.0,   600.0, 380.0),  # Pugliese's own verified value
+    # Default is the REAL connectome's pre-registered activity-matched
+    # drive (PREREGISTRATION.md, RESULTS.md: matched_drive=382.8125,
+    # media/trained_adapter/drive_matching.json), not Pugliese's own 380 --
+    # the pre-registration commits to training "relative to that start."
+    # Regression-tested against the recorded JSON so the two cannot drift
+    # apart silently (tests/test_adapter.py).
+    ("dng100_level",    (),   0.0,   600.0, 382.8125),
     ("mdn_level",       (),   0.0,   400.0, 5.0),    # ~off; MDN is exploratory only
     ("command_asymmetry", (), -0.5,  0.5,   0.0),    # L/R drive imbalance -> turning
     ("command_ramp_s",  (),   0.001, 0.50,  0.02),   # matches Phase 4's pulse_start
