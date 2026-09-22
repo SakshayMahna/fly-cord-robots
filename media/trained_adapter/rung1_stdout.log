@@ -624,3 +624,265 @@ Created 1 stimulus configurations
    Paths template: fly_robot
    Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
 Created 1 stimulus configurations
+=== real / rung1 ===
+reward config hash: 88f681a4ab03d6d88fe4180b7ee03d07be3e165801c2439afb5c44bef9a93647
+running sign test (blocking gate)...
+  sign test [kinematic]: ball centre [ 0.16  0.   -1.64], w_y=-1 drags top surface v_x=-3.00 (backward)
+  sign test [forward]: pitch=-0.95 rad/s -> progress=+1.000
+  sign test [backward]: pitch=+0.95 rad/s -> progress=-1.000
+  sign test PASSED
+
+resolving eligible replicates from adapter-off baselines (filter: n_active <= 1500, condition=real)...
+  filter excluded 2 of 8: rep 2 (n_active=4176), rep 5 (n_active=3794)
+  eligible pool: [0, 1, 3, 4, 6, 7]
+
+resuming from generation 6
+gen    6  best=+0.1795 med=+0.0001  sigma=0.413  sat=0.11  417s
+gen    7  best=+0.2459 med=+0.0559  sigma=0.406  sat=0.08  180s
+gen    8  best=+0.2133 med=-0.4769  sigma=0.399  sat=0.30  283s
+gen    9  best=+0.2336 med=+0.1229  sigma=0.395  sat=0.09  208s
+gen   10  best=+0.1799 med=+0.0080  sigma=0.391  sat=0.24  235s
+gen   11  best=+0.1909 med=+0.1415  sigma=0.388  sat=0.04  170s
+gen   12  best=+0.2674 med=+0.1063  sigma=0.383  sat=0.10  201s
+gen   13  best=+0.2124 med=-0.0184  sigma=0.380  sat=0.22  230s
+gen   14  best=+0.2415 med=+0.1708  sigma=0.379  sat=0.03  174s
+gen   15  best=+0.2583 med=+0.1777  sigma=0.377  sat=0.17  225s
+gen   16  best=+0.2532 med=+0.1742  sigma=0.375  sat=0.18  216s
+gen   17  best=+0.2689 med=-0.3210  sigma=0.373  sat=0.23  250s
+gen   18  best=+0.2734 med=+0.1892  sigma=0.372  sat=0.03  176s
+gen   19  best=+0.2652 med=+0.1687  sigma=0.372  sat=0.16  222s
+gen   20  best=+0.2645 med=+0.1782  sigma=0.371  sat=0.14  217s
+gen   21  best=+0.2573 med=+0.1637  sigma=0.373  sat=0.32  283s
+gen   22  best=+0.2107 med=+0.1670  sigma=0.376  sat=0.12  198s
+gen   23  best=+0.2750 med=+0.1596  sigma=0.380  sat=0.12  203s
+gen   24  best=+0.2488 med=+0.1277  sigma=0.382  sat=0.18  226s
+gen   25  best=+0.2230 med=+0.1187  sigma=0.384  sat=0.12  200s
+gen   26  best=+0.2515 med=+0.1260  sigma=0.386  sat=0.14  222s
+Process SpawnPoolWorker-5:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+Process SpawnPoolWorker-7:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
+Process SpawnPoolWorker-2:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r0
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r4
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r6
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r7
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r3
+Created 1 stimulus configurations
+🔄 Creating fresh config for experiment 'FullVNC_DNg100_Stim' with paths template 'fly_robot'
+✅ Created fresh config:
+   Experiment: FullVNC_DNg100_Stim
+   Version: debug
+   Paths template: fly_robot
+   Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
+Created 1 stimulus configurations
