@@ -886,3 +886,29 @@ Created 1 stimulus configurations
    Paths template: fly_robot
    Save dir: /Users/sakshaymahna/Documents/fly-cord-robots/data/simulation_output/FullVNC_DNg100_Stim/debug/run_id=closed_loop_s641_r1
 Created 1 stimulus configurations
+=== real / rung1 ===
+reward config hash: 88f681a4ab03d6d88fe4180b7ee03d07be3e165801c2439afb5c44bef9a93647
+running sign test (blocking gate)...
+  sign test [kinematic]: ball centre [ 0.16  0.   -1.64], w_y=-1 drags top surface v_x=-3.00 (backward)
+  sign test [forward]: pitch=-0.95 rad/s -> progress=+1.000
+  sign test [backward]: pitch=+0.95 rad/s -> progress=-1.000
+  sign test PASSED
+
+resolving eligible replicates from adapter-off baselines (filter: n_active <= 1500, condition=real)...
+  filter excluded 2 of 8: rep 2 (n_active=4176), rep 5 (n_active=3794)
+  eligible pool: [0, 1, 3, 4, 6, 7]
+
+resuming from generation 27
+gen   27  best=+0.2402 med=-0.1838  sigma=0.388  sat=0.14  913s
+gen   28  best=+0.2428 med=-0.1649  sigma=0.389  sat=0.14  212s
+gen   29  best=+0.1967 med=+0.0123  sigma=0.392  sat=0.26  240s
+gen   30  best=+0.2439 med=+0.1442  sigma=0.393  sat=0.05  169s
+gen   31  best=+0.2720 med=+0.1562  sigma=0.396  sat=0.08  186s
+gen   32  best=+0.2600 med=+0.0675  sigma=0.396  sat=0.18  224s
+gen   33  best=+0.2706 med=-0.1906  sigma=0.396  sat=0.28  283s
+gen   34  best=+0.2137 med=-0.8163  sigma=0.396  sat=0.32  261s
+gen   35  best=+0.2859 med=+0.0124  sigma=0.395  sat=0.21  247s
+gen   36  best=+0.2497 med=-0.2044  sigma=0.396  sat=0.21  227s
+gen   37  best=+0.2835 med=-0.5480  sigma=0.395  sat=0.32  288s
+gen   38  best=+0.2504 med=-0.5166  sigma=0.392  sat=0.38  294s
+gen   39  best=+0.2803 med=+0.1186  sigma=0.387  sat=0.09  223s
