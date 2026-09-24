@@ -939,3 +939,29 @@ gen   50  best=+0.2500 med=+0.1663  sigma=0.373  sat=0.11  195s
 gen   51  best=+0.2525 med=+0.1750  sigma=0.371  sat=0.23  232s
 gen   52  best=+0.2424 med=+0.1519  sigma=0.371  sat=0.15  204s
 gen   53  best=+0.2411 med=+0.1483  sigma=0.370  sat=0.17  236s
+=== real / rung1 ===
+reward config hash: 88f681a4ab03d6d88fe4180b7ee03d07be3e165801c2439afb5c44bef9a93647
+running sign test (blocking gate)...
+  sign test [kinematic]: ball centre [ 0.16  0.   -1.64], w_y=-1 drags top surface v_x=-3.00 (backward)
+  sign test [forward]: pitch=-0.95 rad/s -> progress=+1.000
+  sign test [backward]: pitch=+0.95 rad/s -> progress=-1.000
+  sign test PASSED
+
+resolving eligible replicates from adapter-off baselines (filter: n_active <= 1500, condition=real)...
+  filter excluded 2 of 8: rep 2 (n_active=4176), rep 5 (n_active=3794)
+  eligible pool: [0, 1, 3, 4, 6, 7]
+
+resuming from generation 54
+gen   54  best=+0.2485 med=-0.1529  sigma=0.372  sat=0.20  438s
+gen   55  best=+0.2442 med=+0.1787  sigma=0.375  sat=0.10  191s
+gen   56  best=+0.2683 med=+0.2096  sigma=0.377  sat=0.19  220s
+gen   57  best=+0.2746 med=-0.4296  sigma=0.381  sat=0.33  253s
+gen   58  best=+0.2445 med=+0.1742  sigma=0.385  sat=0.21  227s
+gen   59  best=+0.2366 med=-0.6632  sigma=0.385  sat=0.33  293s
+gen   60  best=+0.2409 med=+0.1803  sigma=0.385  sat=0.21  242s
+gen   61  best=+0.2391 med=-0.3320  sigma=0.385  sat=0.33  275s
+gen   62  best=+0.2424 med=-2.1606  sigma=0.381  sat=0.56  338s
+gen   63  best=+0.2268 med=+0.1707  sigma=0.380  sat=0.12  194s
+gen   64  best=+0.2257 med=+0.1676  sigma=0.380  sat=0.21  250s
+gen   65  best=+0.2203 med=+0.1732  sigma=0.377  sat=0.16  186s
+gen   66  best=+0.2411 med=+0.1765  sigma=0.373  sat=0.09  191s
