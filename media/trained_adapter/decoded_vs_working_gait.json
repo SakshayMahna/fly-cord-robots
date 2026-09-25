@@ -1,0 +1,155 @@
+{
+ "matched_drive": 382.8125,
+ "duration_s": 2.0,
+ "rows": [
+  {
+   "dof": "c_thorax-lf_coxa-pitch",
+   "connectome_p2p_rad": 0.10556384921073914,
+   "cpg_p2p_rad": 0.5530369217730275,
+   "ratio": 0.1908802921734468,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "lf_coxa-lf_trochanterfemur-pitch",
+   "connectome_p2p_rad": 0.059190988540649414,
+   "cpg_p2p_rad": 1.006957523879693,
+   "ratio": 0.05878201129337934,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "lf_trochanterfemur-lf_tibia-pitch",
+   "connectome_p2p_rad": 0.09292483329772949,
+   "cpg_p2p_rad": 0.9015314097179274,
+   "ratio": 0.10307442679873345,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "c_thorax-rf_coxa-pitch",
+   "connectome_p2p_rad": 0.04494619369506836,
+   "cpg_p2p_rad": 0.5530369217730218,
+   "ratio": 0.08127159675157321,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "rf_coxa-rf_trochanterfemur-pitch",
+   "connectome_p2p_rad": 0.028083086013793945,
+   "cpg_p2p_rad": 1.0069575238796915,
+   "ratio": 0.027889047301213905,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "rf_trochanterfemur-rf_tibia-pitch",
+   "connectome_p2p_rad": 0.047173067927360535,
+   "cpg_p2p_rad": 0.901531409717923,
+   "ratio": 0.052325484635216815,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "c_thorax-lm_coxa-pitch",
+   "connectome_p2p_rad": 0.1304498314857483,
+   "cpg_p2p_rad": 0.5910431343708997,
+   "ratio": 0.2207111865441052,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "lm_coxa-lm_trochanterfemur-pitch",
+   "connectome_p2p_rad": 0.0645265206694603,
+   "cpg_p2p_rad": 0.6066210179247224,
+   "ratio": 0.10637040056773568,
+   "connectome_hz": 12.5,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "lm_trochanterfemur-lm_tibia-pitch",
+   "connectome_p2p_rad": 0.00029386579990386963,
+   "cpg_p2p_rad": 0.36876129596383955,
+   "ratio": 0.0007968997916003795,
+   "connectome_hz": 11.5,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "c_thorax-rm_coxa-pitch",
+   "connectome_p2p_rad": 0.1506525855511427,
+   "cpg_p2p_rad": 0.5910431343708975,
+   "ratio": 0.25489270882318316,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "rm_coxa-rm_trochanterfemur-pitch",
+   "connectome_p2p_rad": 0.07230435125529766,
+   "cpg_p2p_rad": 0.6066210179247093,
+   "ratio": 0.11919196519542899,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "rm_trochanterfemur-rm_tibia-pitch",
+   "connectome_p2p_rad": 0.022498104721307755,
+   "cpg_p2p_rad": 0.3687612959638431,
+   "ratio": 0.06100994048874827,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "c_thorax-lh_coxa-pitch",
+   "connectome_p2p_rad": 0.0006968080997467041,
+   "cpg_p2p_rad": 0.49730510332260136,
+   "ratio": 0.0014011682065821981,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "lh_coxa-lh_trochanterfemur-pitch",
+   "connectome_p2p_rad": 0.0002403557300567627,
+   "cpg_p2p_rad": 0.7297486743718351,
+   "ratio": 0.0003293678200425098,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "lh_trochanterfemur-lh_tibia-pitch",
+   "connectome_p2p_rad": 0.0002845004200935364,
+   "cpg_p2p_rad": 1.1047437559538904,
+   "ratio": 0.0002575261625696039,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "c_thorax-rh_coxa-pitch",
+   "connectome_p2p_rad": 0.08612799644470215,
+   "cpg_p2p_rad": 0.49730510332260097,
+   "ratio": 0.17318944822657703,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "rh_coxa-rh_trochanterfemur-pitch",
+   "connectome_p2p_rad": 0.07151913642883301,
+   "cpg_p2p_rad": 0.7297486743718351,
+   "ratio": 0.09800516114729008,
+   "connectome_hz": 12.0,
+   "cpg_hz": 12.0
+  },
+  {
+   "dof": "rh_trochanterfemur-rh_tibia-pitch",
+   "connectome_p2p_rad": 0.13834884390234947,
+   "cpg_p2p_rad": 1.1047437559538857,
+   "ratio": 0.12523161426053303,
+   "connectome_hz": 11.5,
+   "cpg_hz": 12.0
+  }
+ ],
+ "median_amplitude_ratio": 0.08963837894943164,
+ "connectome_mean_p2p_rad": 0.061990273288554616,
+ "cpg_mean_p2p_rad": 0.7066387596976025,
+ "connectome_median_hz": 12.0,
+ "cpg_median_hz": 12.0
+}

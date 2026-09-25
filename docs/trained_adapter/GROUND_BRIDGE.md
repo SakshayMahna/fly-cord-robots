@@ -215,3 +215,85 @@ silently mixed.
 objective.** It was written under a different reward hash and a different
 rig; the contract check will refuse it, and it should be kept intact as the
 ball-rig record.
+
+---
+
+## 7. Two diagnostics run before launching R1a, and what they found
+
+*2026-09-25. Both cheap, both run because a 20-hour search deserves a
+sanity check first, and both changed what we expect.*
+
+### 7a. The connectome's frequency is already right; its amplitude is not
+
+`fly_robot/experiments/compare_decoded_to_working_gait.py` compares the
+untrained decoder's joint motion against the restricted CPG gait that we
+now know walks, on the same 18 DOFs.
+
+| | connectome (untrained) | working CPG | ratio |
+|---|---:|---:|---:|
+| mean peak-to-peak | **0.062 rad** | 0.707 rad | **0.09×** |
+| median dominant frequency | **12.00 Hz** | 12.00 Hz | **1.00×** |
+
+**The stepping frequency matches almost exactly, DOF for DOF.** The
+connectome's rhythm is reaching the joints, in band, at a plausible walking
+rate — that is a real positive result and it is worth stating plainly.
+
+What is wrong is the **excursion**: about 1/11th of a gait that walks. Also
+recorded: for this replicate the **entire left hind leg is effectively
+still** (three DOFs at 0.0002–0.0007 rad), as is the left-middle tibia —
+4 of 18 DOFs are not meaningfully driven. That asymmetry is in the
+connectome's own output, not something the decoder chose.
+
+### 7b. Raising the amplitude does not produce walking — it flips the fly
+
+`fly_robot/experiments/calibrate_decoder_amplitude.py` sweeps the two
+constants that set excursion (`motor_gain` ∈ [0.05, 1.20], `motor_scale` ∈
+[0.50, 20.0] — scale divides the tanh argument, so smaller = larger swing)
+and measures **forward speed**, not just amplitude.
+
+**11 of 12 configurations flipped the fly.** The only survivor is the
+default (gain 0.50, scale 3.00), at −0.140 mm/s and amplitude 0.09×. Mean
+uprightness falls monotonically as amplitude rises (0.909 → 0.803), and no
+setting reaches even 0.3× the working gait's excursion before falling over.
+
+So the naive reading of 7a — "just turn up the gain" — is **wrong**, and it
+is much better to have learned that in four minutes than after a 20-hour
+search warm-started into it.
+
+**Why this is coherent rather than discouraging.** Bigger strides from an
+*uncoordinated* rhythm are worse than small ones. The connectome under
+DNg100 drive produces **no consistent left/right phase coupling** — that is
+Pugliese et al.'s own published finding (Fig. 4d-e; Extended Data Fig. 9b),
+and the reason this project exists. Uniform amplitude scaling cannot fix
+that, because it scales the uncoordinated pattern up along with everything
+else. Per-leg, per-segment differentiated control plausibly can, and that is
+exactly what R1a's 40 parameters are: `motor_gain`, `motor_scale`,
+`motor_offset` and `motor_tau` per (antagonist pair × segment), plus
+per-segment adhesion weight and threshold.
+
+A methodological note, since it nearly produced a bad launch: the sweep's
+first selection picked "fastest = gain 0.50 / scale 1.50 at +0.000 mm/s"
+— from configurations that had all **flipped**, because a terminated trial
+reports 0.000 mm/s and a max-by-speed happily selects one. Warm-starting a
+20-hour run there would have been worse than not calibrating at all. The
+script now selects among survivors only and raises if none survive.
+
+### What this means for the launch
+
+**R1a starts from the defaults, with no warm start** — the calibration
+found nothing better, which is itself the finding. The search now has a
+well-posed job and a strong gradient to work with:
+
+* the action space is sufficient (§3: 70% of full-DOF speed is reachable),
+* the frequency is already correct (7a),
+* flipping is heavily penalised (reward −0.92 to −1.01) versus merely not
+  moving (−0.14), so CMA-ES has a clear signal away from the failure mode
+  that dominates the naive fix,
+* and it must solve excursion **and** stability jointly, which uniform
+  scaling provably cannot and differentiated per-leg control might.
+
+This is a genuine experiment with a real chance of either outcome. If R1a
+plateaus near "upright but barely moving", the diagnosis is already in
+place: coordination, not amplitude, and Rung 2's bounded conductor is the
+pre-registered next step — still blocked on its phase estimator
+(`RUNG2_DESIGN.md` §10).

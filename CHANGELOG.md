@@ -28,6 +28,17 @@ explain *why*, not just *what*.
   first version reported the opposite, an artifact of `JointDOF` objects not
   matching string names, caught only because it printed how many DOFs it
   drove; it now raises instead of reporting a confident wrong verdict.
+  Then two diagnostics before launching: the connectome's decoded joints
+  already oscillate at **12.00 Hz, matching the working gait DOF for DOF**,
+  but at **1/11th the excursion** (0.062 vs 0.707 rad) — and turning the
+  amplitude up does not walk, it **flips the fly** (11 of 12 sweep
+  configurations terminated; uprightness falls monotonically with
+  amplitude; the only survivor is the default). Coherent with Pugliese's
+  own finding that DNg100 drive yields no left/right phase coupling:
+  scaling an uncoordinated rhythm scales the incoordination too. R1a
+  therefore launches from defaults, and must solve excursion and stability
+  jointly — which uniform scaling provably cannot and per-leg
+  differentiated control might.
 - **[2026-09-20 to 2026-09-21 — trained adapter: design, compute gate, and
   a lossless 3.4×](docs/trained_adapter/)** — Design and measurement only;
   **the trainer is deliberately not built** (`DESIGN.md` for the current

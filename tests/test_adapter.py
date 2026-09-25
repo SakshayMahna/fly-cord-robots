@@ -348,3 +348,45 @@ def test_reward_hash_is_stable_and_changes_with_the_config():
 def test_motor_filter_alpha_is_bounded():
     a = motor_filter_alpha(default_params(), {"c_thorax-lf_coxa-pitch": 0}, 0.001)
     assert (a > 0).all() and (a <= 1).all()
+
+
+def test_to_z_round_trips_with_from_z():
+    """`to_z` exists so a search can be warm-started from a physically
+    specified adapter (e.g. a calibrated decoder amplitude). If it did not
+    invert `from_z` exactly, a warm start would silently begin somewhere
+    other than the configuration that was measured.
+    """
+    from fly_robot.adapter.parameters import to_z
+
+    # defaults -> z -> defaults
+    z = to_z(default_params())
+    assert np.abs(z).max() < 1e-9, "default params must map to z = 0"
+    recovered = from_z(z)
+    for name in default_params().values:
+        assert np.allclose(np.asarray(recovered.values[name], dtype=float),
+                           np.asarray(default_params().values[name], dtype=float))
+
+    # an arbitrary interior point: z -> phys -> z
+    rng = np.random.default_rng(0)
+    z_random = rng.normal(0.0, 1.0, N_PARAMS)
+    assert np.allclose(to_z(from_z(z_random)), z_random, atol=1e-9)
+
+
+def test_to_z_handles_parameters_sitting_on_their_bounds():
+    """A parameter exactly on a bound is +/-inf in z. `to_z` must clip just
+    inside instead, or CMA-ES cannot start from a calibrated point that
+    happens to sit on a bound (the amplitude sweep does exactly that)."""
+    from fly_robot.adapter.parameters import to_z
+
+    p = default_params()
+    values = dict(p.values)
+    for name, _shape, low, high, _default in PARAM_SPEC:
+        arr = np.asarray(values[name], dtype=float)
+        values[name] = np.full_like(arr, high) if arr.shape else float(high)
+    z = to_z(type(p)(values=values))
+    assert np.all(np.isfinite(z)), "parameters on a bound produced non-finite z"
+    # And it decodes back to essentially the bound.
+    back = from_z(z)
+    for name, _shape, _low, high, _default in PARAM_SPEC:
+        assert np.allclose(np.asarray(back.values[name], dtype=float), high,
+                           rtol=1e-6), f"{name} did not return to its bound"

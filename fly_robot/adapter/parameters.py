@@ -215,6 +215,28 @@ def from_z(z: np.ndarray) -> AdapterParams:
     return AdapterParams(values)
 
 
+def to_z(params: AdapterParams) -> np.ndarray:
+    """Inverse of `from_z`: physical parameters back to search coordinates.
+
+    Needed to warm-start a search from a physically-specified adapter (e.g.
+    a calibrated decoder amplitude) rather than from the defaults. Exact
+    round-trip with `from_z` up to floating point, asserted in
+    tests/test_adapter.py.
+
+    Values are clipped a hair inside their bounds before the logit, because
+    a parameter sitting exactly on a bound maps to +/-inf in z — which CMA-ES
+    cannot start from. `from_z(to_z(p))` therefore returns a value
+    fractionally inside the bound rather than exactly on it.
+    """
+    z = np.zeros(N_PARAMS)
+    eps = 1e-9
+    for name, _shape, low, high, _default, sl in _SLICES:
+        phys = np.asarray(params.values[name], dtype=float).ravel()
+        frac = np.clip((phys - low) / (high - low), eps, 1.0 - eps)
+        z[sl] = np.log(frac / (1.0 - frac)) - _Z0[sl]
+    return z
+
+
 def default_z() -> np.ndarray:
     """The search's starting point: zeros, which decode to the defaults."""
     return np.zeros(N_PARAMS)
