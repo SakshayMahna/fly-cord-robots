@@ -1,0 +1,90 @@
+{
+ "adapter_controllable_dofs": [
+  "c_thorax-lf_coxa-pitch",
+  "lf_coxa-lf_trochanterfemur-pitch",
+  "lf_trochanterfemur-lf_tibia-pitch",
+  "c_thorax-rf_coxa-pitch",
+  "rf_coxa-rf_trochanterfemur-pitch",
+  "rf_trochanterfemur-rf_tibia-pitch",
+  "c_thorax-lm_coxa-pitch",
+  "lm_coxa-lm_trochanterfemur-pitch",
+  "lm_trochanterfemur-lm_tibia-pitch",
+  "c_thorax-rm_coxa-pitch",
+  "rm_coxa-rm_trochanterfemur-pitch",
+  "rm_trochanterfemur-rm_tibia-pitch",
+  "c_thorax-lh_coxa-pitch",
+  "lh_coxa-lh_trochanterfemur-pitch",
+  "lh_trochanterfemur-lh_tibia-pitch",
+  "c_thorax-rh_coxa-pitch",
+  "rh_coxa-rh_trochanterfemur-pitch",
+  "rh_trochanterfemur-rh_tibia-pitch"
+ ],
+ "n_adapter_controllable": 18,
+ "duration_s": 2.0,
+ "rows": [
+  {
+   "restricted": false,
+   "seed": 0,
+   "n_dofs_driven": 42,
+   "speed_mm_s": 13.787684258944187,
+   "dx_mm": 27.575368517888375,
+   "abs_dy_mm": 7.169440531335907,
+   "upright_min": 0.9737623637536958,
+   "z_end": 1.001389237247151
+  },
+  {
+   "restricted": false,
+   "seed": 1,
+   "n_dofs_driven": 42,
+   "speed_mm_s": 13.976005518220852,
+   "dx_mm": 27.952011036441704,
+   "abs_dy_mm": 4.331367826704347,
+   "upright_min": 0.9663308655111907,
+   "z_end": 0.8682069899715643
+  },
+  {
+   "restricted": false,
+   "seed": 2,
+   "n_dofs_driven": 42,
+   "speed_mm_s": 14.169239468470177,
+   "dx_mm": 28.338478936940355,
+   "abs_dy_mm": 1.3911690572420508,
+   "upright_min": 0.9705257477878062,
+   "z_end": 0.9084318479309456
+  },
+  {
+   "restricted": true,
+   "seed": 0,
+   "n_dofs_driven": 18,
+   "speed_mm_s": 9.915940603099992,
+   "dx_mm": 19.831881206199984,
+   "abs_dy_mm": 1.2667895087915102,
+   "upright_min": 0.9646333639328897,
+   "z_end": 0.8950932461200439
+  },
+  {
+   "restricted": true,
+   "seed": 1,
+   "n_dofs_driven": 18,
+   "speed_mm_s": 9.826731771280418,
+   "dx_mm": 19.653463542560836,
+   "abs_dy_mm": 0.3810170250327123,
+   "upright_min": 0.9590389167862818,
+   "z_end": 0.6583745315201947
+  },
+  {
+   "restricted": true,
+   "seed": 2,
+   "n_dofs_driven": 18,
+   "speed_mm_s": 9.723699689522256,
+   "dx_mm": 19.447399379044512,
+   "abs_dy_mm": 0.3349792520496068,
+   "upright_min": 0.9648373291341884,
+   "z_end": 0.7677562300393231
+  }
+ ],
+ "unrestricted_mean_mm_s": 13.977643081878407,
+ "restricted_mean_mm_s": 9.822124021300889,
+ "gate_threshold_mm_s": 4.612622217019874,
+ "action_space_can_walk": true
+}

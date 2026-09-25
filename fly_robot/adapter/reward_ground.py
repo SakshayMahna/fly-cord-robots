@@ -72,6 +72,10 @@ class RewardBreakdown:
         return out
 
 
+class SignTestFailure(RuntimeError):
+    """The ground reward's forward-axis gate failed."""
+
+
 def upright_series(quat: np.ndarray) -> np.ndarray:
     """Vertical component of the body z-axis: 1 level, 0 on its side,
     negative inverted. For a unit quaternion (w,x,y,z) that is 1-2(x^2+y^2)."""
@@ -134,6 +138,9 @@ def evaluate(result, config: dict | None = None) -> RewardBreakdown:
         posture = energy = 0.0
 
     n_active = float(result.n_active_neurons)
+    peak_n_active = float(result.peak_n_active_neurons
+                          if result.peak_n_active_neurons is not None
+                          else result.n_active_neurons)
     saturation = float(np.clip(
         (n_active - ref["saturation_n_active"]) / ref["saturation_n_active"],
         0.0, ref["saturation_cap"]))
@@ -147,6 +154,43 @@ def evaluate(result, config: dict | None = None) -> RewardBreakdown:
         total=float(sum(weighted.values())), terms=weighted,
         raw={**raw, "dx_mm": dx, "dy_mm": dy, "speed_mm_s": dx / full_duration,
              "n_active": n_active, "n_rhythmic": n_rhythmic,
+             "peak_n_active": peak_n_active,
+             "fraction_saturated_steps": float(result.fraction_saturated_steps),
              "tripod_index": tripod, "upright_mean": float(up.mean()),
              "terminated": float(result.terminated_at_step is not None),
              "frac_completed": n_done / max(n_planned, 1)})
+
+
+def sign_test() -> None:
+    """Block training if +x thorax motion does not earn positive progress.
+
+    The ball reward's sign hazard was unusually easy to make because its
+    forward axis is negative pitch. The ground rig is simpler (+x), but this
+    still pins the convention in executable form before any expensive run.
+    """
+    from fly_robot.sim.closed_loop import TrialResult
+
+    n = 2000
+    t = np.arange(n) * NEURAL_DT
+    motor = np.tile(np.sin(2 * np.pi * 11 * t), (6, 1)).astype(np.float32)
+    angles = np.zeros((n, 42), dtype=np.float32)
+    quat = np.zeros((n, 4), dtype=np.float32)
+    quat[:, 0] = 1.0
+
+    def synthetic(dx_mm: float):
+        pos = np.zeros((n, 3), dtype=np.float32)
+        pos[:, 0] = np.linspace(0.0, dx_mm, n)
+        return TrialResult(
+            motor_rates=motor, joint_angles=angles, joint_velocities=angles,
+            sensory_drive=np.zeros((0, n), dtype=np.float32), sensory_channels=[],
+            ball_quat=None, ball_angvel=None, n_active_neurons=400,
+            max_firing_rate=19.0, wall_clock_s=0.0, thorax_pos=pos,
+            thorax_quat=quat, n_steps_planned=n,
+        )
+
+    distance = REWARD_CONFIG["references"]["walking_mm_s"] * n * NEURAL_DT
+    forward, backward = evaluate(synthetic(distance)), evaluate(synthetic(-distance))
+    if not (forward.raw["progress"] > 0 and backward.raw["progress"] < 0
+            and forward.total > backward.total):
+        raise SignTestFailure(
+            "ground reward does not rank +x travel above -x travel; aborting")

@@ -7,6 +7,27 @@ linked file for the full reasoning, quotes, and numbers. This is the
 source material for the video script, so the linked files are written to
 explain *why*, not just *what*.
 
+- **[2026-09-25 — the ground bridge: a wrong objective caught, and the
+  feasibility gate that should have come first](docs/trained_adapter/GROUND_BRIDGE.md)**
+  — 70 generations of CMA-ES were run, resumed five times and reported on
+  while scoring **ball rotation on a tethered fly**, not walking: the
+  trainer passed `on_ball=True` with the ball reward (hash `88f681a4...`)
+  months after the move to free ground, and the mismatch against
+  `reward_ground`'s `0d648542...` was printed at every launch and never
+  checked. The flat learning curve (no improvement after generation 2) and
+  negative mean progress were the signal and were read as noise. Fixed
+  structurally, not by care: the trainer now **refuses any rig but ground**,
+  stores a training contract in every checkpoint and refuses cross-objective
+  resumes, and five gates in `tests/test_ground_training_contract.py` make
+  the specific mistake unrepeatable — including one that asserts
+  `sensory_drive` is *numerically* zero when the sensory path is off. Then
+  the cheap gate that should have preceded any long search: FlyGym's own CPG
+  controller, restricted to the **18 of 42 DOFs the adapter can actually
+  move**, walks at **9.822 mm/s against 13.978 unrestricted (70%)** — so the
+  action space is *not* the blocker and R1a is worth running. That gate's
+  first version reported the opposite, an artifact of `JointDOF` objects not
+  matching string names, caught only because it printed how many DOFs it
+  drove; it now raises instead of reporting a confident wrong verdict.
 - **[2026-09-20 to 2026-09-21 — trained adapter: design, compute gate, and
   a lossless 3.4×](docs/trained_adapter/)** — Design and measurement only;
   **the trainer is deliberately not built** (`DESIGN.md` for the current

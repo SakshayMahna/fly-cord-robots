@@ -81,6 +81,11 @@ class TrialResult:
     n_active_neurons: int
     max_firing_rate: float
     wall_clock_s: float
+    # `n_active_neurons` is the final state, retained for compatibility with
+    # the pre-registered filter. These two fields expose transient seizures
+    # that used to disappear before the final sample and evade diagnosis.
+    peak_n_active_neurons: int | None = None
+    fraction_saturated_steps: float = 0.0
     thorax_pos: np.ndarray | None = None   # (n_steps, 3) mm, free-ground rig only
     thorax_quat: np.ndarray | None = None  # (n_steps, 4), free-ground rig only
     terminated_at_step: int | None = None  # set when the fly flipped over
@@ -135,6 +140,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               motor_rate_scale_hz: float = DEFAULT_RATE_SCALE_HZ,
               video_paths: dict | None = None,
               adapter=None, rig: str | None = None,
+              adapter_sensory: bool = True,
               adhesion: bool = True,
               terminate_on_flip: bool = True) -> TrialResult:
     """Run one coupled trial.
@@ -150,6 +156,11 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
 
     `leg_permutation` is C3's deliberate locality violation; leave it None
     everywhere else.
+
+    `adapter_sensory=False` is the R1a output-side condition. The adapter
+    still provides descending drive, motor decoding and adhesion, but no body
+    state enters the connectome. This must be explicit rather than achieved
+    by hoping CMA-ES happens to set sensory gains near zero.
 
     `video_paths`: optional {camera_name: output_path} to render this
     trial, camera_name one of "side", "opposite_side", "top_down" (the
@@ -199,7 +210,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
 
     all_jointdofs = fly.get_jointdofs_order()
     encoder = None
-    if sensory_groups is not None:
+    if sensory_groups is not None and (adapter is None or adapter_sensory):
         if adapter is not None:
             # Phase 5 path: every encoder constant is a trained parameter.
             # `feedback_gain` and `encoder_mode` are ignored here because the
@@ -292,6 +303,8 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
                           for m in ANATOMICAL_POOLS}
 
     max_rate = 0.0
+    peak_n_active = 0
+    saturated_steps = 0
     terminated_at_step = None
     unstable, reason = False, ""
     t0 = time.time()
@@ -322,6 +335,9 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         rates = neural_model.step(neural_dt, extra_input=extra_input)
         step_max = float(rates.max())
         max_rate = max(max_rate, step_max)
+        n_active_step = int((rates > 0.01).sum())
+        peak_n_active = max(peak_n_active, n_active_step)
+        saturated_steps += int(n_active_step > 1500)
         if not np.isfinite(rates).all():
             unstable, reason = True, f"non-finite firing rate at step {step}"
             break
@@ -397,9 +413,11 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         terminated_at_step=terminated_at_step, n_steps_planned=n_steps,
         adhesion=adhesion_log, anatomical_pools=anatomical_log,
         n_active_neurons=n_active, max_firing_rate=max_rate,
-        wall_clock_s=elapsed, unstable=unstable, instability_reason=reason,
+        wall_clock_s=elapsed, peak_n_active_neurons=peak_n_active,
+        fraction_saturated_steps=saturated_steps / max(n_steps, 1),
+        unstable=unstable, instability_reason=reason,
         meta={"n_steps": n_steps, "substeps_per_neural_step": substeps,
               "on_ball": on_ball, "rig": rig, "adhesion": bool(on_ground and adhesion),
               "feedback_gain": feedback_gain, "seed": seed,
-              "encoder_mode": encoder_mode},
+              "encoder_mode": encoder_mode, "adapter_sensory": adapter_sensory},
     )

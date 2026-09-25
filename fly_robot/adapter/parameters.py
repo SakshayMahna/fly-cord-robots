@@ -42,6 +42,7 @@ middle of an arbitrary interval.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Iterable
 
 import numpy as np
 
@@ -116,6 +117,59 @@ def _slices():
 
 
 _SLICES = _slices()
+
+# Search stages deliberately expose whole interface blocks, never arbitrary
+# individual entries.  This is both a compute-saving device and an honesty
+# constraint: R1a asks whether the connectome's *output* can walk the body;
+# it cannot silently solve that question through the sensory encoder.
+PARAMETER_GROUPS: dict[str, tuple[str, ...]] = {
+    "sensory": (
+        "chord_gain", "chord_offset", "chord_cap", "chord_mix",
+        "hp_gain", "hp_offset", "hp_cap", "hp_threshold",
+        "chord_sigma", "chord_band", "lr_sensory_ratio",
+    ),
+    "command": ("dng100_level", "mdn_level", "command_asymmetry",
+                "command_ramp_s"),
+    "motor": ("motor_gain", "motor_scale", "motor_offset", "motor_tau"),
+    "adhesion": ("adhesion_weight", "adhesion_threshold"),
+}
+
+# `output` is the ground-walking bridge's first rung. `sensory` is R1b: it
+# takes an R1a solution as a warm start and asks whether feedback improves it.
+TRAINING_STAGES: dict[str, tuple[str, ...]] = {
+    "output": ("command", "motor", "adhesion"),
+    "sensory": ("sensory",),
+    "full": tuple(PARAMETER_GROUPS),
+}
+
+
+def parameter_names_for_groups(groups: Iterable[str]) -> tuple[str, ...]:
+    """Names in stable vector order for whole named parameter blocks."""
+    requested = tuple(groups)
+    unknown = set(requested) - set(PARAMETER_GROUPS)
+    if unknown:
+        raise ValueError(f"unknown parameter group(s): {sorted(unknown)}")
+    selected = {name for group in requested for name in PARAMETER_GROUPS[group]}
+    return tuple(name for name, *_rest in PARAM_SPEC if name in selected)
+
+
+def parameter_indices_for_groups(groups: Iterable[str]) -> np.ndarray:
+    """Indices in the full 71-D CMA coordinate vector for ``groups``."""
+    names = set(parameter_names_for_groups(groups))
+    return np.concatenate([np.arange(sl.start, sl.stop)
+                           for name, _shape, _low, _high, _default, sl in _SLICES
+                           if name in names]).astype(int)
+
+
+def parameter_indices_for_stage(stage: str) -> np.ndarray:
+    """The trainable coordinates for a named, documented training stage."""
+    try:
+        groups = TRAINING_STAGES[stage]
+    except KeyError as exc:
+        raise ValueError(
+            f"unknown training stage {stage!r}; choose from "
+            f"{sorted(TRAINING_STAGES)}") from exc
+    return parameter_indices_for_groups(groups)
 
 # z-offset per block so that z = 0 yields the DEFAULT physical value.
 _Z0 = np.zeros(N_PARAMS)
