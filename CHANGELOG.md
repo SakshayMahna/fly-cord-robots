@@ -7,6 +7,28 @@ linked file for the full reasoning, quotes, and numbers. This is the
 source material for the video script, so the linked files are written to
 explain *why*, not just *what*.
 
+- **[2026-09-25 — R1a run 1: the optimiser stood still and got paid for
+  it](docs/trained_adapter/GROUND_BRIDGE.md#8-r1a-run-1-the-optimiser-found-a-hole-and-what-it-tells-us)**
+  — First real ground-walking run. Stability was solved fast (flipping 20%
+  → 3% in 25 generations) but forward progress never left zero. Rendered
+  the best candidate rather than trusting its +0.3379: it travels
+  **−0.010 mm in 4 s** and is **visually motionless across the whole
+  trial**, scoring almost entirely on **rhythmicity +0.2500 and
+  coordination +0.1089** while `progress` contributes −0.0002. The
+  connectome's rhythm is real (5/6 legs, 12.00 Hz — §7a) but at ~1/11th
+  the excursion needed to move the body, so the reward was paying full
+  price for rhythm that never becomes locomotion. A first reading blamed
+  the rhythm terms for the whole search and **was wrong**: the per-term log
+  shows the population is dominated by **saturation at −0.5585** (mean
+  n_active ≈ 1,900), so most of parameter space explodes the network and
+  one safe corner pays 0.36 for standing still. Raising `progress`'s weight
+  cannot fix that (at dx ≈ 0.001 mm it is ~1e-5; even 100× stays
+  invisible), so the rhythm terms are now **gated on forward displacement**
+  — full credit at 1 mm/trial (0.25 mm/s, 1.8% of the CPG baseline), zero
+  at rest, and zero for walking backwards so the gate cannot be bought in
+  reverse. The exploiting candidate drops +0.3379 → −0.0210; genuine
+  walking keeps full credit. New reward hash `707b7c68…`, so the contract
+  guard refuses to resume run 1 under it.
 - **[2026-09-25 — the ground bridge: a wrong objective caught, and the
   feasibility gate that should have come first](docs/trained_adapter/GROUND_BRIDGE.md)**
   — 70 generations of CMA-ES were run, resumed five times and reported on

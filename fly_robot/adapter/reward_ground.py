@@ -27,7 +27,7 @@ from fly_robot.analysis.interleg_coordination import TRANSIENT_S, coordination
 from fly_robot.sim.closed_loop import FLIP_UPRIGHT_THRESHOLD, NEURAL_DT
 
 REWARD_CONFIG = {
-    "version": "2026-09-21-ground",
+    "version": "2026-09-25-ground-locomotion-gated",
     "rig": "free_ground",
     "weights": {
         "progress": 1.00,
@@ -44,6 +44,13 @@ REWARD_CONFIG = {
         # MEASURED: CPG baseline on this rig, 5 seeds, mean 14.025 mm/s,
         # sd 0.250. See media/baselines/baselines.json.
         "walking_mm_s": 14.025,
+        # Forward displacement (mm, over the whole trial) at which the
+        # rhythmicity and coordination terms reach full credit; below it
+        # they scale linearly to zero. 1 mm in 4 s is 0.25 mm/s -- 1.8% of
+        # the CPG baseline, i.e. deliberately a low bar. It is meant to
+        # exclude standing still, not to demand good walking; the progress
+        # term is what rewards speed. See the gate's comment in evaluate().
+        "rhythm_gate_dx_mm": 1.0,
         "posture_ref_rad": 0.30,
         "energy_ref": 3.331e-05,
         "saturation_n_active": 1500.0,
@@ -130,6 +137,32 @@ def evaluate(result, config: dict | None = None) -> RewardBreakdown:
         n_rhythmic, tripod = 0.0, -1.0
     rhythmicity = n_rhythmic / 6.0
     coordination_term = (tripod + 1.0) / 2.0
+
+    # LOCOMOTION GATE on the two rhythm terms (added 2026-09-25).
+    #
+    # Measured hole, not a hypothetical: R1a's best candidate at generation
+    # 38 scored +0.3379, of which rhythmicity contributed +0.2500 (of a
+    # possible 0.30) and coordination +0.1089 -- while travelling
+    # dx = -0.010 mm in 4 s. Rendered, it stands in one pose for the entire
+    # trial without visible leg motion. The connectome's rhythm is real and
+    # is being measured correctly at the motor-neuron level; it is simply
+    # ~1/11th of the excursion needed to move the body, so the reward was
+    # paying full price for rhythm that never becomes locomotion.
+    #
+    # Raising `progress`'s weight cannot fix this: at dx ~ 0.001 mm,
+    # progress = dx / (4 s * 14.025 mm/s) ~ 1e-5, so even a 100x weight
+    # stays invisible. The problem is not that progress is outweighed, it is
+    # that progress is unmeasurably small while rhythm pays in full. So the
+    # rhythm terms are gated on the body actually moving.
+    #
+    # Gated on FORWARD displacement, not |dx|: gating on absolute distance
+    # would let a candidate collect the full ~0.36 of rhythm credit by
+    # walking backwards, against a progress penalty of order 1e-3 -- trading
+    # one hole for another. With max(0, dx), moving the wrong way earns the
+    # same zero as standing still rather than being paid for it.
+    gate = float(np.clip(max(0.0, dx) / ref["rhythm_gate_dx_mm"], 0.0, 1.0))
+    rhythmicity *= gate
+    coordination_term *= gate
 
     if len(angles) > 1:
         posture = float(np.abs(angles - angles.mean(axis=0)).mean()) / ref["posture_ref_rad"]

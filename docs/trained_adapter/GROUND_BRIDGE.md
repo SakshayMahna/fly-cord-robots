@@ -297,3 +297,123 @@ plateaus near "upright but barely moving", the diagnosis is already in
 place: coordination, not amplitude, and Rung 2's bounded conductor is the
 pre-registered next step — still blocked on its phase estimator
 (`RUNG2_DESIGN.md` §10).
+
+---
+
+## 8. R1a, run 1: the optimiser found a hole, and what it tells us
+
+*2026-09-25. Stopped cleanly at generation 41 of 250 (~2.5 h). Checkpoint
+intact at `media/trained_adapter/r1a_ground/`; videos at
+`media/trained_adapter/r1a_best_r{0,1,3}_{top,side}.mp4`.*
+
+### What happened
+
+Termination (flipping) fell from ~20% of trials to ~3% within 25
+generations — the search solved *stability* quickly and convincingly. But
+**forward progress never moved off zero**:
+
+| | gens 10–20 | gens 20–39 |
+|---|---:|---:|
+| `term_progress` (population mean) | −0.00010 | −0.00012 |
+
+Best score plateaued at +0.3154 (gen 18) → +0.3178 (gen 38): twenty
+generations for +0.0024, with sigma flat at 0.50–0.54 (still exploring, not
+numerically stalled).
+
+### What the best candidate was actually doing
+
+Rendered and inspected, per this project's standing rule. Across three
+replicates it travels **−0.010 mm, +0.001 mm and +0.000 mm in 4 s**, stays
+essentially perfectly upright (0.998–0.999), never flips, never saturates
+(peak `n_active` 269–406 against a 1,500 threshold). Three frames sampled
+across the whole trial are **visually identical** — a fixed splayed pose,
+no perceptible leg motion.
+
+Its measured reward breakdown:
+
+| term | weighted |
+|---|---:|
+| **rhythmicity** | **+0.2500** (of a possible 0.30) |
+| **coordination** | **+0.1089** |
+| energy | −0.0192 |
+| progress | **−0.0002** |
+| saturation | −0.0000 |
+| **total** | **+0.3379** |
+
+**The entire score is rhythm credit.** The connectome genuinely is producing
+rhythmic motor-neuron output — `n_rhythmic` 5/6 is real, and §7a measured
+its frequency at exactly the right 12.00 Hz — but at ~1/11th the excursion
+needed to move the body, so none of it becomes locomotion. The reward was
+paying full price for that.
+
+### A correction to a claim made in the moment
+
+An initial read attributed the plateau to the rhythm terms dominating the
+*whole search*. The per-generation term log does not support that. Across
+the **population**, the dominant term by far is **saturation, at −0.5585**
+(mean raw ≈ 0.28, i.e. mean `n_active` ≈ 1,900). The true picture is:
+
+* most of the parameter space drives the network past 1,500 active neurons
+  and eats a −2.0-weighted penalty;
+* one safe corner avoids that entirely and collects ~0.36 of rhythm credit
+  for standing still;
+* CMA-ES, correctly, went to the corner.
+
+The distinction matters for the fix. **Raising `progress`'s weight cannot
+work**: at dx ≈ 0.001 mm, `progress = dx / (4 s × 14.025 mm/s) ≈ 1e-5`, so
+even a 100× weight stays invisible. Progress is not being outweighed — it
+is unmeasurably small while rhythm pays in full.
+
+### The fix: a locomotion gate on the rhythm terms
+
+Rhythm now earns credit only in proportion to the body actually moving:
+
+```
+gate = clip(max(0, dx) / rhythm_gate_dx_mm, 0, 1)
+rhythmicity  *= gate
+coordination *= gate
+```
+
+`rhythm_gate_dx_mm = 1.0` — 1 mm over a 4 s trial is 0.25 mm/s, **1.8% of
+the CPG baseline**. It is deliberately a low bar: it exists to exclude
+standing still, not to demand good walking. The `progress` term remains
+what rewards speed. (`dx` here is post-transient displacement, the same
+quantity `progress` uses, so at exactly 1 mm of total travel the gate sits
+at 0.875 rather than 1.0.)
+
+**Gated on forward `dx`, not `|dx|`.** Gating on absolute distance would let
+a candidate collect the full ~0.36 by walking *backwards* against a progress
+penalty three orders of magnitude smaller — trading one hole for another.
+With `max(0, dx)`, going the wrong way earns the same zero as standing
+still.
+
+Verified on the exact candidate that exploited it:
+
+| replicate | dx | score before | score after |
+|---|---:|---:|---:|
+| 0 | −0.010 mm | +0.3379 | **−0.0210** |
+| 1 | +0.001 mm | +0.3252 | **−0.0023** |
+| 3 | +0.000 mm | +0.3560 | **−0.0041** |
+
+And confirmed not to punish the case it exists to reward — a synthetic
+tripod-rhythmic trial at CPG-baseline travel keeps **full** credit
+(rhythmicity +0.3000, coordination +0.2000, total +1.3750); credit is
+monotonic in forward distance with no cliff; backward travel earns zero.
+Five tests in `tests/test_ground_training_contract.py` pin all of this.
+
+Reward version `2026-09-25-ground-locomotion-gated`, hash `707b7c68…`
+(was `0d648542…`). The contract guard therefore **refuses** to resume
+generation 41 under it — correctly, since that run optimised a different
+objective. Run 1 is kept as the record of the finding.
+
+### What this run does and does not tell us
+
+It does **not** show the connectome cannot walk. It shows that under a
+reward which pays for rhythm unconditionally, the cheapest way to score is
+to stand still and hum — and the optimiser found that in under 20
+generations. That is a statement about the reward, not the biology.
+
+What it does establish, and is worth keeping: the search **can** solve
+stability fast (20% → 3% flipping), the connectome's rhythm reaches the
+motor neurons at a correct walking frequency, and the binding constraint on
+the population is **neural saturation**, not stability or coordination.

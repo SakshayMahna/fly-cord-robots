@@ -180,3 +180,79 @@ def test_ground_reward_ranks_forward_above_backward_end_to_end():
 
     d = rg.REWARD_CONFIG["references"]["walking_mm_s"] * n * rg.NEURAL_DT
     assert rg.evaluate(trial(d)).total > rg.evaluate(trial(-d)).total
+
+
+# --- the locomotion gate on the rhythm terms ----------------------------
+
+def _synthetic_trial(dx_mm, n=4000):
+    """A strongly rhythmic, tripod-phased trial travelling `dx_mm` forward."""
+    import fly_robot.adapter.reward_ground as rg
+    from fly_robot.sim.closed_loop import TrialResult
+
+    t = np.arange(n) * rg.NEURAL_DT
+    motor = np.stack([
+        np.sin(2 * np.pi * 11 * t + (0 if i in (0, 3, 4) else np.pi))
+        for i in range(6)]).astype(np.float32)
+    zeros = np.zeros((n, 42), dtype=np.float32)
+    quat = np.zeros((n, 4), dtype=np.float32)
+    quat[:, 0] = 1.0
+    pos = np.zeros((n, 3), dtype=np.float32)
+    pos[:, 0] = np.linspace(0.0, dx_mm, n)
+    return TrialResult(
+        motor_rates=motor, joint_angles=zeros, joint_velocities=zeros,
+        sensory_drive=np.zeros((0, n), dtype=np.float32), sensory_channels=[],
+        ball_quat=None, ball_angvel=None, n_active_neurons=400,
+        max_firing_rate=19.0, wall_clock_s=0.0, thorax_pos=pos,
+        thorax_quat=quat, n_steps_planned=n)
+
+
+def test_standing_still_earns_no_rhythm_credit():
+    """The measured hole: R1a's gen-38 best scored +0.3379 while travelling
+    -0.010 mm, of which rhythmicity was +0.2500 and coordination +0.1089.
+    A perfectly rhythmic trial that does not move must now score ~0."""
+    b = reward_ground.evaluate(_synthetic_trial(0.0))
+    assert b.terms["rhythmicity"] == pytest.approx(0.0, abs=1e-9)
+    assert b.terms["coordination"] == pytest.approx(0.0, abs=1e-9)
+    assert b.total < 0.05, (
+        f"a motionless but rhythmic trial still scores {b.total:+.4f}; the "
+        "locomotion gate is not closing the hole it was added for")
+
+
+def test_walking_still_earns_full_rhythm_credit():
+    """The gate must not punish the case it exists to reward. At CPG-baseline
+    travel both rhythm terms stay at their full weights."""
+    b = reward_ground.evaluate(_synthetic_trial(56.1))
+    assert b.terms["rhythmicity"] == pytest.approx(
+        reward_ground.REWARD_CONFIG["weights"]["rhythmicity"], rel=1e-6)
+    assert b.terms["coordination"] == pytest.approx(
+        reward_ground.REWARD_CONFIG["weights"]["coordination"], rel=1e-6)
+    assert b.total > 1.0
+
+
+def test_walking_backwards_cannot_buy_rhythm_credit():
+    """Gating on |dx| instead of forward dx would let a candidate collect
+    ~0.36 of rhythm credit by walking backwards against a progress penalty
+    three orders of magnitude smaller. It must earn nothing instead."""
+    b = reward_ground.evaluate(_synthetic_trial(-56.1))
+    assert b.terms["rhythmicity"] == pytest.approx(0.0, abs=1e-9)
+    assert b.terms["coordination"] == pytest.approx(0.0, abs=1e-9)
+    assert b.total < 0.0
+
+
+def test_rhythm_credit_is_monotonic_in_forward_distance():
+    """No cliff the optimiser could perch on: more forward travel never
+    earns less rhythm credit."""
+    creds = [reward_ground.evaluate(_synthetic_trial(d)).terms["rhythmicity"]
+             for d in (0.0, 0.25, 0.5, 0.75, 1.0, 2.0, 10.0)]
+    assert all(b >= a - 1e-9 for a, b in zip(creds, creds[1:])), creds
+    assert creds[0] == pytest.approx(0.0, abs=1e-9)
+    assert creds[-1] > creds[0]
+
+
+def test_gate_threshold_is_a_low_bar_not_a_performance_demand():
+    """The gate is meant to exclude standing still, not to require good
+    walking: its full-credit threshold must stay far below the CPG
+    baseline, or it silently becomes a second progress term."""
+    gate_mm = reward_ground.REWARD_CONFIG["references"]["rhythm_gate_dx_mm"]
+    cpg_mm_per_trial = reward_ground.REWARD_CONFIG["references"]["walking_mm_s"] * 4.0
+    assert gate_mm / cpg_mm_per_trial < 0.05
