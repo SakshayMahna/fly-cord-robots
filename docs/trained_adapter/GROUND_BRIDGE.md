@@ -740,7 +740,56 @@ Across the 118 stable published replicates:
 By segment: **T1 46.2%** (median std 0.440), T2 71.6% (1.428),
 **T3 78.4%** (2.639).
 
-Two observations, both flagged rather than asserted:
+**CORRECTION (verified against the paper the same day).** The two
+observations below were flagged rather than asserted, and checking them
+showed the first one was **my measurement error, not a discrepancy in the
+paper**. Verbatim from v2: *"Motor rhythms were somewhat less robust in the
+hind legs and overall rhythmicity was reduced compared to the front leg
+subnetwork"* and *"Bilateral DNg100 activation drove oscillatory MN
+activity in all legs, though least consistently in L3."*
+
+Re-measured with the project's own AR(1)-gated rhythmicity test — the
+like-for-like quantity, since the paper is describing *rhythmicity* while
+the table above reports the *standard deviation of summed motor rate*, an
+amplitude measure:
+
+| segment | % of stable published replicates rhythmic |
+|---|---:|
+| T1 (front) | **60.2%** |
+| T2 (mid) | 56.4% |
+| T3 (hind) | **51.3%** |
+
+Per leg: T1-LHS 68.6%, T1-RHS 51.7%, T2-LHS 34.7%, T2-RHS 78.0%,
+**T3-LHS 33.9%**, T3-RHS 68.6%.
+
+**With the correct instrument the data agrees with the paper on both
+counts**: T3 is the least rhythmic segment, and T3-LHS (= L3) is
+essentially the least rhythmic individual leg. The opposite ordering in the
+amplitude table is an artifact of measuring variance rather than rhythm —
+a leg can carry large, noisy, non-rhythmic activity. **No contradiction
+with the paper; the flag was correctly raised and correctly resolved
+against primary text.**
+
+The left/right asymmetry does survive the metric change and remains
+unexplained: T2-LHS 34.7% vs T2-RHS 78.0%, T3-LHS 33.9% vs T3-RHS 68.6%,
+under bilateral stimulation confirmed from the run config
+(`stimNeurons: [[59, 282]]`). The paper's "least consistently in L3"
+acknowledges part of it.
+
+### The number that governs Rung 2
+
+Rhythmic legs per stable published replicate (AR(1) gate):
+
+| rhythmic legs | 0/6 | 1/6 | 2/6 | 3/6 | 4/6 | 5/6 | **6/6** |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| replicates | 6 | 8 | 15 | 31 | 34 | 15 | **9** |
+| share | 5.1% | 6.8% | 12.7% | 26.3% | 28.8% | 12.7% | **7.6%** |
+
+**Median 3 of 6 legs rhythmic. All six in 7.6% of stable replicates.**
+That is the precondition Rung 2's conductor requires, measured on the
+authors' own published output.
+
+Original observations, retained for the record:
 
 1. **Measured this way, T3 (hind) is the most robust segment and T1
    (front) the least** — the opposite ordering to the "hind legs somewhat
