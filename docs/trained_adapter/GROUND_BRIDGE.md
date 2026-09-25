@@ -417,3 +417,47 @@ What it does establish, and is worth keeping: the search **can** solve
 stability fast (20% → 3% flipping), the connectome's rhythm reaches the
 motor neurons at a correct walking frequency, and the binding constraint on
 the population is **neural saturation**, not stability or coordination.
+
+### 8b. The second fix: the drive bound was feeding the saturation penalty
+
+The term log said the population was dominated by **saturation (−0.5585,
+mean `n_active` ≈ 1,900)**, so that was measured rather than reasoned about.
+
+Drive sweep on replicate 0, adapter otherwise at defaults:
+
+| drive | 350 | 382.8 | 385 | 388 | 390 | 392 | **395** | 400 | 440 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `n_active` | 336 | **518** | 514 | 550 | 574 | 577 | **1,153** | **3,919** | 4,057 |
+
+**The pre-registered matched drive sits ~10 units (2.7%) below a cliff.**
+Past ~393 the network goes from ~600 active neurons to ~4,000.
+
+Now the search geometry. With the old bound `dng100_level ∈ [0, 600]`, the
+sigmoid mapping put z = 0 at 382.8 but **z = +0.5 — exactly one `sigma0` —
+at drive 446**, deep in saturation:
+
+| z | −2 | −1 | 0 | **+0.5** | +1 | +2 |
+|---|---:|---:|---:|---:|---:|---:|
+| old bound (600) | 115.6 | 236.0 | 382.8 | **446.4** | 496.4 | 557.2 |
+| **new bound (400)** | 300.4 | 356.5 | 382.8 | **389.4** | 393.5 | 397.6 |
+
+So roughly **47% of every generation's samples on this axis** were being
+spent on trials that saturate and collect a −2.0-weighted penalty. That is
+the −0.5585, and it is a property of the *search bound*, not of the
+connectome.
+
+Narrowing the upper bound to **400** leaves one sigma at 389.4 (safe),
+puts the cliff at about +1σ instead of +0.13σ, and drops the wasted
+fraction to ~16%. Preserved deliberately:
+
+* **the starting drive is unchanged** — z = 0 still decodes to 382.8125
+  exactly, so the pre-registered matched value is untouched and its
+  regression test still passes;
+* **downward range is essentially intact** (z = −2 → 300, z = −3 → 210),
+  which matters because a *lower* drive paired with a higher motor gain is
+  a plausible solution the search should still be able to reach.
+
+This changes a **search bound only** — not the connectome, not the reward,
+not the drive the run starts from. And raising drive was never a route to
+the excursion the decoder actually lacks: more drive buys saturation, not
+amplitude (§7b).

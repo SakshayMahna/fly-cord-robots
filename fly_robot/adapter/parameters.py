@@ -75,7 +75,24 @@ PARAM_SPEC: tuple[tuple[str, tuple[int, ...], float, float, float], ...] = (
     # the pre-registration commits to training "relative to that start."
     # Regression-tested against the recorded JSON so the two cannot drift
     # apart silently (tests/test_adapter.py).
-    ("dng100_level",    (),   0.0,   600.0, 382.8125),
+    #
+    # Upper bound 400, NOT 600 (narrowed 2026-09-25 after measuring). The
+    # saturation cliff on replicate 0 sits between drive 392 (n_active 577)
+    # and 395 (1,153), reaching 3,919 by drive 400 -- so the matched drive
+    # has only ~10 units of headroom. With the old 600 bound, z=+0.5 (one
+    # sigma0) mapped to drive 446, far past the cliff, so roughly half of
+    # every generation's samples on this axis were spent on trials that
+    # saturate and earn a -2.0-weighted penalty. That is what dominated
+    # R1a run 1's population score (mean saturation term -0.5585, mean
+    # n_active ~1,900), not the rhythm terms.
+    #
+    # This narrows the SEARCH BOUND only. It does not change the drive the
+    # run starts from, the connectome, or the pre-registered matched value
+    # -- z=0 still decodes to 382.8125 exactly. Downward range is
+    # essentially unaffected (z=-2 -> ~300). Raising drive was never a route
+    # to the larger joint excursion the decoder needs anyway: more drive
+    # buys saturation, not amplitude (GROUND_BRIDGE.md §7b).
+    ("dng100_level",    (),   0.0,   400.0, 382.8125),
     ("mdn_level",       (),   0.0,   400.0, 5.0),    # ~off; MDN is exploratory only
     ("command_asymmetry", (), -0.5,  0.5,   0.0),    # L/R drive imbalance -> turning
     ("command_ramp_s",  (),   0.001, 0.50,  0.02),   # matches Phase 4's pulse_start
