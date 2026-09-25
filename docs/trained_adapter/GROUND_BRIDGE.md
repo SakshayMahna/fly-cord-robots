@@ -564,3 +564,129 @@ movers saturated) remains. That is a legitimate constraint — Pugliese's own
 drive bound already halved it in run 2 (−1.82). Whether motion in this
 system *requires* driving the network into saturation is now the open
 question, and it is exactly what R1a v3 will answer.
+
+---
+
+## 10. Why v3 stalls: no traction, and never six live legs
+
+*2026-09-25, at generation ~70 of R1a v3 — the pre-committed 60–80
+checkpoint. With the reward corrected, the run no longer collapses to
+inaction, but progress plateaued at ~0.03–0.05 mm/s (0.3–0.5% of the
+restricted CPG's 9.822). This is the mechanical diagnosis.*
+
+### Finding 1 — the adhesion gate never cycles
+
+A gait needs each foot to grip during stance and release during swing.
+Measured on the working restricted-CPG gait:
+
+| | per-leg duty | stance↔swing transitions / 4 s |
+|---|---|---|
+| **working CPG** | 0.62, 0.65, 0.69, 0.63, 0.64, 0.69 (uniform ~65%) | 95–96 → **12 Hz cycling** |
+| **trained best (gen 49)** | 0.008, 0.098, 0.207, 0.000, 0.000, 0.014 | feet essentially never grip |
+| **another candidate (gen 68)** | 0.34, **1.00**, 0.43, **0.00**, **1.00**, 0.03 | 4 of 6 legs never cycle |
+
+Different candidates fail in opposite directions — barely gripping, or
+permanently pinned — but none cycles. **Without stance/swing alternation
+there is no traction**, so leg motion cannot become forward thrust.
+
+**The bound is not the obstacle.** For each leg with real rhythmic output,
+the threshold that would produce a 65 %-duty cycle is comfortably inside
+the searchable range:
+
+| leg | θ for 65 % duty | θ the search chose | bounds |
+|---|---:|---:|---|
+| lf | −2.446 | +7.237 | [−9, 9] |
+| lh | −1.908 | +4.491 | [−9, 9] |
+| rm | −1.249 | +2.464 | [−9, 9] |
+| rh | −0.043 | +4.491 | [−9, 9] |
+
+The search could reach a working duty and chose not to — because gripping
+only pays off *if the rest of the gait is already coordinated*. Alone, it
+just anchors the animal. That is a credit-assignment problem, not a
+parameterisation problem.
+
+### Finding 2 — there are never six live legs
+
+`lm` and `rf` have **identically zero** motor rate in the best candidate:
+no θ can gate a signal that does not exist. Worse, the two dead legs are
+both members of the same tripod group ({rf, lm, rh}), so tripod
+alternation is structurally impossible for that candidate.
+
+It is not simply a drive artefact — sweeping drive with the trained
+parameters never recovers all six:
+
+| drive | 343.5 | 360.0 | 382.8 | 392.0 |
+|---|---|---|---|---|
+| live legs | 4/6 | 5/6 | 5/6 | 5/6 |
+
+**A hypothesis tested and rejected.** I suspected `command_asymmetry`
+(pinned at 95 % of its range) was starving one side. It is not: forcing it
+to zero gives **3/6** live legs — a *different* three (lm, rf, rh) — and
+less forward travel (−0.026 mm vs +0.216). Asymmetry shifts *which* legs
+animate and genuinely produces the most displacement available, which is
+why the search maximised it. The lateral drift it causes is nearly free:
+`straightness` averages only 0.30× the magnitude of `progress`, and among
+episodes that move at all, **62 % travel further sideways than forward**
+(median |dy|/|dx| = 1.35).
+
+### Finding 3 — the search is pressed against its walls
+
+21 of 40 trained parameters sit at or within 8 % of a bound, and the
+pattern is coherent: `motor_scale` maxed (≈19 of 20) on most middle/hind
+entries, which flattens `tanh(Δrate/scale)` and suppresses those legs'
+excursion; `motor_gain` at minimum on two hind entries; `motor_offset`
+pinned at ±0.29 of ±0.30 on five entries, i.e. holding joints at extreme
+static postures. The search is not tuning a gait — it is switching legs
+off and bracing.
+
+### Summary of the mechanism
+
+The connectome's rhythm is real and at the right frequency (§7a). But the
+decoded output animates at most five of six legs, the adhesion gate never
+cycles, and so no traction is produced. With walking unreachable, the only
+strategy that scores is asymmetric drive that pivots the body for a small
+net +x — which is exactly what the search found.
+
+## 11. The line we must not cross
+
+*Raised by the user at this point, and it is the right question to ask
+before touching anything else.*
+
+Each obstacle above has an obvious "fix" available in the reward or the
+bounds. Taking them all would produce a walking fly and destroy the
+result. The distinction that matters:
+
+**Legitimate — correcting our own measurement errors.**
+* `energy_ref` (§9) was calibrated against a motionless baseline and was
+  wrong by 325×, making the reward forbid walking. Fixing it removes an
+  error; it does not encode an answer. Mandatory.
+* The `dng100_level` bound (§8b) was mis-scaled so one sigma of sampling
+  landed past a measured cliff. Recalibrating a search bound to the
+  system's measured dynamics is instrument calibration.
+
+**Borderline — shaping that closes a measured exploit.**
+* The locomotion gate (§8) stops rhythm being paid for when the body does
+  not move. Defensible, but it *is* designed-in structure and must be
+  declared as such.
+
+**Not legitimate — designing the gait and calling it a finding.**
+* Forcing the adhesion duty toward the CPG's 65 %, prescribing per-leg
+  phase offsets, adding an anti-asymmetry penalty, or rewarding tripod
+  index directly. **Every one of these would hand the animal the answer we
+  claim to be testing for.** If we must specify the duty cycle, the phase
+  relationships and the symmetry, then we have built the walker and the
+  connectome is decoration.
+
+The project's own pre-registration already anticipated this: coordination,
+if it has to be supplied, is **Rung 2** — a bounded interleg conductor that
+is *explicitly labelled as our engineering addition*, with a coupling
+strength that starts at zero and a K=0 ablation. That is the honest place
+to put it. Hiding the same intervention inside the reward function would
+disguise engineering as biology.
+
+**Therefore: no further reward changes are proposed.** The measured
+result — the decoded output does not animate six legs and produces no
+stance/swing cycling, so this interface cannot generate traction — is a
+legitimate finding and consistent with the literature this project is
+built on (Pugliese et al.: DNg100 drive yields no consistent left/right
+phase coupling; T3 least robust).
