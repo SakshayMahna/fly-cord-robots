@@ -461,3 +461,106 @@ This changes a **search bound only** — not the connectome, not the reward,
 not the drive the run starts from. And raising drive was never a route to
 the excursion the decoder actually lacks: more drive buys saturation, not
 amplitude (§7b).
+
+---
+
+## 9. The actual blocker: the reward forbade walking
+
+*2026-09-25. Found after R1a v2 also converged on inaction — this time on a
+**silent connectome** (`dng100_level` 51.8, `peak_n_active` 0,
+`n_rhythmic` 0/6). Two different "do nothing" solutions in two runs is a
+pattern, so the reward itself was tested instead of patched a third time.*
+
+### The measurement that settles it
+
+Across **7,488 episodes** in both runs, **nothing ever walked**. Maximum
+forward travel ever recorded: **2.156 mm in 4 s = 0.54 mm/s**, against the
+restricted CPG's proven 9.822 mm/s. Fewer than 0.5% of episodes exceeded
+1 mm.
+
+And the trials that *did* move were punished:
+
+| | movers (dx > 0.5 mm) | near-still |
+|---|---:|---:|
+| run 1 mean reward | **−5.01** | +0.08 |
+| run 2 mean reward | **−3.99** | −0.05 |
+
+Movement earned ~+0.07 and cost ~−4 to −5. So the decisive test: **score
+the gait that is known to walk.** Scored end to end through
+`reward_ground.evaluate()` (sampling verified exact — physics 0.1 ms,
+sampled every 10 steps = `NEURAL_DT`):
+
+| term | restricted CPG (34.76 mm, 8.69 mm/s) |
+|---|---:|
+| progress | +0.6195 |
+| **energy** | **−16.5320** |
+| posture | −0.0264 |
+| **TOTAL** | **−15.9488** |
+
+**Standing perfectly still scores 0.00.** The reward did not merely fail to
+reward walking — it forbade it, by about 16 points.
+
+**Both runs were therefore playing correctly.** What §8 called a "hole"
+(motionless rhythm, +0.3379) and what v2 found next (a silent network,
+0.0000) were simply the best available strategies. Neither run could ever
+have found locomotion, and neither result says anything about the
+connectome.
+
+### Root cause: one constant, calibrated against the wrong thing
+
+`energy_ref` was **3.331e-05**, carried into the ground reward unchanged
+from the ball reward (REWARD.md: "terms 5–9 unchanged from the approved
+reward"), where it had been calibrated from the **untrained baseline** — a
+fly that barely moves. Measured against gaits that do:
+
+| gait | raw energy | × old reference |
+|---|---:|---:|
+| restricted CPG (18 DOF) | 1.0814e-02 ± 2.7e-06 | **325×** |
+| unrestricted CPG (42 DOF) | 1.7945e-02 ± 5.1e-06 | 539× |
+
+So a term whose weight is −0.05, and whose stated purpose in REWARD.md is
+"to stop degenerate flailing, **not to shape gait**", evaluated to −16.5
+for a normal gait and became the largest term in the objective.
+
+**Fix:** `energy_ref = 1.0814e-02`, the restricted CPG's measured energy —
+calibrated exactly the way `walking_mm_s = 14.025` already is, from the CPG
+baseline on this rig. Result:
+
+| | before | after |
+|---|---:|---:|
+| CPG gait energy term | −16.53 | **−0.0509** |
+| **CPG gait total** | **−15.95** | **+0.5323** |
+
+Good walking now costs ~−0.05 as intended; flailing at ~10× a walking
+gait's energy still costs ~−0.5. Note the +0.5323 is earned with **zero**
+rhythm credit (this controller is not connectome-driven, so `motor_rates`
+are zeros) — a connectome-driven walker can add up to +0.50 on top.
+
+### The methodological gap, which is the real lesson
+
+The reward had a `sign_test()` (forward must outrank backward) but **no
+positive control**: nothing asserted that a known-good gait scores well. A
+sign test cannot catch a mis-scaled magnitude — both directions were
+scaled wrongly and it passed happily throughout.
+
+`tests/test_ground_training_contract.py` now runs the restricted CPG gait
+through the reward and asserts it beats standing still, that the energy
+term stays a shaping term for real walking (|term| < 0.15), and that it
+still has teeth against flailing. **That test would have caught this
+before either run started**, and it is the same discipline this project
+already applies everywhere else: validate the instrument against a
+reference before trusting it.
+
+Reward version `2026-09-25-ground-gated-energy-recalibrated`, hash
+`6260cec8…`. 104 tests pass.
+
+### What still stands, and what to watch next
+
+The energy miscalibration was dominant but is not the only obstacle. Under
+the corrected reference, run-1 movers' energy penalty falls from −1.32 to
+about −0.004, but their **saturation** penalty (−3.32 mean; 96% of run-1
+movers saturated) remains. That is a legitimate constraint — Pugliese's own
+1,500-neuron criterion — rather than a miscalibration, and the narrowed
+drive bound already halved it in run 2 (−1.82). Whether motion in this
+system *requires* driving the network into saturation is now the open
+question, and it is exactly what R1a v3 will answer.

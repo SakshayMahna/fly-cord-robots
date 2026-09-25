@@ -27,7 +27,7 @@ from fly_robot.analysis.interleg_coordination import TRANSIENT_S, coordination
 from fly_robot.sim.closed_loop import FLIP_UPRIGHT_THRESHOLD, NEURAL_DT
 
 REWARD_CONFIG = {
-    "version": "2026-09-25-ground-locomotion-gated",
+    "version": "2026-09-25-ground-gated-energy-recalibrated",
     "rig": "free_ground",
     "weights": {
         "progress": 1.00,
@@ -52,7 +52,29 @@ REWARD_CONFIG = {
         # term is what rewards speed. See the gate's comment in evaluate().
         "rhythm_gate_dx_mm": 1.0,
         "posture_ref_rad": 0.30,
-        "energy_ref": 3.331e-05,
+        # MEASURED from the restricted CPG gait -- the controller that
+        # actually walks this body through the adapter's own 18-DOF action
+        # space (baselines/restricted_action_cpg.py, 9.822 mm/s): mean
+        # 1.0814e-02, sd 2.7e-06 over seeds 0-2, sampled at NEURAL_DT.
+        #
+        # Was 3.331e-05, carried over unchanged from the ball reward, where
+        # it had been calibrated from the UNTRAINED baseline -- a fly that
+        # barely moves. Against that reference a real walking gait measures
+        # 325x, so the nominal -0.05 "shaping" term became -16.5 and was by
+        # far the largest term in the reward. Scored end to end through
+        # evaluate(), the restricted CPG gait -- 34.76 mm of genuine forward
+        # walking -- totalled -15.95, while standing perfectly still totals
+        # 0.00. The reward did not merely fail to reward walking; it
+        # forbade it, and both R1a runs were optimising correctly when they
+        # converged first on motionless rhythm and then on a silent network.
+        #
+        # Calibrated the same way `walking_mm_s` is (from the CPG baseline
+        # on this rig), so good walking now costs ~-0.05 exactly as
+        # REWARD.md intends ("to stop degenerate flailing, not to shape
+        # gait"), while flailing at 10x a walking gait's energy still costs
+        # -0.5. Pinned by a positive-control test in
+        # tests/test_ground_training_contract.py.
+        "energy_ref": 1.0814e-02,
         "saturation_n_active": 1500.0,
         "saturation_cap": 2.0,
         "flip_upright_threshold": FLIP_UPRIGHT_THRESHOLD,

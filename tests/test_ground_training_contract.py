@@ -256,3 +256,114 @@ def test_gate_threshold_is_a_low_bar_not_a_performance_demand():
     gate_mm = reward_ground.REWARD_CONFIG["references"]["rhythm_gate_dx_mm"]
     cpg_mm_per_trial = reward_ground.REWARD_CONFIG["references"]["walking_mm_s"] * 4.0
     assert gate_mm / cpg_mm_per_trial < 0.05
+
+
+# --- POSITIVE CONTROL: the reward must reward a gait that actually walks --
+
+def _restricted_cpg_trial(seed=0, duration_s=4.0):
+    """Run FlyGym's own CPG through the adapter's 18-DOF action space and
+    package it as a TrialResult, so the reward scores the real thing.
+
+    `motor_rates` are zeros: this controller is not connectome-driven, so
+    the two rhythm terms are legitimately zero here. The point of the
+    control is the BODY terms -- progress, energy, posture, upright.
+    """
+    from dataclasses import replace as _replace
+
+    from flygym import Simulation
+    from flygym.compose.fly.base_fly import ActuatorType
+    from flygym_demo.complex_terrain.common import apply_locomotion_action
+    from flygym_demo.complex_terrain.cpg_controller import (
+        CPGController, make_tripod_cpg_network)
+    from flygym_demo.complex_terrain.preprogrammed import PreprogrammedSteps
+
+    from fly_robot.baselines.restricted_action_cpg import (
+        adapter_controllable_dof_names)
+    from fly_robot.bodies.neuromechfly import build_free_fly
+    from fly_robot.sim.closed_loop import NEURAL_DT, TrialResult
+
+    fly, world, *_rest = build_free_fly()
+    sim = Simulation(world)
+    every = int(round(NEURAL_DT / sim.timestep))
+    dof = fly.get_actuated_jointdofs_order(ActuatorType.POSITION)
+    ctrl = CPGController(
+        cpg_network=make_tripod_cpg_network(sim.timestep, seed=seed),
+        preprogrammed_steps=PreprogrammedSteps(), output_dof_order=dof)
+    sim.reset()
+    sim.warmup()
+
+    allowed = set(adapter_controllable_dof_names())
+    keep = np.array([d.name in allowed for d in dof], dtype=bool)
+    neutral = np.asarray(ctrl.step().joint_angles, dtype=float).copy()
+
+    ang, pos, quat = [], [], []
+    for i in range(int(duration_s / sim.timestep)):
+        action = ctrl.step()
+        j = neutral.copy()
+        j[keep] = np.asarray(action.joint_angles, dtype=float)[keep]
+        apply_locomotion_action(sim, fly.name, _replace(action, joint_angles=j))
+        sim.step()
+        if i % every == 0:
+            ang.append(j.copy())
+            pos.append(sim.get_body_positions(fly.name)[0].copy())
+            quat.append(sim.get_body_rotations(fly.name)[0].copy())
+    n = len(ang)
+    return TrialResult(
+        motor_rates=np.zeros((6, n), dtype=np.float32),
+        joint_angles=np.array(ang, dtype=np.float32),
+        joint_velocities=np.zeros((n, 42), dtype=np.float32),
+        sensory_drive=np.zeros((0, n), dtype=np.float32), sensory_channels=[],
+        ball_quat=None, ball_angvel=None, n_active_neurons=400,
+        max_firing_rate=19.0, wall_clock_s=0.0,
+        thorax_pos=np.array(pos, dtype=np.float32),
+        thorax_quat=np.array(quat, dtype=np.float32), n_steps_planned=n)
+
+
+def test_reward_prefers_a_real_walking_gait_over_standing_still():
+    """THE POSITIVE CONTROL. Its absence is why two full training runs were
+    spent on an impossible objective.
+
+    The reward had `energy_ref` calibrated from the UNTRAINED (near
+    motionless) baseline, against which a real gait measures ~325x. The
+    nominal -0.05 shaping term therefore evaluated to -16.5, and the
+    restricted CPG gait -- 34.76 mm of genuine forward walking -- scored
+    -15.95 while standing perfectly still scored 0.00. Both R1a runs
+    converged on inaction because inaction WAS optimal.
+
+    A sign test (forward beats backward) cannot catch this; only scoring a
+    known-good gait can.
+    """
+    walking = reward_ground.evaluate(_restricted_cpg_trial())
+    assert walking.raw["dx_mm"] > 20.0, (
+        f"the reference gait only travelled {walking.raw['dx_mm']:.1f} mm; "
+        "this control is not exercising real walking")
+    assert walking.total > 0.2, (
+        f"a gait that walks {walking.raw['dx_mm']:.1f} mm scores "
+        f"{walking.total:+.3f}. The reward does not reward walking; no "
+        "search can succeed against it. Terms: "
+        + ", ".join(f"{k}={v:+.3f}" for k, v in sorted(
+            walking.terms.items(), key=lambda kv: -abs(kv[1]))))
+
+
+def test_energy_term_stays_a_shaping_term_for_real_walking():
+    """REWARD.md: energy exists "to stop degenerate flailing, not to shape
+    gait", at weight -0.05. So a real walking gait must cost about that,
+    not multiples of the whole reward budget."""
+    walking = reward_ground.evaluate(_restricted_cpg_trial())
+    assert abs(walking.terms["energy"]) < 0.15, (
+        f"energy term is {walking.terms['energy']:+.3f} for a normal "
+        "walking gait; it has stopped being a shaping term and is now "
+        "dominating the objective")
+
+
+def test_energy_still_penalises_flailing():
+    """The recalibration must not make the term toothless: an order of
+    magnitude more joint motion than walking should still cost real reward."""
+    walking = _restricted_cpg_trial()
+    flailing = reward_ground.evaluate(walking.__class__(
+        **{**walking.__dict__,
+           "joint_angles": (walking.joint_angles * 3.2).astype(np.float32)}))
+    # 3.2x amplitude ~ 10x energy (quadratic), which should cost ~ -0.5.
+    assert flailing.terms["energy"] < -0.3, (
+        f"flailing at ~10x walking energy costs only "
+        f"{flailing.terms['energy']:+.3f}; the term has no teeth left")

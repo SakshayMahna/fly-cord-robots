@@ -7,6 +7,31 @@ linked file for the full reasoning, quotes, and numbers. This is the
 source material for the video script, so the linked files are written to
 explain *why*, not just *what*.
 
+- **[2026-09-25 — the reward forbade walking: a positive control was
+  missing](docs/trained_adapter/GROUND_BRIDGE.md#9-the-actual-blocker-the-reward-forbade-walking)**
+  — After R1a v2 also converged on inaction (this time a **silent
+  connectome**: drive 51.8, `peak_n_active` 0), the reward itself was
+  tested rather than patched a third time. Across **7,488 episodes in two
+  runs nothing ever walked** (max 2.156 mm in 4 s = 0.54 mm/s vs the
+  restricted CPG's proven 9.822), and trials that *did* move were punished
+  (mean reward −5.01 / −3.99 vs ~0 for standing still). Scoring the
+  known-good gait end to end through `evaluate()` settled it: the
+  restricted CPG walking 34.76 mm scores **−15.95**, against **0.00** for
+  standing perfectly still — the reward did not fail to reward walking, it
+  forbade it. Cause: `energy_ref = 3.331e-05`, carried over unchanged from
+  the ball reward where it was calibrated from the **untrained,
+  near-motionless** baseline; real gaits measure **325–539×** that, so a
+  −0.05 "shaping" term evaluated to −16.5 and dominated the objective.
+  Both runs were therefore *playing correctly* — the earlier "holes"
+  (motionless rhythm, then silence) were the best available strategies, and
+  neither result says anything about the connectome. Recalibrated to
+  **1.0814e-02**, the restricted CPG's own measured energy (same method as
+  `walking_mm_s`): the gait now scores **+0.5323** with energy at −0.0509.
+  The real lesson is methodological — there was a `sign_test` but **no
+  positive control**, and a sign test cannot catch a mis-scaled magnitude
+  because both directions were scaled wrongly. Three tests now score a
+  known-good gait through the reward; they would have caught this before
+  either run started.
 - **[2026-09-25 — R1a run 1: the optimiser stood still and got paid for
   it](docs/trained_adapter/GROUND_BRIDGE.md#8-r1a-run-1-the-optimiser-found-a-hole-and-what-it-tells-us)**
   — First real ground-walking run. Stability was solved fast (flipping 20%
