@@ -814,3 +814,73 @@ Original observations, retained for the record:
 * **Rung 1's negative result is confirmed against primary data.** The
   interface did not fail because of a decoding mistake; it was given a
   motor output that does not animate a hexapod.
+
+---
+
+## 13. Imitation pilot — negative, and it identifies the root cause
+
+*2026-09-25. Offline regression, no physics: can a map from connectome
+motor output reconstruct the joint trajectories of the restricted-CPG gait
+that walks this body at 9.822 mm/s?*
+
+Held-out R² (last 30% of the trial), never in-sample. Every fit repeated
+with degraded input, because the target is periodic and a capable map can
+emit the cycle from the clock alone.
+
+**Result: real connectome input never beats a constant-input baseline.**
+
+| condition | held-out R² |
+|---|---:|
+| constant input (predicts the mean) | −0.002 |
+| real, `pool36`, rep 125 (best replicate) | −0.206 |
+| real, all 329 motor neurons, rep 125 | −0.028 |
+| real, frequency-matched target, rep 125 | −0.982 |
+
+Tested across three readouts (6 per-leg sums, 36 antagonist pools, all
+~329 mapped motor neurons), delay embedding for phase access, ridge and
+MLP, the two most frequency-coherent replicates, and targets time-warped
+to the connectome's own frequency. **Nothing beat the control.** A gait
+cannot be reconstructed from this motor output.
+
+### Why: the six legs are not at a common frequency
+
+The diagnosis, measured with zero-padded spectra (the earlier 2 s FFT had
+0.5 Hz bins, far too coarse — see the correction below):
+
+| replicate | per-leg dominant Hz | spread |
+|---|---|---:|
+| 28 | 10.53, 12.56, 13.93, 12.56, 3.34, 12.56 | **10.59 Hz** |
+| 108 | 9.56, 11.99, 9.59, 11.99, 9.43, 11.96 | 2.56 Hz |
+| 125 | 11.34, 11.37, 11.21, 11.31, 11.18, 11.31 | **0.19 Hz** |
+| **CPG reference** | 11.994 on all 18 DOFs | **0.00 Hz** |
+
+Across the 9 six-leg-rhythmic published replicates: **median spread
+3.03 Hz; only 2 of 9 have all six legs within 1 Hz.** Combined with the
+7.6% six-leg-rhythmic rate, **full six-leg frequency locking occurs in
+roughly 2 of 118 stable replicates — about 1.7%.**
+
+**This is the mechanism behind the paper's own negative result.** Pugliese
+et al. report that "phase coupling was absent across the six leg CPGs."
+Phase coupling *requires* frequency locking first: oscillators at 3.3 and
+12.6 Hz cannot hold any phase relationship at all. The legs are not
+mis-phased, they are independent oscillators.
+
+It also retrospectively explains why Rung 2 could never have worked. A
+bounded phase nudge can align oscillators that already share a frequency;
+it cannot frequency-lock a 3.3 Hz leg to a 12.6 Hz one.
+
+### Two corrections to earlier claims in this document
+
+1. **§7a said the connectome's frequency "already matches" the CPG at
+   12.00 Hz, DOF for DOF, and called it a real positive result. That was
+   wrong** — an artifact of 0.5 Hz FFT bin resolution on a 2 s window, which
+   rounds everything from 11.75 to 12.25 Hz to the same bin. At proper
+   resolution the legs disagree with each other by up to 10.6 Hz. The
+   correct statement is that individual legs oscillate in a plausible
+   walking band, not that they share a frequency.
+2. **An ipsilateral-locking hypothesis was raised and withdrawn.** Two
+   replicates (28, 108) looked like the three left legs locking at one
+   frequency and the three right at another. The aggregate does not support
+   it: mean within-side spread 1.87 Hz versus mean across-side gap 1.06 Hz,
+   and only 4 of 9 replicates have within-side < across-side. Recorded as a
+   pattern seen in individual replicates, not a property of the model.
