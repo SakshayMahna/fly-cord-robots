@@ -690,3 +690,78 @@ stance/swing cycling, so this interface cannot generate traction — is a
 legitimate finding and consistent with the literature this project is
 built on (Pugliese et al.: DNg100 drive yields no consistent left/right
 phase coupling; T3 least robust).
+
+---
+
+## 12. The silent legs are in the PUBLISHED model, not in our pipeline
+
+*2026-09-25. The decisive check on whether Rung 1's failure mode is our
+artifact: apply our exact per-leg motor analysis to **Pugliese's own
+published 128-replicate full-VNC output** (Zenodo 22260924, downloaded in
+Phase 0), rather than to our reimplementation.*
+
+Same motor mapping (`build_motor_neuron_groups` on `all_legs_circuit.csv`),
+same readout (per-leg summed motor rate), same stability filter
+(peak `n_active` ≤ 1500 → 118 of 128 replicates stable).
+
+| | all 128 | stable (118) |
+|---|---:|---:|
+| replicates with 6/6 legs showing **any** activity | 56.2% | 52.5% |
+| replicates with 6/6 legs **substantially rhythmic** (std > 0.5) | 16.4% | **9.3%** |
+
+**Only ~9% of the authors' own stable replicates animate all six legs.**
+The mode is 5/6; 3/6 or fewer is common. Our own runs showed 2 of 6
+eligible replicates at 6/6 (33%), well within sampling noise at n = 6.
+
+**Conclusion: our pipeline is not diverging. It faithfully reproduces the
+published model's behaviour.** The silent legs that block Rung 2 are a
+property of the published rate model under DNg100 tonic drive, not of our
+decoder, our reimplementation, or our training.
+
+Note the level at which this sits: replicates share **identical wiring**
+and differ only in per-neuron parameter draws
+(`neuron_params[replicate]`, `trial_setup.py`). So this is a statement
+about the **rate model plus its parameter sampling**, not about the
+connectome's synaptic data.
+
+### Per-leg breakdown, and a claim that needs checking
+
+Across the 118 stable published replicates:
+
+| leg | % any activity | % std > 0.5 | median std |
+|---|---:|---:|---:|
+| T1-LHS | 86.4% | 70.3% | 0.818 |
+| **T1-RHS** | 71.2% | **22.0%** | **0.224** |
+| T2-LHS | 78.0% | 59.3% | 0.661 |
+| T2-RHS | 92.4% | 83.9% | 2.213 |
+| T3-LHS | 78.8% | 60.2% | 0.839 |
+| **T3-RHS** | 96.6% | **96.6%** | **6.329** |
+
+By segment: **T1 46.2%** (median std 0.440), T2 71.6% (1.428),
+**T3 78.4%** (2.639).
+
+Two observations, both flagged rather than asserted:
+
+1. **Measured this way, T3 (hind) is the most robust segment and T1
+   (front) the least** — the opposite ordering to the "hind legs somewhat
+   less robust than front legs" that `CLAUDE.md` records from the paper's
+   Fig. 4. **This is not yet a contradiction.** Our metric is the standard
+   deviation of summed *motor-neuron pool* rate (an amplitude measure);
+   the paper's claim may rest on CPG-neuron activity, on rhythm quality
+   rather than amplitude, or on a different readout entirely. **Before
+   this is repeated anywhere, it must be checked against the actual v2
+   text and Fig. 4** — per this project's standing rule that a claim about
+   a paper is verified against primary text, never against our own notes.
+2. **Strong left/right asymmetry** (T1-LHS 70.3% vs T1-RHS 22.0%; T3-RHS
+   96.6% vs T3-LHS 60.2%) in a run where DNg100 is understood to be
+   activated bilaterally. Also worth verifying against the run config
+   before being interpreted.
+
+### What this settles
+
+* **Rung 2 is not viable as designed**, and the reason is upstream of us:
+  the conductor needs a readable phase on each leg, and the published
+  model supplies six readable legs in ~9% of stable replicates.
+* **Rung 1's negative result is confirmed against primary data.** The
+  interface did not fail because of a decoding mistake; it was given a
+  motor output that does not animate a hexapod.
