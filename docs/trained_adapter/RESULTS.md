@@ -218,3 +218,102 @@ compares to a hand-designed controller on the same body — it cannot show
 that the specific wiring was *necessary* for that, since no wiring control
 could be trained to test against. Recorded here so it is read alongside
 the numbers, not discovered as a footnote later.
+
+---
+
+# Rung 1 (R1a, output-stage) — result
+
+**The trained adapter does not walk.** Reported as the outcome of the
+pre-registered stopping rule (`RUNBOOK.md` §6: flat `term_progress` by
+generation 60–80 is a result, not a reason to keep waiting), not as a run
+that was abandoned early.
+
+## What was run
+
+Three ground runs, **14,784 episodes** in total. The first two are recorded
+because each ended for a reason that is itself a finding, not because they
+are comparable attempts:
+
+| run | gens | episodes | outcome |
+|---|---:|---:|---|
+| `r1a_ground` | 41 | 4,032 | invalid objective — the reward forbade walking (`GROUND_BRIDGE.md` §9) |
+| `r1a_ground_v2` | 38 | 3,648 | same, plus a drive bound that put 1σ past the saturation cliff |
+| **`r1a_ground_v3`** | **74** | **7,104** | **the valid run** — corrected reward, 3.43 h |
+
+Only v3 is evidence about the connectome. In v1 and v2 the objective was
+broken: the gait known to walk scored −15.95 against 0.00 for standing
+still, so both runs converged on inaction by playing correctly.
+
+## The result (v3)
+
+| | value | reference |
+|---|---:|---|
+| best score | +0.0501 (gen 49) | — |
+| median displacement | +0.009 mm / 4 s | — |
+| **fastest episode ever** | **0.627 mm/s** | **6.4% of the restricted CPG's 9.822 mm/s** |
+| episodes exceeding 1 mm | 29 of 7,104 (**0.41%**) | — |
+| `term_progress`, gens 0–20 / 20–40 / 40–60 / 60–74 | −0.00001 / +0.00039 / −0.00003 / +0.00045 | no trend |
+
+Progress oscillates around zero across the whole run. The best candidate
+moves its legs visibly (unlike v1's motionless one) and travels 0.11–0.19 mm
+in 4 s — real motion, but ~0.3–0.5% of a walking gait.
+
+## Why — the mechanism, measured
+
+Diagnosed in `GROUND_BRIDGE.md` §10. Three facts, in order of how binding
+they are:
+
+1. **Never six live legs.** `lm` and `rf` carry *identically zero* motor
+   rate in the best candidate, and both belong to the same tripod group, so
+   tripod alternation is structurally impossible for it. Sweeping drive
+   343.5 → 392.0 never recovers all six (4/6, 5/6, 5/6, 5/6).
+2. **No stance/swing cycling, so no traction.** The working CPG grips at a
+   uniform ~65% duty, cycling 12 Hz (95–96 transitions per leg per 4 s).
+   Trained candidates either barely grip (0.008–0.207) or pin legs
+   permanently down (duty 1.000). **The bound is not the obstacle** — the θ
+   giving 65% duty (−2.45, −1.91, −1.25, −0.04) lies well inside the
+   searchable [−9, 9]. The search could reach it and did not, because
+   gripping only pays once the rest of the gait is coordinated.
+3. **What it does instead.** With traction unavailable, the only strategy
+   that scores is asymmetric drive that pivots the body for a small net
+   +x. `command_asymmetry` is pinned at 95% of its range, and **62% of
+   episodes that move travel further sideways than forward** (median
+   |dy|/|dx| = 1.35).
+
+21 of 40 trained parameters sit at or within 8% of a bound, coherently:
+`motor_scale` maxed on middle/hind entries (flattening `tanh`, suppressing
+those legs), `motor_offset` pinned at ±0.29 of ±0.30 on five entries. The
+search switches legs off and braces rather than tuning a gait.
+
+## What this does and does not establish
+
+**Does.** Through this interface — a frozen connectome, DNg100 tonic drive,
+an antagonist-pair motor decoder over 18 DOFs, and a motor-derived adhesion
+gate — the decoded output does not animate six legs simultaneously and does
+not produce stance/swing cycling, so it cannot generate traction. That is
+consistent with the literature the project is built on: Pugliese et al.
+report **no consistent left/right phase coupling** under DNg100 drive
+(Fig. 4d–e, Ext. Data Fig. 9b) and T3 as least robust.
+
+**Does not.** It does not show the connectome *cannot* drive walking. The
+interface is narrow by construction (18 of 42 DOFs; 3 of 9 motor modules
+mapped, two of which are silent in the model — see the top of this file),
+the sensory path was off by design in R1a, and no interleg coordination was
+supplied. It also says nothing about necessity of the wiring: no connectome
+control is trainable, so the only comparison is against the C3 baselines.
+
+**Not attempted: rescuing this by reward design.** Forcing adhesion duty
+toward 65%, prescribing per-leg phase, penalising asymmetry, or rewarding
+tripod index directly would each hand the animal the answer being tested
+for (`GROUND_BRIDGE.md` §11). Coordination, if supplied, belongs in **Rung
+2** where it is labelled as our engineering addition with a K=0 ablation —
+not hidden in the objective.
+
+## Artefacts
+
+* `media/trained_adapter/r1a_ground_v3/` — checkpoint (gen 73), history,
+  per-generation episode records
+* `media/trained_adapter/r1a_v3_best_r{0,1,3}_{top,side}.mp4` — the best
+  candidate, rendered
+* `media/trained_adapter/restricted_action_cpg.json` — the feasibility
+  reference (18-DOF CPG at 9.822 mm/s)
