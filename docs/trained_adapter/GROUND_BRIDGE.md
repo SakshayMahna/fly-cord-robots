@@ -963,3 +963,69 @@ The literature is unambiguous about how tripod is obtained:
 So "make it walk" and "do not specify the gait" are now in direct
 conflict, and that conflict is the finding, not a failure to try hard
 enough.
+
+## 15. Trainable phase coupling — the mechanism has no capacity
+
+*2026-09-26. Built, probed, and not launched. Twenty minutes of probing
+instead of fourteen hours of training.*
+
+Built `adapter/interleg_coupling.py`: Kuramoto mean-field coupling with a
+**free phase offset per leg**, strength and offsets both trained, all
+initialised so that `z = 0` is the uncoupled model. Phase read from the
+connectome's own motor output by the validated resonator estimator; current
+injected into the CPG triad; no body sensor, so the no-bypass rule holds.
+The point of trainable offsets was to avoid writing a gait: if the search
+converged on tripod, that would be a finding about what this body selects
+for rather than an assumption we supplied.
+
+**Verified first:** with `coupling_strength = 0` the trial is bit-identical
+regardless of the offsets, so the ablation is exact; with strength > 0 the
+dynamics provably change.
+
+**Then the capacity probe — hand the mechanism tripod-shaped offsets
+directly and see whether it can express tripod at all:**
+
+| K | n_rhythmic | tripod index | peak n_active |
+|---:|---:|---:|---:|
+| 0.5 | 6 | −0.225 | 560 |
+| 1.0 | 6 | −0.191 | 561 |
+| 2.0 | 6 | −0.196 | 565 |
+| 5.0 | 5 | −0.199 | 572 |
+| 10.0 | 2 | **−1.000** | 602 |
+| 20.0 | **0** | — | 610 |
+
+**No strength produces tripod.** Below ~5 the coupling does not move the
+phase at all (tripod index no better than uncoupled −0.19); above it the
+rhythm collapses, reaching fully anti-tripod at K=10 and no rhythm at all
+by K=20. There is no window between "ignored" and "destroyed".
+
+**This is a capacity result, not a tuning result.** The offsets were handed
+to the mechanism rather than searched for. If it cannot express tripod when
+told the answer, training cannot discover it. The run was therefore not
+launched.
+
+**And the failure mode is this network's signature.** The same absence of a
+graded middle appears in saturation (≈500 active neurons at drive 392,
+3,919 at drive 400 — a 2% change in input for a 7× change in output) and
+now in phase control. These CPGs are either unmoved by injected current or
+destroyed by it.
+
+### Where that leaves the question
+
+Four independent mechanisms have now failed at the same point:
+
+| mechanism | result |
+|---|---|
+| raise stride amplitude | flips — legs uncoordinated |
+| electrical coupling (gap junctions) | locks, but **in phase** — all six lift together |
+| scale-adaptive adhesion | legs cycle, but at **independent** phases |
+| trainable phase coupling | phase unmovable below the threshold that destroys the rhythm |
+
+Every one fails because interleg phase is required and the connectome does
+not supply it — and, per §15, cannot be made to supply it by current
+injection into its own CPGs.
+
+The remaining routes all place the coordination **after** the connectome,
+in our motor decoder: Cruse-style rules, or a designed phase matrix. Those
+walk, and the honest description is "the connectome supplied the rhythm; we
+supplied the coordination."

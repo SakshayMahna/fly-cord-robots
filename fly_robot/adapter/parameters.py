@@ -114,6 +114,35 @@ PARAM_SPEC: tuple[tuple[str, tuple[int, ...], float, float, float], ...] = (
     # the threshold was absolute; in SD units that is degenerate (+-9 sigma
     # never crosses), so they are +-2, which spans ~2% to ~98% duty.
     ("adhesion_threshold", (3,), -2.0, 2.0, 0.0),
+    # --- interleg phase coupling (OUR ADDITION) -----------------------------
+    # The connectome does not phase-couple its six leg CPGs: they run at
+    # DIFFERENT FREQUENCIES (median spread 3.03 Hz, GROUND_BRIDGE.md 13),
+    # which Pugliese et al. also report and which survives removing all
+    # per-neuron parameter heterogeneity. Diffusive electrical coupling locks
+    # them but only IN PHASE -- all six legs lift together, which is the one
+    # gait that cannot support a body (GAP_JUNCTIONS.md).
+    #
+    # So this adds coupling with a PER-LEG PHASE OFFSET. The offsets are
+    # TRAINED, never written down: every one starts at 0 (in phase) and the
+    # strength starts at exactly 0, so z=0 is the uncoupled model bit for
+    # bit and any phase pattern must be DISCOVERED by the search against the
+    # reward. Writing a tripod pattern in here would make "the connectome
+    # coordinated the legs" unfalsifiable; letting the optimiser find one, and
+    # reporting what it found, is a result. If it converges on tripod, that
+    # is evidence about what this body wants, not an assumption we supplied.
+    #
+    # Phase is read from the connectome's own motor output via the validated
+    # causal resonator estimator (adapter/causal_phase.py, mean circular
+    # correlation 0.902 against the offline method); coupling current is
+    # injected into the CPG triad (adapter/cpg_groups.py). No body sensor is
+    # involved, so the no-bypass rule still holds.
+    # Low bound is NEGATIVE so that 0.0 is strictly interior and z=0 decodes
+    # to EXACTLY zero coupling -- the sigmoid never reaches its bounds, so a
+    # low bound of 0.0 gave 6e-05 and the K=0 ablation would not have been
+    # exact. Negative strength simply inverts the coupling sense, which the
+    # phase offsets already span.
+    ("coupling_strength", (),   -1.0,  60.0, 0.0),
+    ("coupling_phase",    (6,), -3.15, 3.15, 0.0),
 )
 
 N_PARAMS = sum(int(np.prod(shape)) if shape else 1 for _n, shape, *_ in PARAM_SPEC)
@@ -149,12 +178,13 @@ PARAMETER_GROUPS: dict[str, tuple[str, ...]] = {
                 "command_ramp_s"),
     "motor": ("motor_gain", "motor_scale", "motor_offset", "motor_tau"),
     "adhesion": ("adhesion_weight", "adhesion_threshold"),
+    "coupling": ("coupling_strength", "coupling_phase"),
 }
 
 # `output` is the ground-walking bridge's first rung. `sensory` is R1b: it
 # takes an R1a solution as a warm start and asks whether feedback improves it.
 TRAINING_STAGES: dict[str, tuple[str, ...]] = {
-    "output": ("command", "motor", "adhesion"),
+    "output": ("command", "motor", "adhesion", "coupling"),
     "sensory": ("sensory",),
     "full": tuple(PARAMETER_GROUPS),
 }

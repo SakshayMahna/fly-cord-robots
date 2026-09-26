@@ -127,6 +127,35 @@ def _joint_targets_from_rates(rates: np.ndarray, groups: MotorNeuronGroups,
     return targets
 
 
+_CPG_ROWS_CACHE = None
+
+
+def _cpg_rows_by_flygym_leg(
+        circuit_csv: str = "data/circuit_map/all_legs_circuit.csv"):
+    """{flygym leg prefix: [CPG triad row indices]}, loaded once per process.
+
+    Needs the neuron table to map bodyIds to row indices; that load is
+    cached because `run_trial` is called thousands of times per training
+    run and the mapping never changes.
+    """
+    global _CPG_ROWS_CACHE
+    if _CPG_ROWS_CACHE is None:
+        from src.utils.path_utils import create_fresh_config_with_paths
+        from src.utils.sim_utils import load_wTable
+
+        from fly_robot.adapter.cpg_groups import build_cpg_groups
+        from fly_robot.interface.motor_neuron_to_joint import (
+            LEG_NAME_TO_FLYGYM_PREFIX)
+        cfg = create_fresh_config_with_paths(
+            experiment="FullVNC_DNg100_Stim", paths_template="fly_robot",
+            run_id="cpg_rows_lookup")
+        wtable = load_wTable(cfg.experiment.dfPath)
+        by_leg = build_cpg_groups(circuit_csv, wtable)
+        _CPG_ROWS_CACHE = {prefix: by_leg.get(leg, [])
+                           for leg, prefix in LEG_NAME_TO_FLYGYM_PREFIX.items()}
+    return _CPG_ROWS_CACHE
+
+
 def run_trial(neural_model, motor_groups: MotorNeuronGroups,
               sensory_groups=None, feedback_gain: float = 0.0,
               on_ball: bool = False, duration_s: float = TRIAL_DURATION_S,
@@ -233,7 +262,7 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
     # rather than the model's pulse-gated `baseline_input`, so that its
     # onset ramp is under adapter control. Zeroing the baseline avoids
     # counting the same stimulation twice.
-    adapter_alpha = saved_baseline = None
+    adapter_alpha = saved_baseline = interleg = None
     if adapter is not None:
         from fly_robot.adapter.apply import (
             AdhesionGate, adapter_joint_targets, anatomical_pool_rates,
@@ -243,6 +272,16 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
         neural_model.baseline_input = np.zeros_like(saved_baseline)
         adapter_alpha = motor_filter_alpha(adapter, dof_index_by_name, neural_dt)
         adhesion_gate = AdhesionGate(adapter, dt=neural_dt)
+        # Interleg phase coupling — OUR ADDITION, and OFF unless the adapter
+        # carries a non-zero coupling_strength (default is exactly 0, so this
+        # is the uncoupled model bit for bit). Phase is read from connectome
+        # motor output only; no body sensor is involved, so the no-bypass
+        # rule holds. See adapter/interleg_coupling.py.
+        if hasattr(adapter, "coupling_strength"):
+            from fly_robot.adapter.interleg_coupling import InterlegCoupling
+            from fly_robot.adapter.apply import FLYGYM_LEG_ORDER
+            interleg = InterlegCoupling(adapter, _cpg_rows_by_flygym_leg(),
+                                        FLYGYM_LEG_ORDER, dt=neural_dt)
 
     ball_reader = None
     if on_ball:
@@ -330,6 +369,12 @@ def run_trial(neural_model, motor_groups: MotorNeuronGroups,
                 adapter, neural_model.neurons.n_neurons, neural_model.t,
                 neural_model.pulse_start, neural_model.pulse_end)
             extra_input = command if extra_input is None else extra_input + command
+            if interleg is not None and interleg.enabled:
+                coup = interleg.step(
+                    per_leg_summed_rate(neural_model.rates, leg_rows),
+                    neural_model.neurons.n_neurons)
+                if coup is not None:
+                    extra_input = coup if extra_input is None else extra_input + coup
 
         # --- neurons ---------------------------------------------------------
         rates = neural_model.step(neural_dt, extra_input=extra_input)
