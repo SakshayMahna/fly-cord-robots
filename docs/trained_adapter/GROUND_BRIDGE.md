@@ -1029,3 +1029,79 @@ The remaining routes all place the coordination **after** the connectome,
 in our motor decoder: Cruse-style rules, or a designed phase matrix. Those
 walk, and the honest description is "the connectome supplied the rhythm; we
 supplied the coordination."
+
+## 16. Cruse coordination rules: they work, and they need a pausable clock
+
+*2026-09-26. Built `adapter/coordination_rules.py` and tested the mechanism
+in isolation before any integration.*
+
+### First, conduction delay is ruled out on physics
+
+Measured from real MANC coordinates (`somaLocation`, 8 nm voxels), the six
+CPG excitatory hubs:
+
+| | |
+|---|---|
+| longest inter-CPG distance | **432 μm** |
+| delay needed for antiphase at 12 Hz | **41.7 ms** |
+| delay at 0.1 m/s (slowest plausible insect axon) | 4.3 ms |
+| **conduction velocity required** | **0.0104 m/s — 10× slower than the slowest real axon** |
+
+The nerve cord is under half a millimetre; a step is 83 ms. Signals cross
+the whole cord in ~1 ms. **Conduction delay cannot be the coordination
+mechanism at walking frequencies** — a result about real fly anatomy, not
+about our model, and it closes the last non-designed lever.
+
+### The rules, and what they need
+
+Cruse's ipsilateral rules (stick insect literature, verified): an ongoing
+**swing** inhibits swing onset in the next **rostral** leg; the onset of
+**stance** facilitates it; and posterior movement through stance
+increasingly facilitates swing onset in the next **caudal** leg. All local,
+all between adjacent legs, all phrased as *when a leg may lift* — never as
+a phase to hold. No gait is stored.
+
+**Tested two implementations against six oscillators at the measured
+connectome frequency spread (11.4, 11.9, 11.4, 12.0, 9.4, 12.0 Hz):**
+
+| implementation | hexapod tripod index | quadruped (same rules, middle legs removed) |
+|---|---:|---|
+| delay the decoded output | **−0.091** (fails) | no alternation |
+| **pause the oscillator** (Walknet-style) | **+0.282** | **left–right alternation −0.743** |
+
+**Why the delay version fails, and it is not a tuning problem.** A bounded
+delay cannot hold a phase relationship between oscillators of *different*
+frequencies: at 11.4 vs 12.0 Hz the relative phase drifts at 0.6 Hz and the
+delay required grows without bound. Observed directly — the delays pinned
+against their 120 ms ceiling and nothing coordinated.
+
+**Cruse rules require an entrainable oscillator.** An inhibited leg must
+*wait* in stance. The connectome's CPGs cannot wait: §15 established their
+phase cannot be shifted by injected current below the strength that
+destroys the rhythm.
+
+### The resulting division of labour, stated for the record
+
+To use these rules, each leg's step must play on **our** clock — pausable —
+with the connectome supplying the waveform and the tempo:
+
+| connectome | us |
+|---|---|
+| the **shape** of a step (what the joints do within one cycle) | the **clock**: when each leg steps, and when it waits |
+| the **tempo** (~12 Hz, emerged from the network; we never chose it) | |
+
+Honest caption: *"the fly's wiring shapes each step and sets the pace; our
+rules decide whose turn it is."* Not "the connectome coordinated the legs."
+
+### Quadruped transfer — the one thing that does come free
+
+The same rules, with middle legs removed and **nothing re-specified**,
+produce left–right alternation (−0.743). The adjacency graph changes; the
+rule set does not. That is the property that makes this the only viable
+synchronizer for the hexapod → quadruped arc.
+
+**Humanoid is not in scope.** Two legs would alternate correctly, but
+bipedal walking is *dynamically* stable — during single support the body is
+falling and catching itself — whereas hexapod and quadruped gaits are
+*statically* stable. Step timing is not the binding constraint for a biped;
+balance is, and there is no bipedal balance circuitry anywhere in a fly.
