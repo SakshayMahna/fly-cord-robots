@@ -242,8 +242,33 @@ def anatomical_pool_rates(rates, groups):
 class AdhesionGate:
     """Stateful per-leg adhesion gate driven only by connectome output.
 
-    Holds the running mean, so it must be constructed once per trial and
+    Holds running statistics, so it must be constructed once per trial and
     stepped in lockstep with the neural model.
+
+    **Scale-adaptive thresholding (2026-09-26).** The original gate compared
+    `w * (rate - running_mean)` against an ABSOLUTE threshold. That was a
+    real bug, and it is why no trained adapter ever produced a stepping
+    gait: the per-leg signal amplitude varies by orders of magnitude between
+    legs and replicates (std 0.0 to 18.6 on the same drive), so a fixed
+    threshold sits either far above the signal (foot never grips) or far
+    below it (foot never releases). Measured on trained candidates: duty
+    cycles of 0.000 and 1.000, against 0.62-0.69 with ~12 Hz cycling for the
+    controller that actually walks. Four of six legs never cycled at all.
+
+    The threshold is now expressed in units of each leg's OWN running
+    standard deviation:
+
+        adhere  <=>  (rate - running_mean) > k * running_std
+
+    so it cycles regardless of that leg's amplitude. `k` is the trained
+    parameter (`adhesion_threshold`, reinterpreted): k=0 gives ~50% duty,
+    k<0 more stance, k>0 more swing. `adhesion_weight`'s sign still allows
+    the gate to invert.
+
+    **This specifies no gait.** Each leg is thresholded against its own
+    signal statistics only; nothing here says which legs step together, and
+    no leg can see any other. The interleg pattern remains whatever the
+    connectome produces. What it fixes is that a leg can now cycle at all.
     """
 
     def __init__(self, params: AdapterParams, dt: float = 0.001,
@@ -251,7 +276,7 @@ class AdhesionGate:
         self.params = params
         self.alpha = dt / tau_s
         self.baseline = None
-        # per-leg weight and threshold, expanded from per-segment values
+        self.var = None
         self.w = np.array([float(params.adhesion_weight[
             _SEG_INDEX[_PREFIX_TO_LEG[p][0]]]) for p in FLYGYM_LEG_ORDER])
         self.theta = np.array([float(params.adhesion_threshold[
@@ -262,9 +287,17 @@ class AdhesionGate:
         leg_rate = np.asarray(leg_rate, dtype=float)
         if self.baseline is None:
             self.baseline = leg_rate.copy()
+            self.var = np.zeros_like(leg_rate)
         deviation = leg_rate - self.baseline
         self.baseline = (1.0 - self.alpha) * self.baseline + self.alpha * leg_rate
-        return (self.w * deviation > self.theta).astype(float)
+        # Running variance of the same deviation the gate thresholds.
+        self.var = (1.0 - self.alpha) * self.var + self.alpha * deviation ** 2
+        scale = np.sqrt(self.var)
+        # A leg with no rhythm has no scale to threshold against; it simply
+        # does not grip, rather than latching on an arbitrary comparison.
+        active = scale > 1e-9
+        signal = np.where(active, self.w * deviation / np.where(active, scale, 1.0), 0.0)
+        return np.where(active, signal > self.theta, 0.0).astype(float)
 
 
 def command_current(params: AdapterParams, n_neurons: int, t: float,

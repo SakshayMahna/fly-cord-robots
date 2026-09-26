@@ -102,18 +102,18 @@ PARAM_SPEC: tuple[tuple[str, tuple[int, ...], float, float, float], ...] = (
     ("motor_offset",    (3, 3), -0.30, 0.30, 0.0),
     ("motor_tau",       (3,),  0.0005, 0.05, 0.001),  # ~= no filtering at neural dt
     # --- adhesion gating, per segment --------------------------------------
-    # Gate: w * (per-leg summed motor rate - its 50 ms running mean) > theta.
+    # Gate: w * (rate - running mean) / running SD > theta, all computed per
+    # leg from that leg's OWN signal (apply.AdhesionGate).
     #
     # `w` may go NEGATIVE so the optimiser can find the polarity itself --
     # which half of the rhythm is stance is our modelling choice, and one we
     # would rather not make by assertion. Initialised positive.
-    #
-    # Threshold bounds span the measured deviation scale: |rate - running
-    # mean| has p50 0.37, p95 6.41, p99 9.05, max 18.39 Hz across four
-    # untrained replicates, so +/-9 covers the usable range without the
-    # gate saturating at either bound.
     ("adhesion_weight",    (3,), -2.0, 2.0, 1.0),
-    ("adhesion_threshold", (3,), -9.0, 9.0, 0.0),
+    # In units of each leg's own running SD (see apply.AdhesionGate): k=0 is
+    # ~50% stance duty, k<0 more stance, k>0 more swing. Bounds were +-9 when
+    # the threshold was absolute; in SD units that is degenerate (+-9 sigma
+    # never crosses), so they are +-2, which spans ~2% to ~98% duty.
+    ("adhesion_threshold", (3,), -2.0, 2.0, 0.0),
 )
 
 N_PARAMS = sum(int(np.prod(shape)) if shape else 1 for _n, shape, *_ in PARAM_SPEC)

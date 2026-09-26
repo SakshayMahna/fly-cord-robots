@@ -884,3 +884,82 @@ it cannot frequency-lock a 3.3 Hz leg to a 12.6 Hz one.
    it: mean within-side spread 1.87 Hz versus mean across-side gap 1.06 Hz,
    and only 4 of 9 replicates have within-side < across-side. Recorded as a
    pattern seen in individual replicates, not a property of the model.
+
+---
+
+## 14. The adhesion gate was broken; fixing it was necessary but not sufficient
+
+*2026-09-26.*
+
+### A real bug, found and fixed
+
+`AdhesionGate` compared `w * (rate − running_mean)` against an **absolute**
+threshold. Per-leg signal amplitude varies by orders of magnitude between
+legs and replicates (std 0.0 to 18.6 at the same drive), so a fixed
+threshold sits either above the whole signal (foot never grips) or below it
+(foot never releases). Measured on trained candidates: duty cycles of
+exactly 0.000 and 1.000, with four of six legs never cycling at all.
+
+The threshold is now in units of each leg's **own running standard
+deviation**, so it cycles regardless of that leg's amplitude. `k = 0` is
+~50% duty; `k < 0` more stance. Bounds corrected from ±9 (degenerate in SD
+units — ±9σ never crosses) to ±2, spanning ~2% to ~98% duty.
+
+**This specifies no gait.** Each leg is thresholded against its own signal
+only; no leg can see any other, and nothing says which legs step together.
+
+**Result — the gate now works:**
+
+| | duty | transitions per 3 s |
+|---|---|---|
+| before | 0.000 / 1.000, four legs never cycled | 0 |
+| **after** (rep 0) | 0.46, 0.36, 0.38, 0.34, 0.37, 0.47 | **67–70 on all six ≈ 11.7 Hz** |
+| working CPG | 0.62–0.69 | ~12 Hz (95–96 per 4 s) |
+
+The cycling frequency now matches the gait that walks.
+
+### But the fly still flips at any real stride
+
+| gain | scale | k | dx (mm) | flipped |
+|---:|---:|---:|---:|---|
+| 0.50 | 3.00 | 0.0 | −0.459 | no |
+| 1.20 | 0.50 | 0.0 | 0.000 | **yes** |
+| 0.50 | 3.00 | −0.4 | −0.501 | no |
+| 1.20 | 0.50 | −0.4 | 0.000 | **yes** |
+
+Identical to before the fix. Cycling adhesion did not buy any amplitude
+tolerance.
+
+### The picture that now converges from three directions
+
+Every route we have tried fails at the same point, for the same reason:
+
+* **raise stride amplitude** → flips, because legs are uncoordinated;
+* **electrical coupling** → locks them *in phase*, so all six lift together
+  → flips (§GAP_JUNCTIONS);
+* **fix adhesion so legs cycle** → they cycle at *independent* phases, so
+  at random moments all six release → flips.
+
+Stable walking needs at least three legs down in a stable triangle at all
+times. That is a statement about **interleg phase**, and it is precisely
+what the connectome does not supply — Pugliese report it, we measured it
+(six oscillators at different frequencies), and every mechanism that would
+supply it requires specifying the phase pattern.
+
+### The constraint that is now binding
+
+The literature is unambiguous about how tripod is obtained:
+
+* **CPG robotics** (Ijspeert and successors): the phase relationships are
+  **designed in**, as an explicit "phase difference matrix planned for
+  different gaits including tripod". FlyGym's own generator is named
+  `make_tripod_cpg_network`. Nobody in this literature obtains tripod by
+  emergence.
+* **Walknet** (Cruse): tripod **emerges**, from local coordination rules
+  between neighbouring legs plus mechanical coupling — but those rules are
+  hand-designed and sensory, and they would be *our* controller doing the
+  coordinating.
+
+So "make it walk" and "do not specify the gait" are now in direct
+conflict, and that conflict is the finding, not a failure to try hard
+enough.
