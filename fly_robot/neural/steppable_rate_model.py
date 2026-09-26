@@ -151,7 +151,8 @@ class SteppableRateModel:
 
     def __init__(self, neurons: NeuronSet, baseline_input: np.ndarray,
                  pulse_start: float = 0.02, pulse_end: float = 1.999,
-                 substeps: int = 1, active_column_matvec: bool = True):
+                 substeps: int = 1, active_column_matvec: bool = True,
+                 gap_junctions=None):
         """`substeps` splits each `step(dt)` into `substeps` RK4 stages of
         dt/substeps. The sensory `extra_input` is held constant across
         the whole `dt` regardless (zero-order hold) — substeps only
@@ -165,6 +166,15 @@ class SteppableRateModel:
         the optimisation is ever suspected).
         """
         self.neurons = neurons
+        # ELECTRICAL COUPLING — OUR ADDITION, never part of the connectome.
+        # A separate symmetric conductance matrix (see neural/gap_junctions.py
+        # for why: electrical synapses are below EM resolution and absent from
+        # every published fly connectome). `w_eff` is NOT touched by this;
+        # the chemical synapse graph, its weights and its signs are unchanged.
+        # None means exactly the previously published behaviour.
+        self.gap_junctions = gap_junctions
+        self._gj_leak = (np.asarray(gap_junctions.sum(axis=1)).ravel()
+                         if gap_junctions is not None else None)
         self.baseline_input = np.asarray(baseline_input, dtype=np.float64)
         self.pulse_start = float(pulse_start)
         self.pulse_end = float(pulse_end)
@@ -217,7 +227,15 @@ class SteppableRateModel:
         if extra_input is not None:
             total = total + extra_input
         activation = np.maximum(n.fr_cap * np.tanh((n.a / n.fr_cap) * (total - n.threshold)), 0.0)
-        return (activation - r) / n.tau
+        drdt = (activation - r) / n.tau
+        if self.gap_junctions is not None:
+            # Diffusive electrical coupling, sum_j g_ij (r_j - r_i). Applied
+            # to the DERIVATIVE, not to `total`: a gap junction conducts
+            # directly between cells and does not pass through the synaptic
+            # threshold nonlinearity the way a chemical synapse does.
+            # Vanishes identically once the coupled cells are synchronised.
+            drdt = drdt + (self.gap_junctions @ r) - self._gj_leak * r
+        return drdt
 
     def step(self, dt: float, extra_input: np.ndarray | None = None) -> np.ndarray:
         """Advances by `dt` (classical RK4) and returns the new rates.
