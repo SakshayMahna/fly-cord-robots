@@ -117,3 +117,64 @@ So for the first time every identified blocker has been addressed:
 | joint excursion 11× too small | training's job, never yet attempted with the above fixed |
 
 The next run is the first legitimate test of the walking question.
+
+---
+
+## Outcome: locking achieved, but it is the wrong phase for a body
+
+*Stopped `r1a_coupled` at generation 15. The intervention did exactly what
+it was designed to do and it did not help walking. Recorded in full,
+because the reason is the interesting part.*
+
+### What happened in training
+
+The coupled run performed **worse** than the uncoupled one (v3). Best score
+pinned at −0.0000 from generation 8 onward, with progress, rhythmicity and
+saturation all at exactly zero — the "switch everything off" attractor,
+reached faster than before. Coupling was verified active throughout
+(`gap_conductance: 20.0` in the training contract, not assumed).
+
+### Why: in-phase locking removes static stability
+
+Diffusive electrical coupling stabilises the **in-phase** state, so all six
+legs lock together. For a hexapod that is the single worst gait available:
+all six legs lift at the same moment, nothing supports the body, and it
+falls. A tripod works precisely *because* three legs are always down.
+
+Measured directly, with and without coupling, sweeping decoder amplitude:
+
+| coupling | gain | scale | dx (mm) | upright | flipped |
+|---:|---:|---:|---:|---:|---|
+| 0 | 0.50 | 3.00 | −0.459 | 0.904 | no |
+| 0 | 1.20 | 0.50 | 0.000 | 0.881 | **yes** |
+| **20** | 0.50 | 3.00 | −0.401 | 0.905 | no |
+| **20** | 1.20 | 0.50 | 0.000 | 0.885 | **yes** |
+
+**Coupling makes no difference to the flipping at any amplitude.** The
+hypothesis that locked legs would tolerate larger strides is false — and it
+is false for a clear mechanical reason, not a subtle one.
+
+### What this does and does not retract
+
+**Stands:** the neuroscience result. Electrical coupling collapses the
+frequency spread from 2.58 Hz to 0.00 Hz and locks all six CPGs to a single
+frequency, with 6/6 legs rhythmic and no saturation, via a mechanism that is
+provably absent from every published connectome. The subharmonic entrainment
+en route (the weak leg at half frequency before pulling into 1:1) is textbook
+coupled-oscillator behaviour appearing in a real connectome.
+
+**Does not follow:** that this helps locomotion. It does not, and on this
+body it actively hurts.
+
+### The remaining route to tripod, and why it is not taken here
+
+Antiphase between tripod groups requires coupling that *prefers* a phase
+offset — inhibitory coupling (not physical for a gap junction) or **conduction
+delay**, which is biologically real and is a single scalar rather than a
+per-leg pattern. Sweeping a delay until tripod appears is closer to the line
+than adding coupling was: it is one parameter with a clear physical meaning,
+but it is also optimising a parameter against the exact pattern we claim to
+be discovering. Flagged as an option, deliberately not taken unilaterally.
+
+Assigning legs to tripod groups, or adding per-leg phase offsets, remains
+off the table entirely (`GROUND_BRIDGE.md` §11).
