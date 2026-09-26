@@ -45,7 +45,9 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
                             shuffle_protected: bool = True,
                             random_seed: int | None = None,
                             normalise_sensory_sides: bool = True,
-                            circuit_csv: str = "data/circuit_map/all_legs_circuit.csv"):
+                            circuit_csv: str = "data/circuit_map/all_legs_circuit.csv",
+                            gap_conductance: float = 0.0,
+                            gap_roles: tuple = ("CPG_excit_hub", "CPG_excit2")):
     """Returns `(neural_model, motor_groups, sensory_groups, wtable, info)`.
 
     `shuffle_seed=None` and `random_seed=None` use the real connectome.
@@ -100,9 +102,25 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
     baseline_input = np.zeros(len(wtable))
     baseline_input[list(DNG100_ROWS)] = stim_current
 
+    # Electrical coupling — OUR ADDITION, and 0.0 means the published model
+    # exactly (asserted bit-for-bit in tests/test_gap_junctions.py). See
+    # neural/gap_junctions.py and docs/trained_adapter/GAP_JUNCTIONS.md for
+    # why: electrical synapses are below EM resolution and are absent from
+    # every published fly connectome, and without them the six leg CPGs run
+    # at different frequencies and cannot phase-couple at all.
+    gap_report = None
+    gap_matrix = None
+    if gap_conductance > 0:
+        from fly_robot.neural.gap_junctions import (
+            coupling_report, homologous_cpg_coupling)
+        gap_matrix = homologous_cpg_coupling(
+            circuit_csv, wtable, gap_conductance, roles=tuple(gap_roles))
+        gap_report = coupling_report(gap_matrix)
+
     model = SteppableRateModel(
         neurons, baseline_input=baseline_input,
-        pulse_start=sim_params.pulse_start, pulse_end=sim_params.pulse_end)
+        pulse_start=sim_params.pulse_start, pulse_end=sim_params.pulse_end,
+        gap_junctions=gap_matrix)
 
     motor_groups = build_motor_neuron_groups(circuit_csv, wtable)
     sensory_groups = build_sensory_groups(
@@ -116,5 +134,8 @@ def build_trial_components(replicate: int, param_seed: int = PILOT_PARAM_SEED,
             "condition": ("C1" if shuffle_seed is not None
                           else "C2" if random_seed is not None else "real"),
             "shuffle_protected": shuffle_protected if shuffle_seed is not None else None,
-            "shuffle_report": shuffle_report}
+            "shuffle_report": shuffle_report,
+            "gap_conductance": float(gap_conductance),
+            "gap_roles": list(gap_roles) if gap_conductance > 0 else None,
+            "gap_report": gap_report}
     return model, motor_groups, sensory_groups, wtable, info

@@ -39,6 +39,10 @@ def main():
     ap.add_argument("--stage", choices=("output", "sensory", "full"),
                     default="output",
                     help="output=R1a, sensory=R1b warm-start refinement, full=exploratory")
+    ap.add_argument("--gap-conductance", type=float, default=0.0,
+                    help="electrical coupling between leg CPGs (OUR addition; "
+                         "0 = published model exactly). 20 locks all six legs "
+                         "to one frequency -- see GAP_JUNCTIONS.md")
     ap.add_argument("--warm-start", type=Path,
                     help="best.json from a prior run; required for a meaningful R1b")
     args = ap.parse_args()
@@ -64,6 +68,7 @@ def main():
         sigma0=args.sigma0, seed=args.seed, trial_s=args.trial_s,
         shuffle_seed=shuffle_seed, out_dir=args.out_dir, stage=args.stage,
         adapter_sensory=args.stage != "output", initial_z=initial_z,
+        gap_conductance=args.gap_conductance,
     )
     best, history = Trainer(cfg).run(resume=not args.fresh)
     print(f"\nbest score {best['score']:+.4f} at generation {best['generation']}")

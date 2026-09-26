@@ -65,6 +65,10 @@ class TrainConfig:
     condition: str = "real"           # "real" | "C1" | "C2"
     # R1a is intentionally output-only. R1b (`stage="sensory"`) takes an
     # R1a best vector as `initial_z`, then unlocks the sensory block only.
+    # Electrical coupling between leg CPGs -- OUR ADDITION, not connectome.
+    # 0.0 is the published model exactly. See GAP_JUNCTIONS.md: without it
+    # the six leg CPGs run at different frequencies and cannot phase-couple.
+    gap_conductance: float = 0.0
     stage: str = "output"          # output | sensory | full
     rig: str = "ground"             # ground is the walking task; never ball
     adapter_sensory: bool = False
@@ -146,7 +150,8 @@ def _components_for(replicate: int):
         model, mg, sg, _wt, _info = build_trial_components(
             replicate=replicate, param_seed=cfg.param_seed,
             duration_s=cfg.trial_s, shuffle_seed=cfg.shuffle_seed,
-            random_seed=cfg.random_seed_net)
+            random_seed=cfg.random_seed_net,
+            gap_conductance=cfg.gap_conductance)
         for arr in jax.live_arrays():
             try:
                 arr.delete()
@@ -235,6 +240,7 @@ class Trainer:
             "active_parameter_names": self.active_names,
             "active_parameter_count": int(len(self.active_indices)),
             "initial_z_sha256": hashlib.sha256(self.initial_z.tobytes()).hexdigest(),
+            "gap_conductance": float(cfg.gap_conductance),
         }
 
     def expand_z(self, active_z: np.ndarray) -> np.ndarray:
